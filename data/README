@@ -1,1 +1,3 @@
 Place all your raw data (tar files, fits files, ....) in here.
+
+Use "make" and/or consult README_DC2019_data
