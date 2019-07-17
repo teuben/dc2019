@@ -36,11 +36,18 @@ you will need the 12,, 7m and TP data, e.g. in NA (replace the stem of the URL w
 This totals 24GB.
 
 
+We are also planning on a trimmed version of these big data to immediately jump into data combination.
 
-
+TP2VIS: https://github.com/tp2vis/distribute/blob/master/example1.md   needs to be updated
 
 2) NGC 346 (SMC observatory project)
    ---------------------------------
+
+NGC 346 (ALMA#2017.A.00054.S), the Observatory Project with PI: Claudia Agliozzi.
+
+This is a ~15' map with 7m and TP data, lots of structure, demonstrates the need for combinations.
+
+[AI] Contact: Dirk + Thomas
 
 3) GMC fractal/powerspectrum (Koda)
 
@@ -57,10 +64,19 @@ generated from Koda's newer code.  TBD.
 
 5) Outflow 
 
+Outflow from Lupus 3 mms, I can include 12m, 7m, and TP, or just 7m
+and TP.  This has been a relatively challenging data cube to "clean",
+as I think the quality of the image will depend on turning the right
+nobs in TCLEAN, maybe moreso than the actual combination.  But,
+certainly an interesting emission structure. [AI] Contact: Adele
 
 6) MC/GMC - apex + alma
 
 
 7) LOFAR
 
-
+(tentative) "Lower" frequency, possibly LOFAR.  [AI] Adele will
+contact Pedro Salas to ask about this, and also follow up with the
+LOFAR people who registered for the workshop (e.g. Kelley Hess, who
+mentioned SKA HI pathfinder instruments and combination with SD
+observations)
