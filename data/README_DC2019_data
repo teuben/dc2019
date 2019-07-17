@@ -58,6 +58,8 @@ http://admit.astro.umd.edu/~teuben/QAC/qac_bench.tar.gz
 These is the old 4096 x 4096 models, there is a newer two part (Re/Im) model available
 generated from Koda's newer code.  TBD.
 
+See also ftp://ftp.astro.umd.edu/pub/teuben/tp2vis
+
 
 4) Gaussian Models (Fomalont)
 
