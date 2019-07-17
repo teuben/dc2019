@@ -6,6 +6,15 @@ workshop. We plan to have all scripts, code, documentation, and presentations he
 but our data are typically large and we will supply URLs from where you can download them
 from.
 
+## Combination Techniques
+
+We will probably try out a few techniques:
+
+   * [feather](https://casa.nrao.edu/casadocs/casa-5.4.1/image-combination/feather) [talk by Ginsburg]
+   * [tp2vis](https://github.com/tp2vis/distribute) [talk by Teuben]
+   * [hybrid](https://sites.google.com/site/jenskauffmann/research-notes/adding-zero-spa) [talk by Kauffmann]
+   * ...
+
 ## Software needed
 
 Since we are going to be CASA based this week, we only support Linux and Mac.
