@@ -28,6 +28,7 @@ if (! -e $msh || ! -d miniconda3) then
   if ($status) then
     curl $mc3 -o $msh
     if ($status) exit 1
+  endif
 endif
 
 bash $msh -b -p $dir
@@ -39,7 +40,7 @@ pip install --upgrade pip
 
 if (1) then
   # too many times my /tmp isn't big enough
-  mkdir tmp
+  mkdir -p tmp
   setenv TMPDIR `pwd`/tmp
 endif
 
