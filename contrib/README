@@ -1,9 +1,15 @@
+Useful software during the workshop
 
-casa
-python  (miniconda or anaconda)
+CASA      https://casa.nrao.edu/casa_obtaining.shtml
+  QAC
+    tp2vis
+    sd2vis
+    au (Analysis Utilities; useful for CASA)
+  https://casaguides.nrao.edu/index.php?title=Contributed_CASA_Tasks_and_Scripts
+python3  (miniconda3 or anaconda3)
   uvcombine
-QAC
-  tp2vis
-  sd2vis
-  au
-ds9 & xpatools
+  http://radio-astro-tools.github.io/
+ds9       http://ds9.si.edu/site/Home.html
+  xpatools 
+carta     https://cartavis.github.io/
+VNC
