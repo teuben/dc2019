@@ -26,7 +26,7 @@ end
 if (! -e $msh || ! -d miniconda3) then
   wget $mc3
   if ($status) then
-    curl $mc3 -O $msh
+    curl $mc3 -o $msh
     if ($status) exit 1
 endif
 
