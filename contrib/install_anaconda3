@@ -3,33 +3,55 @@
 #  Install an anaconda3 python for astroquery.alma, and optionally casa6beta
 #
 
-            # 670MB
-set mc3   = https://repo.anaconda.com/archive/Anaconda3-2019.03-Linux-x86_64.sh
+set sys = `uname -s`
+
+
+#         670MB
+if ($sys == Linux) then
+  set mc3 = https://repo.anaconda.com/archive/Anaconda3-2019.03-Linux-x86_64.sh
+else if ($sys == Darwin) then
+  set mc3 = https://repo.anaconda.com/archive/Anaconda3-2019.03-MacOSX-x86_64.sh
+else
+  echo Bad sys=$sys
+  exit 1
+endif
 set msh   = $mc3:t
 set dir   = `pwd`/anaconda3
 set casa6 = 0
+set conda = 1
+set pip   = 1
 
 # you better know what you are doing here
 foreach arg ($*)
   set $arg
 end
 
-if (! -e $msh) wget $mc3
+if (! -e $msh) then
+  wget $mc3
+  if ($status) then
+    curl $mc3 -o $msh
+    if ($status) exit 1
+  endif
+else
+  echo Found $msh
+endif
+
 bash $msh -b -p $dir
 
 setenv PATH "$dir/bin:$PATH"
 
-conda update -y conda
-pip install --upgrade pip
+if ($conda) conda update -y conda             # on Ubuntu 18.04.2 LTS this now causes failure when casa6=1
+if ($pip)   pip install --upgrade pip
 
 
 echo "set path = ($dir/bin "'$path); rehash'  >> python_start.csh
 echo "export PATH=${dir}/bin:"'$PATH'         >> python_start.sh
 
+echo casa6=$casa6
 if ($casa6) conda install -y python=3.6.8
 
 if ($casa6) then
-  echo "pip install casatools and casatasks... this will download 740MB"
+  echo "casa6: pip install casatools and casatasks... this will download 740MB"
   pip install --extra-index-url https://casa-pip.nrao.edu:443/repository/pypi-group/simple casatools
   pip install --extra-index-url https://casa-pip.nrao.edu:443/repository/pypi-group/simple casatasks
 endif
