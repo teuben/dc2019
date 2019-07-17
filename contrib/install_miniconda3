@@ -3,8 +3,17 @@
 #  Install a miniconda3 python for astroquery.alma, and optionally casa6beta
 #
 
+set sys = `uname -s`
+
 #           68MB
-set mc3   = https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+if ($sys == Linux) then
+  set mc3   = https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+else if ($sys == Darwin) then
+  set mc3   = https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
+else
+  echo Bad sys=$sys
+  exit 1
+endif  
 set msh   = $mc3:t
 set dir   = `pwd`/miniconda3
 set casa6 = 0
@@ -14,7 +23,13 @@ foreach arg ($*)
   set $arg
 end
 
-if (! -e $msh) wget $mc3
+if (! -e $msh || ! -d miniconda3) then
+  wget $mc3
+  if ($status) then
+    curl $mc3 -O $msh
+    if ($status) exit 1
+endif
+
 bash $msh -b -p $dir
 
 setenv PATH "$dir/bin:$PATH"
