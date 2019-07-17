@@ -50,4 +50,6 @@ else if (1) then
   python setup.py install
 else
   pip install --upgrade --pre astroquery
-endif  
+endif
+ 
+pip install image_registration radio_beam reproject spectral_cube
