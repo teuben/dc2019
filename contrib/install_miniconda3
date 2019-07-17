@@ -8,9 +8,9 @@ set sys = `uname -s`
 
 #           68MB
 if ($sys == Linux) then
-  set mc3   = https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+  set mc3 = https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
 else if ($sys == Darwin) then
-  set mc3   = https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
+  set mc3 = https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
 else
   echo Bad sys=$sys
   exit 1
@@ -38,7 +38,7 @@ bash $msh -b -p $dir
 
 setenv PATH "$dir/bin:$PATH"
 
-conda update -y conda
+conda update -y conda             # on Ubuntu 18.04.2 LTS this now causes failure when casa6=1
 pip install --upgrade pip
 
 if (1) then
