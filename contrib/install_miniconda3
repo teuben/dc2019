@@ -18,6 +18,8 @@ endif
 set msh   = $mc3:t
 set dir   = `pwd`/miniconda3
 set casa6 = 0
+set conda = 1
+set pip   = 1
 
 # you better know what you are doing here
 foreach arg ($*)
@@ -38,8 +40,8 @@ bash $msh -b -p $dir
 
 setenv PATH "$dir/bin:$PATH"
 
-conda update -y conda             # on Ubuntu 18.04.2 LTS this now causes failure when casa6=1
-pip install --upgrade pip
+if ($conda) conda update -y conda             # on Ubuntu 18.04.2 LTS this now causes failure when casa6=1
+if ($pip)   pip install --upgrade pip
 
 if (1) then
   # too many times my /tmp isn't big enough
