@@ -25,7 +25,7 @@ and recommended software
 
 ## Data needed
 
-see [README_DC2018_data](README_DC2019_data) for more details
+see [data/README_DC2018_data](README_DC2019_data) for more details
 
-We will have a USB and portable HDD during the meeting for copying the very large datasets, but
+We should have a USB and portable HDD during the meeting for copying large datasets, but
 we strongly recommend you come prepared with the data loaded on your laptop.
