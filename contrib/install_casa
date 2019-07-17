@@ -1,0 +1,113 @@
+#! /bin/csh -f
+#
+#   Example casa install, just a frontend to https://casa.nrao.edu/casa_obtaining.shtml
+#
+#   For Linux this will install the latest released casa under the QAC/casa directory.
+#   Adding CASAROOT/bin and CASAROOT/lib/casa/bin is the responsibility of the user,
+#   but a convenient casa_start.[c]sh file is written for you to source in your shell.
+#
+#   For Mac instructions are given to do your "dmg" install the mac way, but once it
+#   finds the CASA.app, it will write that came convenient casa_start.[c]sh file.
+#
+#   Usage:
+#
+#     install_casa [url]
+#
+#   By default it will install the latest release, but optionally a URL with the tar.gz file
+#   can be given. Examples below.
+#
+#   7-mar-2018  Peter Teuben      initial version written for SD2018
+#  22-jun-2018  PJT               bit more user friendly for Mac
+#  16-jul-2019  PJT               adapted for DC2019
+#
+#  TODO's:
+#  - test to check if everything was installed properly and working ok
+#  - use modules to load different versions (or astromake)
+#  - command line mac install?
+#    sudo hdiutil attach <image>.dmg
+#    sudo installer -package /Volumes/<image>/<image>.pkg -target /
+#    sudo hdiutil detach /Volumes/<image>
+
+echo See also:   https://casa.nrao.edu/casa_obtaining.shtml
+
+#   make it (sort of) work for Linux and Darwin (MacOSX)
+set uname = `uname -s`
+
+if ($uname == Darwin) set uname = osx
+if ($uname == Linux)  set uname = linux
+
+set o1 =  https://casa.nrao.edu/download/distro/osx/release/10.12/casa-release-5.3.0-143-10.12.dmg
+set o2 =  https://casa.nrao.edu/download/distro/osx/release/10.13/casa-release-5.3.0-143-10.13.dmg
+
+set L1 = https://casa.nrao.edu/download/distro/linux/release/el7/casa-release-5.1.2-4.el7.tar.gz
+set L2 = https://casa.nrao.edu/download/distro/linux/release/el7/casa-release-5.1.1-5.el7.tar.gz
+set L3 = https://casa.nrao.edu/download/distro/linux/release/el7/casa-release-5.3.0-143.el7.tar.gz
+set L4 = https://casa.nrao.edu/download/distro/linux/release/el7/casa-release-5.4.1-32.el7.tar.gz
+set L5 = https://casa.nrao.edu/download/distro/linux/release/el7/casa-release-5.5.0-149.el7.tar.gz
+
+set l3 = https://casa.nrao.edu/download/distro/linux/prerelease/el7/casa-prerelease-5.3.0-89.el7.tar.gz
+set l4 = https://casa.nrao.edu/download/distro/linux/prerelease/el7/casa-prerelease-5.4.0-9.el7.tar.gz
+set l5 = https://casa.nrao.edu/download/distro/linux/prerelease/el7/casa-prerelease-5.5.0-136.el7.tar.gz
+
+if ($uname == osx) then
+   echo Sorry, I cannot help you yet Dave
+   echo get the dmg, e.g.
+   echo $o1
+   echo $o2
+   echo And drag the app into /Applications
+   if (-d /Applications/CASA.app) then
+       echo it seems you have CASA installed:
+       set bin1 = /Applications/CASA.app/Contents/MacOS
+       $bin1/casa-config --version
+       echo "set path = ($bin1 "'$path); rehash'  >> casa_start.csh
+       echo "export PATH=${bin1}:"'$PATH'         >> casa_start.sh
+   endif
+   exit 0
+else
+   echo Running on linux, good. Some common versions you might use
+   echo $L1
+   echo $L2
+   echo $L3
+   echo $l4
+endif
+
+set pre = https://casa.nrao.edu/download/distro/$uname/prerelease/el7/
+set rel = https://casa.nrao.edu/download/distro/$uname/release/el7/
+
+
+
+if ($#argv > 0) then
+   set url = $1
+else
+   set url = $L5
+endif
+
+echo Using $url
+
+#  no changes below here
+
+set targz = $url:t
+set dir   = $targz:r:r
+
+
+if (-d $dir) then
+    echo $dir already exists, not installing again
+else
+    if (! -e $targz) then
+      echo $dir does not exist, downloading starts in 5 seconds....
+      sleep 5
+      curl $url | tar zxf -
+    else
+      echo tar zxf $targz
+      tar zxf $targz
+    endif
+endif
+
+
+set root = `pwd`
+set bin1=$root/$dir/bin
+set bin2=$root/$dir/lib/casa/bin
+
+echo "set path = ($bin1 $bin2 "'$path); rehash'  >> casa_start.csh
+echo "export PATH=${bin1}:${bin2}:"'$PATH'       >> casa_start.sh
+
