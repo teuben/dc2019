@@ -1,0 +1,66 @@
+Datasets we're working on
+
+1) ALMA M100 (from the casaguides)     peter
+2) NGC 346 (SMC observatory project)   dirk/thomas
+3) GMC fractal/powerspectrum (Koda)    peter
+4) Gaussian Models (Fomalont)          ed
+5) Outflow                             Adele
+6) MC/GMC - apex + alma
+7) LOFAR                               Pedro Salas?
+
+
+
+1) M100 from casaguides
+   --------------------
+
+The https://casaguides.nrao.edu/index.php/M100_Band3_Combine_5.4 casaguide walks you through
+a feather combination. We will also try to provide this example for the other combination
+methods.
+
+
+To get the data, see also https://casaguides.nrao.edu/index.php/M100_Band3#Obtaining_the_Data
+
+For EA use:  https://alma-dl.mtk.nao.ac.jp/ftp/alma/sciver/
+    EU use:  https://almascience.eso.org/almadata/sciver/
+    NA use:  https://bulk.cv.nrao.edu/almadata/sciver/
+
+For 12m use directory:     M100Band3_12m
+For 7m/TP use directory:   M100Band3ACA
+
+you will need the 12,, 7m and TP data, e.g. in NA (replace the stem of the URL with the EU/EA ones)
+
+  wget https://bulk.cv.nrao.edu/almadata/sciver/M100Band3_12m/M100_Band3_12m_CalibratedData.tgz
+  wget https://bulk.cv.nrao.edu/almadata/sciver/M100Band3ACA/M100_Band3_7m_CalibratedData.tgz
+  wget https://bulk.cv.nrao.edu/almadata/sciver/M100Band3ACA/M100_Band3_ACA_ReferenceImages_5.1.tgz
+
+This totals 24GB.
+
+
+
+
+
+2) NGC 346 (SMC observatory project)
+   ---------------------------------
+
+3) GMC fractal/powerspectrum (Koda)
+
+http://admit.astro.umd.edu/~teuben/QAC/skymodel.fits    
+http://admit.astro.umd.edu/~teuben/QAC/skymodel.ptg     
+http://admit.astro.umd.edu/~teuben/QAC/qac_bench.tar.gz 
+
+These is the old 4096 x 4096 models, there is a newer two part (Re/Im) model available
+generated from Koda's newer code.  TBD.
+
+
+4) Gaussian Models (Fomalont)
+
+
+5) Outflow 
+
+
+6) MC/GMC - apex + alma
+
+
+7) LOFAR
+
+
