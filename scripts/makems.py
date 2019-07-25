@@ -1,3 +1,18 @@
+#   in CASA execute this with execfile('makems.py')
+#
+#   In the current version this will take ~11hr CPU and take 234GB of diskspace
+#   (231GB are in trash, which you can remove afterwards)
+#   Normally you will not need to run this (except if you want to experiment
+#   with using different array combinations), but can just take the output MS:
+#   
+#   simdata_aca.i.ms  simdata_alma.cycle4.2.ms  simdata_alma.cycle4.3.ms  simdata_alma.tp.ms
+#
+#   Original author:     Jin Koda            24-jul-2019
+#   Adapted for DC2019   Peter Teuben
+#
+
+
+
 import numpy as np
 import os
 import glob
@@ -7,7 +22,7 @@ import shutil
 # Input data
 
 
-infits          = 'testsim_skymodel.image.fits'
+infits          = 'skymodel_16k.fits'
 
 
 # Other params
