@@ -1,7 +1,8 @@
 Installation Guidelines
 -----------------------
 
-For now, look in the contrib/ directory.  Current the Makefile and a
-few install_* scripts give an indication what you can install.
+For now, look in the contrib/ directory.  Currently the Makefile and a
+few install_* scripts give an indication what you can install. There
+is also a README file. Be a Sherlock!
 
 What you should install is yet to be determined.
