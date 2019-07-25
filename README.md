@@ -41,4 +41,4 @@ we strongly recommend you come prepared with the data loaded on your laptop.
 
 ## Installation
 
-See the [INSTALL](install) file for some current guidelines.
+See the [INSTALL](INSTALL) file for some current guidelines.
