@@ -29,7 +29,7 @@ WSL on Window10 is currently too slow to be useful (but hasn't been tested).
 and recommended software
 
    * DS9: http://ds9.si.edu/site/Home.html (the XPA tools can also be very useful)
-   * vanilla python3 (or 2) via miniconda or anaconda (an install script is available here)
+   * vanilla python3 via miniconda or anaconda (an install script is available in dc2019)
    * a spectral cube fits viewer (ds9, carta, casaviewer, QFitsView). See also https://fits.gsfc.nasa.gov/fits_viewer.html
 
 ## Data needed
@@ -37,7 +37,8 @@ and recommended software
 see [README_DC2018_data](data/README_DC2019_data) for more details
 
 We should have a USB and portable HDD during the meeting for copying large datasets, but
-we strongly recommend you come prepared with the data loaded on your laptop.
+we strongly recommend you come prepared with the data loaded on your laptop. We hope to have an estimate for the minimum amount
+of space you will need for the experiments, and/or bring your own spare external HDD. It will probably be closer to 100GB than 10GB.
 
 ## Installation
 
