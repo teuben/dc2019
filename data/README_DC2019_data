@@ -53,13 +53,13 @@ This is a ~15' map with 7m and TP data, lots of structure, demonstrates the need
 
 http://admit.astro.umd.edu/~teuben/QAC/skymodel.fits    
 http://admit.astro.umd.edu/~teuben/QAC/skymodel.ptg     
-http://admit.astro.umd.edu/~teuben/QAC/qac_bench.tar.gz 
+http://admit.astro.umd.edu/~teuben/QAC/qac_bench.tar.gz
 
-These is the old 4096 x 4096 models, there is a newer two part (Re/Im) model available
-generated from Koda's newer code.  TBD.
+These are from the old 4096 x 4096 models. A newer 16k x 16k model,
+and associate pre-computed MS, available here:
 
-See also ftp://ftp.astro.umd.edu/pub/teuben/tp2vis
-
+ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/skymodel_16k.fits
+ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/tp2vis-sample2.tar.gz
 
 4) Gaussian Models (Fomalont)
 
