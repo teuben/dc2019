@@ -4,16 +4,16 @@ We should have PDF's of the following papers
 
 
 * Koda et al. 2019: https://ui.adsabs.harvard.edu/abs/2019PASP..131e4505K/abstract
-    Total Power Map to Visibilities (TP2VIS): Joint Deconvolution of ALMA 12m, 7m, and Total Power Array Data
+    *Total Power Map to Visibilities (TP2VIS): Joint Deconvolution of ALMA 12m, 7m, and Total Power Array Data*
      
 * Koda et al. 2011, ApJS, 193, 19 : http://adsabs.harvard.edu/abs/2011ApJS..193...19K
-    CO(J = 1-0) Imaging of M51 with CARMA and the Nobeyama 45 m Telescope
+    *CO(J = 1-0) Imaging of M51 with CARMA and the Nobeyama 45 m Telescope*
 
 * Jorsater and van Moorsel 1995, AJ, 110, 2037 : http://adsabs.harvard.edu/abs/1995AJ....110.2037J
-    High Resolution Neutral Hydrogen Observations of the Barred Spiral Galaxy NGC 1365
+    *High Resolution Neutral Hydrogen Observations of the Barred Spiral Galaxy NGC 1365*
 
 * Ekers and Rots 1979 : https://ui.adsabs.harvard.edu/abs/1979ASSL...76...61E/abstract
-    Short Spacing Synthesis from a Primary Beam Scanned Interferometer
+    *Short Spacing Synthesis from a Primary Beam Scanned Interferometer*
 
 # Other interesting links
 
