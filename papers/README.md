@@ -15,6 +15,9 @@ We should have PDF's of the following papers
 * Ekers and Rots 1979 : https://ui.adsabs.harvard.edu/abs/1979ASSL...76...61E/abstract
     *Short Spacing Synthesis from a Primary Beam Scanned Interferometer*
 
+* ALMA cycle 7 technical handbook (version 1.1)
+
+
 # Other interesting links
 
 * CASA reference manual and cookbook : http://casa.nrao.edu/docs/cookbook/
@@ -30,3 +33,6 @@ We should have PDF's of the following papers
 * Nordic Tools SD2VIS: https://www.oso.nordic-alma.se/software-tools.php
 
 * CASA simulations: https://casa.nrao.edu/casadocs/latest/simulation
+
+* Williams et al. 2019 : https://iopscience.iop.org/article/10.3847/2515-5172/ab35d5/meta
+    *A Tool and Workflow for Radio Astronomical "Peeling" in CASA*
