@@ -80,8 +80,12 @@ certainly an interesting emission structure. [AI] Contact: Adele
 A group of HI astronomers registered for the workshop, expressing interest 
 in combining future interferometric and single dish HI surveys (e.g. SKA HI pathfinder experiments).
 Kelley Hess and Nickolas Pingel are our contacts.  Nickolas suggests:
-- ASKAP+Parkes HI cubes of the SMC. ASKAP cube of the SMC is considerable larger in size, albeit at a velocity resolution of ~4 km/s.
+- ASKAP+Parkes HI cubes of the SMC. ASKAP cube of the SMC is considerable larger in size, 
+albeit at a velocity resolution of ~4 km/s.
 - GBT+WSRT cubes of NGC 4631, full GBT and WSRT cubes are relatively small at ~500MB and ~50 MB, respectively. 
 The combination (using CASA) has already been published.
 
-Nickolas will prepare sub-cubes, and bring on a portable drive, and/or upload directly.  He also offers: "In preparation for this workshop, I will redo the combination of the NGC 4631 data cubes utilizing the Faridani, CASA’s feather, and miriad’s immerge methods in hopes that will provide a head start on developing such metrics with everyone at this workshop."
+Nickolas will prepare sub-cubes, and bring on a portable drive, and/or upload directly.  
+He also offers: "In preparation for this workshop, I will redo the combination of the NGC 4631 
+data cubes utilizing the Faridani, CASA’s feather, and miriad’s immerge methods in hopes that 
+will provide a head start on developing such metrics with everyone at this workshop."
