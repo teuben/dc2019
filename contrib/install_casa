@@ -58,9 +58,10 @@ if ($uname == osx) then
    if (-d /Applications/CASA.app) then
        echo it seems you have CASA installed:
        set bin1 = /Applications/CASA.app/Contents/MacOS
+       set bin2 = /Applications/CASA.app/Contents/darwin/bin
        $bin1/casa-config --version
-       echo "set path = ($bin1 "'$path); rehash'  >> casa_start.csh
-       echo "export PATH=${bin1}:"'$PATH'         >> casa_start.sh
+       echo "set path = ($bin1 $bin2 "'$path); rehash'   >> casa_start.csh
+       echo "export PATH=${bin1}:${bin2}"'$PATH'         >> casa_start.sh
    endif
    exit 0
 else
