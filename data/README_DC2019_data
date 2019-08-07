@@ -1,12 +1,12 @@
 Datasets we're working on (scripts is whole other matter)
 
-1) M100 (from the casaguides)          Peter           [done]
-2) NGC 346 (SMC observatory project)   Dirk/Thomas     [mostly done]
-3) GMC fractal/powerspectrum (Koda)    Peter           [done]
-4) Gaussian Models (Fomalont)          Ed
-5) Outflow                             Adele           [work in progress]
-6) MC/GMC - apex + alma		       Alvaro
-7) LOFAR                               Nickolas        [will bring on pen drive]
+1) M100 (from the casaguides)                Peter           [done]
+2) NGC 346 (SMC observatory project)         Dirk/Thomas     [done]
+3) skymodel GMC fractal/powerspectrum (Koda) Peter           [done]
+4) Gaussian Models (Fomalont)                Ed
+5) Outflow                                   Adele           [work in progress]
+6) MC/GMC - apex + alma		             Alvaro
+7) LOFAR / HI                                Nickolas        [will bring on pen drive]
 
 
 
@@ -50,7 +50,7 @@ This is a ~15' map with 7m and TP data, lots of structure, demonstrates the need
 
 [AI] Contact: Dirk + Thomas
 
-3) GMC fractal/powerspectrum (Koda)
+3) skymodel GMC fractal/powerspectrum (Koda)
 
 http://admit.astro.umd.edu/~teuben/QAC/skymodel.fits    
 http://admit.astro.umd.edu/~teuben/QAC/skymodel.ptg     
