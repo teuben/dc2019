@@ -1,8 +1,8 @@
-Useful software during the workshop
+Useful software during the workshop (see also Makefile)
 
 CASA      https://casa.nrao.edu/casa_obtaining.shtml
-  QAC
-    tp2vis
+  QAC       https://github.com/teuben/QAC/
+    tp2vis    https://github.com/tp2vis/distribute
     sd2vis
     au (Analysis Utilities; useful for CASA)
   https://casaguides.nrao.edu/index.php?title=Contributed_CASA_Tasks_and_Scripts
