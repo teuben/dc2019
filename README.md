@@ -20,8 +20,8 @@ We will probably try out a few techniques:
 Since we are going to be CASA based this week, we only support Linux and Mac.
 WSL on Window10 is currently too slow to be useful (but hasn't been tested).
 
-   * CASA: https://casa.nrao.edu/casa_obtaining.shtml. The current release is 5.5.0 (*Update, we see that 5.6 was just released on August 8.  We will make a recommendation soon, sorry for the poor timing.*). We have helper scripts.
-     in [contrib](contrib)
+   * CASA: https://casa.nrao.edu/casa_obtaining.shtml. The current release is 5.5.0 (*Update, we see that 5.6 was just released on August 8.  We will make a recommendation soon, sorry for the poor timing.*). We have helper scripts
+     in [contrib](contrib).
    * QAC (this will also install TP2VIS, SD2VIS, and AU)
    * TP2VIS (comes with QAC)
    * SD2VIS (optional, can come with QAC)
