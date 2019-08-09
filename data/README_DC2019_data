@@ -4,8 +4,8 @@ Datasets we're working on (scripts is whole other matter)
 2) NGC 346 (SMC observatory project)         Dirk/Thomas     [done]
 3) skymodel GMC fractal/powerspectrum (Koda) Peter           [done]
 4) Gaussian Models (Fomalont)                Ed
-5) Outflow                                   Adele           [work in progress]
-6) MC/GMC - apex + alma		             Alvaro
+5) Protostellar outflow                      Adele           [work in progress]
+6) MC/GMC - apex + alma	      	            Alvaro
 7) LOFAR / HI                                Nickolas        [will bring on pen drive]
 
 
@@ -67,13 +67,17 @@ ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/tp2vis-sample2.tar.gz
 4) Gaussian Models (Fomalont)
 
 
-5) Outflow 
+5) Lupus 3 mms, Protostellar outflow 
+   ----------------------------------
 
-Outflow from Lupus 3 mms, I can include 12m, 7m, and TP, or just 7m
-and TP.  This has been a relatively challenging data cube to "clean",
-as I think the quality of the image will depend on turning the right
-nobs in TCLEAN, maybe moreso than the actual combination.  But,
-certainly an interesting emission structure. [AI] Contact: Adele
+ALMA#2015.1.00306.S (PI: Adele Plunkett)
+
+CO molecular outflow from Lupus 3 mms. Observations include 12m, 7m, and TP; here we test 12CO, Band 3.  
+This has been a relatively challenging dataset to "clean", even with interferometry only.  
+Certain channels behave better/different than others, due to structure, and sometimes emission near edges.  
+The quality of the image may depend on turning the right nobs in TCLEAN, in addition to the actual combination method.  
+But,certainly an interesting emission structure that is good for testing purposes. 
+[AI] Contact: Adele
 
 6) MC/GMC - apex + alma
 
