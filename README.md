@@ -22,6 +22,8 @@ WSL on Window10 is currently too slow to be useful (but hasn't been tested).
 
    * CASA: https://casa.nrao.edu/casa_obtaining.shtml. The current release is 5.5.0. We have helper scripts
      in [contrib](contrib).  [CASA 6](https://science.nrao.edu/enews/casa_008/) can also be installed via pip wheels.
+   * CASA: https://casa.nrao.edu/casa_obtaining.shtml. CASA 5.5 has been tested for this workshop; 5.6 (recently released) may also be an option. We have helper scripts
+     in [contrib](contrib).
    * QAC (this will also install TP2VIS, SD2VIS, and AU)
    * TP2VIS (comes with QAC)
    * SD2VIS (optional, can come with QAC)
