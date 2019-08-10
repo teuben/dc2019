@@ -96,3 +96,9 @@ Nickolas will prepare sub-cubes, and bring on a portable drive, and/or upload di
 He also offers: "In preparation for this workshop, I will redo the combination of the NGC 4631 
 data cubes utilizing the Faridani, CASA’s feather, and miriad’s immerge methods in hopes that 
 will provide a head start on developing such metrics with everyone at this workshop."
+
+8) papersky (for WidebandSDINT)              Urvashi         [done]
+
+Instructions for this are in Urvashi's WidwbandSDINT repo. https://github.com/urvashirau/WidebandSDINT
+which can also be obtained and placed in dc2019/contribute.
+You can find the data in Leiden/data folder on the USB key.
