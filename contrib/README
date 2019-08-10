@@ -13,4 +13,6 @@ python3  (miniconda3 or anaconda3)
 ds9       http://ds9.si.edu/site/Home.html
   xpatools 
 carta     https://cartavis.github.io/
+glueviz
+montage
 VNC
