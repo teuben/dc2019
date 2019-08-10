@@ -1,7 +1,8 @@
 # various python and casa things
 #
 
-ALL = uvcombine QAC
+# the ones likely to use at DC2019
+ALL = uvcombine QAC WidebandSDINT
 
 help:
 	@echo Sorry, No help, read the Makefile
@@ -16,6 +17,9 @@ uvcombine:
 
 QAC:
 	git clone https://github.com/teuben/QAC/
+
+analysis_scripts.tar:
+	wget ftp://ftp.cv.nrao.edu/pub/casaguides/analysis_scripts.tar
 
 
 #       rubbl has some new CASA based tools and interfaces via rust
@@ -32,4 +36,7 @@ sd2018:
 
 rica:
 	git clone https://gitlab.com/mileslucas/rica
+
+WidebandSDINT:
+	git clone https://github.com/urvashirau/WidebandSDINT
 
