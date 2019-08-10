@@ -29,3 +29,7 @@ rust:
 
 sd2018:
 	git clone https://github.com/teuben/sd2018
+
+rica:
+	git clone https://gitlab.com/mileslucas/rica
+
