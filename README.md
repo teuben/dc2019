@@ -10,7 +10,7 @@ from.
 
 We will probably try out a few techniques:
 
-   * [feather](https://casa.nrao.edu/casadocs/casa-5.4.1/image-combination/feather) [talk by Ginsburg]
+   * [feather](https://casa.nrao.edu/casadocs/casa-5.4.1/image-combination/feather) [talk by Ginsburg](https://keflavich.github.io/talks/FeatheringPresentation/FeatheringPresentation.slides.html?transition=fast); see also the [uvcombine](https://github.com/radio-astro-tools/uvcombine/) package
    * [tp2vis](https://github.com/tp2vis/distribute) [talk by Teuben]
    * [hybrid](https://sites.google.com/site/jenskauffmann/research-notes/adding-zero-spa) [talk by Kauffmann]
    * ...
@@ -20,6 +20,8 @@ We will probably try out a few techniques:
 Since we are going to be CASA based this week, we only support Linux and Mac.
 WSL on Window10 is currently too slow to be useful (but hasn't been tested).
 
+   * CASA: https://casa.nrao.edu/casa_obtaining.shtml. The current release is 5.5.0. We have helper scripts
+     in [contrib](contrib).  [CASA 6](https://science.nrao.edu/enews/casa_008/) can also be installed via pip wheels.
    * CASA: https://casa.nrao.edu/casa_obtaining.shtml. CASA 5.5 has been tested for this workshop; 5.6 (recently released) may also be an option. We have helper scripts
      in [contrib](contrib).
    * QAC (this will also install TP2VIS, SD2VIS, and AU)
@@ -31,7 +33,7 @@ and recommended software
 
    * DS9: http://ds9.si.edu/site/Home.html (the XPA tools can also be very useful)
    * vanilla python3 via miniconda or anaconda (an install script is available in dc2019)
-   * a spectral cube fits viewer (ds9, carta, casaviewer, QFitsView). See also https://fits.gsfc.nasa.gov/fits_viewer.html
+   * a spectral cube fits viewer (ds9, carta, casaviewer, QFitsView, glue). See also https://fits.gsfc.nasa.gov/fits_viewer.html
 
 ## Data needed
 
