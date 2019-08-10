@@ -102,3 +102,6 @@ will provide a head start on developing such metrics with everyone at this works
 Instructions for this are in Urvashi's WidwbandSDINT repo. https://github.com/urvashirau/WidebandSDINT
 which can also be obtained and placed in dc2019/contribute.
 You can find the data in Leiden/data folder on the USB key.
+
+A direct link to the data:  http://www.aoc.nrao.edu/~rurvashi/DataFiles/Data_For_WidebandSDINT_UR_github.tgz
+and untar these in the WidebandSDINT/Data directory.
