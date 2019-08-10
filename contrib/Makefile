@@ -43,3 +43,10 @@ rica:
 WidebandSDINT:
 	git clone https://github.com/urvashirau/WidebandSDINT
 
+
+#     http://montage.ipac.caltech.edu/
+montage: Montage
+	(cd Montage; make clean all)
+
+Montage:
+	git clone https://github.com/Caltech-IPAC/Montage
