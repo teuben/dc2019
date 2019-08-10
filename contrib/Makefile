@@ -1,8 +1,8 @@
 # various python and casa things
 #
 
-# the ones likely to use at DC2019
-ALL = uvcombine QAC WidebandSDINT
+# the ones likely we use at DC2019
+ALL = uvcombine turbustat QAC WidebandSDINT
 
 help:
 	@echo Sorry, No help, read the Makefile
@@ -14,6 +14,9 @@ uvcombine:
 	git clone https://github.com/keflavich/uvcombine
 	(cd uvcombine; python setup.py install)
 	pip install image_registration radio_beam reproject spectral_cube
+
+turbustat:
+	pip install turbostat
 
 QAC:
 	git clone https://github.com/teuben/QAC/
