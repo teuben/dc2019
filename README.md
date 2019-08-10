@@ -13,6 +13,7 @@ We will probably try out a few techniques:
    * [feather](https://casa.nrao.edu/casadocs/casa-5.4.1/image-combination/feather) [talk by Ginsburg](https://keflavich.github.io/talks/FeatheringPresentation/FeatheringPresentation.slides.html?transition=fast); see also the [uvcombine](https://github.com/radio-astro-tools/uvcombine/) package
    * [tp2vis](https://github.com/tp2vis/distribute) [talk by Teuben]
    * [hybrid](https://sites.google.com/site/jenskauffmann/research-notes/adding-zero-spa) [talk by Kauffmann]
+   * [sdint](https://github.com/urvashirau/WidebandSDINT) [talk by Rau]
    * ...
 
 ## Software needed
