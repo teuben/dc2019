@@ -3,6 +3,17 @@
 # this whole script can be re-run, as it deletes data that are in the way.
 # it should take about 30 minutes to complete.
 # and needs about 42 GB of data
+#
+#  Example to get the 3 needed datasets exposed here, YMMV:
+#
+#     tar zxf ../data/M100_Band3_12m_CalibratedData.tgz
+#     mv M100_Band3_12m_CalibratedData/M100_Band3_12m_CalibratedData.ms .
+#     tar zxf ../data/M100_Band3_7m_CalibratedData.tgz
+#     mv M100_Band3_7m_CalibratedData/M100_Band3_7m_CalibratedData.ms .
+#     tar zxf ../data/M100_Band3_ACA_ReferenceImages_5.1.tgz
+#     mv M100_Band3_ACA_ReferenceImages_5.1/M100_TP_CO_cube.spw3.image.bl .
+#
+
 
 #
 os.system('rm -rf M100_*m.ms.listobs')
@@ -385,3 +396,4 @@ imstat('M100_Feather_CO.image.pbcor')['flux']
 
 # 5.4 => 2822.29454956  2822.29259255  3055.66039175
 # 5.5 => 2825.9993648   2825.99752571  3054.25147157
+# 5.6 => 2826.22910583  2826.22718072  3050.38152141
