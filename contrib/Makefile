@@ -15,8 +15,12 @@ uvcombine:
 	(cd uvcombine; python setup.py install)
 	pip install image_registration radio_beam reproject spectral_cube
 
+#   @todo  still need to resolve why
+#          import turbustat.simulator
 turbustat:
-	pip install turbostat
+	pip install turbustat sklearn statsmodels scikit-image
+
+
 
 QAC:
 	git clone https://github.com/teuben/QAC/
