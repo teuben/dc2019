@@ -19,7 +19,7 @@ a feather combination. We will also try to provide this example for the other co
 methods.
 
 
-To get the data, see also https://casaguides.nrao.edu/index.php/M100_Band3#Obtaining_the_Data
+To get the full data, see also https://casaguides.nrao.edu/index.php/M100_Band3#Obtaining_the_Data
 
 For EA use:  https://alma-dl.mtk.nao.ac.jp/ftp/alma/sciver/
     EU use:  https://almascience.eso.org/almadata/sciver/
@@ -34,10 +34,13 @@ you will need the 12,, 7m and TP data, e.g. in NA (replace the stem of the URL w
   wget https://bulk.cv.nrao.edu/almadata/sciver/M100Band3ACA/M100_Band3_7m_CalibratedData.tgz
   wget https://bulk.cv.nrao.edu/almadata/sciver/M100Band3ACA/M100_Band3_ACA_ReferenceImages_5.1.tgz
 
-This totals 24GB.
+This totals 24GB and we will have this on a USB.
 
 
 We are also planning on a trimmed version of these big data to immediately jump into data combination.
+See http://admit.astro.umd.edu/~teuben/QAC/qac_bench.tar.gz with trimmed M100 data, good for the
+QAC benchmark.
+
 
 TP2VIS: https://github.com/tp2vis/distribute/blob/master/example1.md   needs to be updated
 
@@ -65,7 +68,8 @@ ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/skymodel_16k.fits
 ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/tp2vis-sample2.tar.gz
 
 4) Gaussian Models (Fomalont)
-
+   --------------------------
+   
 
 5) Lupus 3 mms, Protostellar outflow 
    ----------------------------------
@@ -83,7 +87,7 @@ Data to share have been cut to include 10 channels of 1 km/s width for the 12m a
 and the full total power image.  Data size is ~3 GB when un-tarred.  
 
 6) MC/GMC - apex + alma
-
+   --------------------
 
 7) HI dataset (preparing for future radio surveys)
 
@@ -100,8 +104,9 @@ He also offers: "In preparation for this workshop, I will redo the combination o
 data cubes utilizing the Faridani, CASA’s feather, and miriad’s immerge methods in hopes that 
 will provide a head start on developing such metrics with everyone at this workshop."
 
-8) papersky (for WidebandSDINT)              Urvashi         [done]
-
+8) papersky (for WidebandSDINT)
+   ----------------------------
+   
 Instructions for this are in Urvashi's WidwbandSDINT repo. https://github.com/urvashirau/WidebandSDINT
 which can also be obtained and placed in dc2019/contribute.
 You can find the data in Leiden/data folder on the USB key.
