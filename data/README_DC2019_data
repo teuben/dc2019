@@ -87,8 +87,8 @@ Data to share have been cut to include 10 channels of 1 km/s width for the 12m a
 and the full total power image.  Data size is ~3 GB when un-tarred.  
 
 TP_12CO.fits -- Total Power Array, 12CO data cube (as delivered, so all channels)
-mst_07_nchan10_start0kms.ms -- 7m-array, 12CO visibilities, 10 channels of 1 km/s width, starting at v=0km/s
-mst_12_nchan10_start0kms.ms -- 12m-array, 12CO visibilities, 10 channels of 1 km/s width, starting at v=0km/s
+mst_07_nchan10_start0kms.ms -- 7m-array, 12CO visibilities, 10 channels of 1 km/s width
+mst_12_nchan10_start0kms.ms -- 12m-array, 12CO visibilities, 10 channels of 1 km/s width
  
 
 6) MC/GMC - apex + alma
