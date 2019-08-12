@@ -1,12 +1,12 @@
 Datasets we're working on (scripts is whole other matter)
 
-1) M100 (from the casaguides)                Peter           [done]
+1) M100 (from the casaguides)                Peter           [done] +FIG=M100.png
 2) NGC 346 (SMC observatory project)         Dirk/Thomas     [done]
-3) skymodel GMC fractal/powerspectrum (Koda) Peter           [done]
-4) Gaussian Models (Fomalont)                Ed
-5) Protostellar outflow                      Adele           [on pen drive]
-6) MC/GMC - apex + alma	      	             Alvaro
-7) LOFAR / HI                                Nickolas        [will bring on pen drive]
+3) skymodel GMC fractal/powerspectrum (Koda) Peter           [done] +FIG=skymode.png
+4) Gaussian Models (Fomalont)                Ed              [done] +FIG=HexPointing.png
+5) Protostellar outflow                      Adele           [done]
+6) MC/GMC - apex + alma	      	             Alvaro          --data will not be used this week--
+7) LOFAR / HI                                Nickolas        [USB2]
 8) papersky (for WidebandSDINT)              Urvashi         [done]
 
 
