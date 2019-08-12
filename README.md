@@ -35,7 +35,8 @@ WSL on Window10 is currently too slow to be useful (but hasn't been tested).
 and recommended software
 
    * DS9: http://ds9.si.edu/site/Home.html (the XPA tools can also be very useful)
-   * vanilla python3 via miniconda or anaconda (an install script is available in dc2019)
+   * vanilla python3 via miniconda or anaconda (an install script is available in dc2019, but you may also be able to install modules
+     in CASA's python)
    * a spectral cube fits viewer (ds9, carta, casaviewer, QFitsView, glue). See also https://fits.gsfc.nasa.gov/fits_viewer.html
 
 ## Data needed
