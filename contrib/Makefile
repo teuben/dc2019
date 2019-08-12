@@ -17,6 +17,9 @@ uvcombine:
 
 #   @todo  still need to resolve why
 #          import turbustat.simulator
+#
+#          from turbustat.simulator.gen_field import make_extended
+#          from turbustat.statistics import psds
 turbustat:
 	pip install turbustat sklearn statsmodels scikit-image
 
