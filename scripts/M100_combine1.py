@@ -1,8 +1,9 @@
-# https://casaguides.nrao.edu/index.php/M100_Band3_Combine_5.4
+# Script taken from:   https://casaguides.nrao.edu/index.php/M100_Band3_Combine_5.4
 #
 # this whole script can be re-run, as it deletes data that are in the way.
 # it should take about 30 minutes to complete.
-# and needs about 42 GB of data
+# and needs about 42 GB of data. Produces all the plots that are on the casaguide page,
+# and more.
 #
 #  Example to get the 3 needed datasets exposed here, YMMV:
 #
