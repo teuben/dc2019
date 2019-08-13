@@ -1,61 +1,62 @@
-06042017_JAOInt_S4_Kneissl.pdf
-09112017_JAOInt_S7_Fomalont.pdf
-10082017_JAOInt_S6_Maud.pdf
-13032017_JAOInt_S3_Fomalont.pdf
-14122017_JAOInt_S8_Plunkett.pdf
-14122017_JAOInt_S8_Vazzano.pdf
-16022017_JAOInt_S1_Carpenter.pdf
-23022017_JAOInt_S2_Kameno.pdf
-27072017_JAOInt_S5_Fomalont.pdf
-Adams_1992ApJ...387..572A.pdf
-Adding_Zero_Spacing_-_Jens_Kauffmann.pdf
-ALMACycle12Combination.pdf
-ALMA_Cycle_7_Technical_Handbook_v1.1.pdf
-Avison_2013_Eur._J._Phys._34_7.pdf
-Bajaja_1979A+A....75..251B.pdf
-Blagrave_2017_ApJ_834_126.pdf
-BLAverage.pdf
-Braun_1985A+A...143..307B.pdf
-Briggs-Thesis.ps
-CASA_DataWeightsAndCombination_CASA_Guides.pdf
-CASA_DR2016-imaging_jott.pdf
-CASA_feather.pdf
-CASA_mstransform_averaging.txt
-CASA_mstransform-memo-review-final.pdf
-CASA_MS_V2-memo229.ps
-CASA_VisibilityWeightsInCASA_rev.pdf
-CASA_vpmanager.pdf
-Clark_1980A+A....89..377C.pdf
-Cornwell_1985A+A...143...77C.pdf
-Cotton_2017_1707.02272.pdf
-Dubinski_1995ApJ...448..226D.pdf
-Ekers_1979ASSL...76...61E.pdf
-Ekers_Rots_1979.pdf
-Faridani-1709.09365v1.pdf
-Goicoechea_1608.06173.pdf
-Goicoechea_2017_aa30716-17.pdf
-Helfer_2003_ApJS_145_259.pdf
-Hogbom_1974A+A....33..289H.pdf
-Hogbom_1974A+AS...15..417H.pdf
-Ianjamasimanana_2017_AJ_153_213.pdf
-iram-memo-2008-2.pdf
-Jorsater_1995AJ....110.2037J.pdf
-Koda_2009_ApJ_700_L132.pdf
-Koda_2011_ApJS_193_19.pdf
-Koda_2019_PASP_131_054505.pdf
-Kong_2018_ApJS_236_25.pdf
-Kuruno_pasj61-0873.pdf
-Mangum_2007_aa7811-07.pdf
-Pety_2013-short-spacings.pdf
-Pidopryhora_2015_ApJS_219_16.pdf
-Rau_1904.08867.pdf
-Sault_1996.ps
-Sawada_2018_1812.06001.pdf
-Schwarz_1978A+A....65..345S.pdf
-SingleDishandArrayCombinationWorkshopDec17-19.pdf
-Stanimirovic_2002ASPC..278..375S.pdf
-Stanimirovic_302-3-417.pdf
-Stil_2006_AJ_132_1158.pdf
-Vogel_1984ApJ...283..655V.pdf
-Wakker_1988A+A...200..312W.pdf
-Wu_2017_1704.02680.pdf
+total 309056
+-rw-rw-r-- 1 teuben teuben  9133503 Mar 16  2018 06042017_JAOInt_S4_Kneissl.pdf
+-rw-rw-r-- 1 teuben teuben  4102948 Mar 16  2018 09112017_JAOInt_S7_Fomalont.pdf
+-rw-rw-r-- 1 teuben teuben 10935469 Mar 16  2018 10082017_JAOInt_S6_Maud.pdf
+-rw-rw-r-- 1 teuben teuben   389930 Mar 16  2018 13032017_JAOInt_S3_Fomalont.pdf
+-rw-rw-r-- 1 teuben teuben  6380304 Mar 16  2018 14122017_JAOInt_S8_Plunkett.pdf
+-rw-rw-r-- 1 teuben teuben  1765663 Mar 16  2018 14122017_JAOInt_S8_Vazzano.pdf
+-rw-rw-r-- 1 teuben teuben 19325299 Mar 16  2018 16022017_JAOInt_S1_Carpenter.pdf
+-rw-rw-r-- 1 teuben teuben  8413566 Mar 16  2018 23022017_JAOInt_S2_Kameno.pdf
+-rw-rw-r-- 1 teuben teuben 21628248 Mar 16  2018 27072017_JAOInt_S5_Fomalont.pdf
+-rw-rw-r-- 1 teuben teuben  2755759 Apr 25  2017 Adams_1992ApJ...387..572A.pdf
+-rw------- 1 teuben teuben   138701 Jul 19  2017 Adding_Zero_Spacing_-_Jens_Kauffmann.pdf
+-rw-rw-r-- 1 teuben teuben   466213 Mar 24  2016 ALMACycle12Combination.pdf
+-rw-rw-r-- 1 teuben teuben 54002980 Aug  5 17:08 ALMA_Cycle_7_Technical_Handbook_v1.1.pdf
+-rw-rw-r-- 1 teuben teuben  1117765 Mar  9  2018 Avison_2013_Eur._J._Phys._34_7.pdf
+-rw-rw-r-- 1 teuben teuben   126550 Dec 14  2017 Bajaja_1979A+A....75..251B.pdf
+-rw-rw-r-- 1 teuben teuben 22025352 Mar 13  2018 Blagrave_2017_ApJ_834_126.pdf
+-rw-rw-r-- 1 teuben teuben  1825310 Dec 11  2017 BLAverage.pdf
+-rw-rw-r-- 1 teuben teuben  1995264 Nov 16  2017 Braun_1985A+A...143..307B.pdf
+-rw-rw-r-- 1 teuben teuben 31310543 Dec  8  2017 Briggs-Thesis.ps
+-rw------- 1 teuben teuben   526416 Jul 21  2017 CASA_DataWeightsAndCombination_CASA_Guides.pdf
+-rw-rw-r-- 1 teuben teuben  5676051 Dec  7  2017 CASA_DR2016-imaging_jott.pdf
+-rw------- 1 teuben teuben   409771 Jul 24  2017 CASA_feather.pdf
+-rw-rw-r-- 1 teuben teuben     6824 Dec 11  2017 CASA_mstransform_averaging.txt
+-rw-rw-r-- 1 teuben teuben   162546 Dec 11  2017 CASA_mstransform-memo-review-final.pdf
+-rw-rw-r-- 1 teuben teuben   367675 Jul 12  2017 CASA_MS_V2-memo229.ps
+-rw-rw-r-- 1 teuben teuben  2515445 Dec 11  2017 CASA_VisibilityWeightsInCASA_rev.pdf
+-rw-rw-r-- 1 teuben teuben   118643 Jul  7  2017 CASA_vpmanager.pdf
+-rw-rw-r-- 1 teuben teuben    64940 Mar 14  2018 Clark_1980A+A....89..377C.pdf
+-rw-rw-r-- 1 teuben teuben  1668588 Dec 11  2017 Cornwell_1985A+A...143...77C.pdf
+-rw-rw-r-- 1 teuben teuben  1998766 Sep 27  2018 Cotton_2017_1707.02272.pdf
+-rw-rw-r-- 1 teuben teuben   309833 Apr 25  2017 Dubinski_1995ApJ...448..226D.pdf
+-rw-rw-r-- 1 teuben teuben   149217 Aug  1 20:48 Ekers_1979ASSL...76...61E.pdf
+-rw-rw-r-- 1 teuben teuben   156716 Nov 16  2017 Ekers_Rots_1979.pdf
+-rw-rw-r-- 1 teuben teuben  3101192 Sep 28  2017 Faridani-1709.09365v1.pdf
+-rw-rw-r-- 1 teuben teuben  1467965 Mar 15  2018 Goicoechea_1608.06173.pdf
+-rw-rw-r-- 1 teuben teuben   949208 Mar 15  2018 Goicoechea_2017_aa30716-17.pdf
+-rw-rw-r-- 1 teuben teuben 13044197 Dec 11  2017 Helfer_2003_ApJS_145_259.pdf
+-rw-rw-r-- 1 teuben teuben   708365 Mar 14  2018 Hogbom_1974A+A....33..289H.pdf
+-rw-rw-r-- 1 teuben teuben   472749 Mar 14  2018 Hogbom_1974A+AS...15..417H.pdf
+-rw-rw-r-- 1 teuben teuben  1543248 Feb  5  2018 Ianjamasimanana_2017_AJ_153_213.pdf
+-rw-rw-r-- 1 teuben teuben  2230845 Mar 15  2018 iram-memo-2008-2.pdf
+-rw-rw-r-- 1 teuben teuben  5302222 Dec  8  2017 Jorsater_1995AJ....110.2037J.pdf
+-rw-rw-r-- 1 teuben teuben  1130326 Dec  1  2017 Koda_2009_ApJ_700_L132.pdf
+-rw-rw-r-- 1 teuben teuben  8160398 Oct 18  2017 Koda_2011_ApJS_193_19.pdf
+-rw-rw-r-- 1 teuben teuben  1395339 Aug  1 18:02 Koda_2019_PASP_131_054505.pdf
+-rw-rw-r-- 1 teuben teuben 13081226 Aug 12 22:05 Kong_2018_ApJS_236_25.pdf
+-rw-rw-r-- 1 teuben teuben  4117994 Jul 19  2017 Kuruno_pasj61-0873.pdf
+-rw-rw-r-- 1 teuben teuben   924147 Mar  4  2018 Mangum_2007_aa7811-07.pdf
+-rw-rw-r-- 1 teuben teuben  3747524 Mar 15  2018 Pety_2013-short-spacings.pdf
+-rw-rw-r-- 1 teuben teuben 14708220 Mar  8  2018 Pidopryhora_2015_ApJS_219_16.pdf
+-rw-rw-r-- 1 teuben teuben  3010447 Apr 24 16:52 Rau_1904.08867.pdf
+-rw-rw-r-- 1 teuben teuben  4301990 Nov  2  2017 Sault_1996.ps
+-rw-rw-r-- 1 teuben teuben   797482 Aug  8 14:39 Sawada_2018_1812.06001.pdf
+-rw-rw-r-- 1 teuben teuben   248458 Mar  8  2018 Schwarz_1978A+A....65..345S.pdf
+-rw-rw-r-- 1 teuben teuben  5075982 Dec 18  2012 SingleDishandArrayCombinationWorkshopDec17-19.pdf
+-rw-rw-r-- 1 teuben teuben  2078407 Mar 15  2018 Stanimirovic_2002ASPC..278..375S.pdf
+-rw-rw-r-- 1 teuben teuben  1617842 Nov  2  2017 Stanimirovic_302-3-417.pdf
+-rw-rw-r-- 1 teuben teuben  2596648 Mar 13  2018 Stil_2006_AJ_132_1158.pdf
+-rw-rw-r-- 1 teuben teuben  1386750 Dec 11  2017 Vogel_1984ApJ...283..655V.pdf
+-rw-rw-r-- 1 teuben teuben   348471 Mar  8  2018 Wakker_1988A+A...200..312W.pdf
+-rw-rw-r-- 1 teuben teuben  6843532 Apr 11  2017 Wu_2017_1704.02680.pdf
