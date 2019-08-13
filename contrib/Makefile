@@ -57,3 +57,8 @@ montage: Montage
 
 Montage:
 	git clone https://github.com/Caltech-IPAC/Montage
+
+memo:   DataComb_Memo_Template
+
+DataComb_Memo_Template: 
+	git clone https://github.com/teuben/DataComb_Memo_Template
