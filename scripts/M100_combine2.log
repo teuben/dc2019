@@ -1,0 +1,96 @@
+
+=========================================
+The start-up time of CASA may vary
+depending on whether the shared libraries
+are cached or not.
+=========================================
+
+]0;IPython: dc2019/scriptsIPython 5.1.0 -- An enhanced Interactive Python.
+
+CASA 5.6.0-60   -- Common Astronomy Software Applications
+
+Found an existing telemetry logfile: /home/teuben/.casa/casastats-560-60-120ceb2cb155167-20190813-053401.log
+Telemetry initialized. Telemetry will send anonymized usage statistics to NRAO.
+You can disable telemetry by adding the following line to your ~/.casarc file:
+EnableTelemetry: False
+QAC: Root  /home/teuben/.casa/QAC
+QAC: Load  src/qac.py
+QAC: Load  src/ssc.py
+QAC: Load  src/plot.py
+QAC: Load  contrib/tp2vis.py
+QAC: Skip  distribute/tp2vis.py
+QAC: Skip  tp2vis/tp2vis.py
+QAC:  qac: version 12-aug-2019
+qac_root: /home/teuben/.casa/QAC
+casa:5.6.0-60
+data:/home/teuben/QAC/casa/casa-release-5.6.0-60.el7/data
+None
+Added au
+--> CrashReporter initialized.
+INFO:root:M100qac BEGIN [ 0.  0.]
+('root_logger =', <logging.RootLogger object at 0x7f66ec9d0090>)
+('handlers:', [<logging.StreamHandler object at 0x7f66a8c00a10>])
+('handler stream:', <open file '<stderr>', mode 'w' at 0x7f66ef7c91e0>)
+('sys.stderr:', <open file '<stderr>', mode 'w' at 0x7f66ef7c91e0>)
+QAC_PROJECT M100qac
+Field IDs with matching source ID =  [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+ 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47]
+Median frequency = 114.600244 GHz (band = 3)
+Found 48 pointings in this ms
+Field 25 is closest to the center of the area covered (4.1 arcsec away).
+Wrote file = 12m_mosaic.png
+Field IDs with matching source ID =  [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
+Median frequency = 114.600244 GHz (band = 3)
+Found 24 pointings in this ms
+Field 5 is closest to the center of the area covered (1.3 arcsec away).
+Wrote file = 7m_mosaic.png
+
+0%....10....20....30....40....50....60....70....80....90....100%
+2019-08-14 04:02:02	WARN	SIImageStore::getPSFGaussian (file ../../synthesis/ImagerObjects/SIImageStore.cc, line 1895)	PSF is blank for[C69:P0] 
+
+0%....10....20....30....40....50....60....70....80....90....100%
+2019-08-14 04:02:50	WARN	task_tclean::SIImageStore::restore (file ../../synthesis/ImagerObjects/SIImageStore.cc, line 2068)	Restoring with an empty model image. Only residuals will be processed to form the output restored image.
+peak (Jy/beam) in cube = 0.847006499767
+rms (Jy/beam) in a channel = 0.0105742843057
+
+0%....10....20....30....40....50....60....70....80....90....100%
+2019-08-14 04:07:46	WARN	task_tclean::SIImageStore::getPSFGaussian (file ../../synthesis/ImagerObjects/SIImageStore.cc, line 1895)	PSF is blank for[C69:P0] 
+
+0%....10....20....30....40....50....60....70....80....90....100%
+2019-08-14 04:08:35	WARN	task_tclean::SIImageStore::getPSFGaussian (file ../../synthesis/ImagerObjects/SIImageStore.cc, line 1895)	PSF is blank for[C69:P0] 
+2019-08-14 04:09:17	WARN	task_tclean::SIImageStore::getPSFGaussian (file ../../synthesis/ImagerObjects/SIImageStore.cc, line 1895)	PSF is blank for[C69:P0] 
+
+0%....10....20....30....40....50....60....70....80....90....100%
+2019-08-14 04:11:48	WARN	task_tclean::SIImageStore::getPSFGaussian (file ../../synthesis/ImagerObjects/SIImageStore.cc, line 1895)	PSF is blank for[C69:P0] 
+
+0%....10....20....30....40....50....60....70....80....90....100%
+2019-08-14 04:14:39	WARN	task_tclean::SIImageStore::getPSFGaussian (file ../../synthesis/ImagerObjects/SIImageStore.cc, line 1895)	PSF is blank for[C69:P0] 
+2019-08-14 04:14:49	WARN	task_tclean::SIImageStore::pbcor (file ../../synthesis/ImagerObjects/SIImageStore.cc, line 2473)	Skipping PBCOR for C:69 P:0 because pb max is zero 
+rms in a channel = 0.0105742843057
+Wrote M100_combine_CO_cube.image.fits
+Wrote M100_combine_CO_cube.pb.fits
+Wrote M100_combine_CO_cube.image.mom0.fits
+Wrote M100_combine_CO_cube.image.mom0.pbcor.fits
+Wrote M100_combine_CO_cube.image.mom1.fits
+2019-08-14 04:15:03	WARN	imhead::utils::verify	Argument imagename failed to verify.
+2019-08-14 04:15:03	SEVERE	imhead::::	An error occurred running task imhead.
+2019-08-14 04:15:03	WARN	imregrid::utils::verify	Argument imagename failed to verify.
+2019-08-14 04:15:03	SEVERE	imregrid::::	An error occurred running task imregrid.
+2019-08-14 04:15:03	WARN	imsubimage::utils::verify	Argument imagename failed to verify.
+2019-08-14 04:15:03	SEVERE	imsubimage::::	An error occurred running task imsubimage.
+2019-08-14 04:15:04	SEVERE	immath::::	Image data set not found - please verify M100_TP_CO_cube.regrid.subim
+2019-08-14 04:15:04	SEVERE	immath::::	Unable to process expression IM0*IM1
+2019-08-14 04:15:04	SEVERE	immath::::	Exception caught was: Image data set not found - please verify M100_TP_CO_cube.regrid.subim
+2019-08-14 04:15:04	SEVERE	immath::::	An error occurred running task immath.
+2019-08-14 04:15:04	WARN	feather::utils::verify	Argument lowres failed to verify.
+2019-08-14 04:15:04	SEVERE	feather::::	An error occurred running task feather.
+2019-08-14 04:15:04	WARN	imstat::utils::verify	Argument imagename failed to verify.
+2019-08-14 04:15:04	SEVERE	imstat::::	An error occurred running task imstat.
+Traceback (most recent call last):
+  File "/home/teuben/QAC/casa/casa-release-5.6.0-60.el7/lib/python2.7/init_welcome.py", line 33, in <module>
+    execfile(__candidates[0])
+  File "./M100_combine2.py", line 255, in <module>
+TypeError: 'NoneType' object has no attribute '__getitem__'
+Command exited with non-zero status 1
+3441.77user 157.02system 17:57.28elapsed 334%CPU (0avgtext+0avgdata 4911844maxresident)k
+60723856inputs+103766008outputs (779major+39350421minor)pagefaults 0swaps
