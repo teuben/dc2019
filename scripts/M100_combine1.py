@@ -15,20 +15,31 @@
 #     mv M100_Band3_ACA_ReferenceImages_5.1/M100_TP_CO_cube.spw3.image.bl .
 #
 
+import os
+
+#                          all work is done in a subdirectory 'M100'
+pdir = 'M100'
+os.system('rm -rf %s ; mkdir -p %s' % (pdir,pdir))
+os.chdir(pdir)
+#                          references to the two MS and one TP is now one directory up
+ms1 = '../M100_Band3_12m_CalibratedData.ms'
+ms2 = '../M100_Band3_7m_CalibratedData.ms'
+tp1 = '../M100_TP_CO_cube.spw3.image.bl'
+#                          from here on the script is identical to the casaguide version
 
 #
 os.system('rm -rf M100_*m.ms.listobs')
-listobs('M100_Band3_12m_CalibratedData.ms',listfile='M100_12m.ms.listobs')
-listobs('M100_Band3_7m_CalibratedData.ms',listfile='M100_7m.ms.listobs')
+listobs(ms1,listfile='M100_12m.ms.listobs')
+listobs(ms2,listfile='M100_7m.ms.listobs')
 
 
 #
 os.system('rm -rf M100_12m_CO.ms')
-split(vis='M100_Band3_12m_CalibratedData.ms',
+split(vis=ms1,
       outputvis='M100_12m_CO.ms',spw='0',field='M100',
       datacolumn='data',keepflags=False)
 os.system('rm -rf M100_7m_CO.ms')
-split(vis='M100_Band3_7m_CalibratedData.ms',
+split(vis=ms2,
       outputvis='M100_7m_CO.ms',spw='3,5',field='M100',
       datacolumn='data',keepflags=False)
 
@@ -242,11 +253,11 @@ exportfits(imagename='M100_combine_CO_cube.image.mom1',fitsimage='M100_combine_C
 
 
 
-imhead('M100_TP_CO_cube.spw3.image.bl',mode='get',hdkey='restfreq')
+imhead(tp1,                         mode='get',hdkey='restfreq')
 imhead('M100_combine_CO_cube.image',mode='get',hdkey='restfreq')
 
 os.system('rm -rf M100_TP_CO_cube.regrid')
-imregrid(imagename='M100_TP_CO_cube.spw3.image.bl',
+imregrid(imagename=tp1,
          template='M100_combine_CO_cube.image',
          axes=[0, 1],
          output='M100_TP_CO_cube.regrid')
@@ -391,10 +402,13 @@ imview(raster=[{'file': 'M100_Feather_CO.image.mom0.pbcor',
 imstat('M100_combine_CO_cube.image.subim')
 
 
-imstat('M100_TP_CO_cube.regrid.subim.depb')['flux']
-imstat('M100_Feather_CO.image')['flux']
-imstat('M100_Feather_CO.image.pbcor')['flux']
+f1=imstat('M100_TP_CO_cube.regrid.subim.depb')['flux']
+f2=imstat('M100_Feather_CO.image')['flux']
+f3=imstat('M100_Feather_CO.image.pbcor')['flux']
+
+print("%g %g %g" % (f1,f2,f3))
 
 # 5.4 => 2822.29454956  2822.29259255  3055.66039175
 # 5.5 => 2825.9993648   2825.99752571  3054.25147157
 # 5.6 => 2826.22910583  2826.22718072  3050.38152141
+#        2826.23        2826.23        3050.38
