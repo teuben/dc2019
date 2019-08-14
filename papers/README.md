@@ -1,6 +1,7 @@
 # Papers
 
 We should have PDF's of the following papers
+(see also the longer papers.list file which ones' we have on the USB key)
 
 
 * Koda et al. 2019: https://ui.adsabs.harvard.edu/abs/2019PASP..131e4505K/abstract
