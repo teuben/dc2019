@@ -31,6 +31,7 @@ vis12m7m = '12m7m.ms' #You choose the name of your combined interferometry image
 
 ##############
 ## Day 1: FEATHER 
+## Generally, follow the CasaGuide https://casaguides.nrao.edu/index.php/M100_Band3_Combine_5.4
 ##############
 
 
@@ -70,7 +71,7 @@ lineimage = {"restfreq"   : '115.27120GHz',
   'start'      : '5.0km/s', 
   'width'      : '1.0km/s',
   'nchan'      : 4,
-  'imsize'     : [900,600],
+  'imsize'     : [900,600], #or [896,540]
   'cell'       : '0.4arcsec',
   'gridder'    : 'mosaic',
   'weighting'  : 'briggs',
@@ -103,7 +104,7 @@ imsubimage(imagename='TP.image',dropdeg=True,outfile='TPForComb.dropdeg')
 #exportfits ?
 #importfits ?
 
-Intim =  'IntForComb.dropdeg' #12m+7m image from TCLEAN
+Intim =  'IntForComb.imsmooth.dropdeg' #12m+7m image from TCLEAN
 Intpb =  lineimagename+'_7m12m.pb' #primary beam response, this was created in your previous 12m+7m TCLEAN
 Intmask = lineimagename+'_7m12m.mask' #mask from TCLEAN (cutting below a certain pb value), this was created in your previous 12m+7m TCLEAN
 TPim = 'TPForComb.dropdeg'
@@ -168,4 +169,53 @@ feather(imagename='Feather.image',
         lowres='TP.subim.depb')
 
 
+######################
+## Day 2: TP2VIS
+## Documentation here: https://github.com/tp2vis/distribute
+########################
 
+'''
+#1.0 Collect the files
+#You might need this again, in case you started again.
+datadir = '/Users/aplunket/ResearchNRAO/Meetings/DataComb2019/Lup3mms/Lup3mms_Share/' #the directory where your test data are held
+vis7m = datadir+'mst_07_nchan10_start0kms.ms'
+vis12m = datadir+'mst_12_nchan10_start0kms.ms'
+TPfits = datadir+'TP_12CO.fits'
+TPim = 'TP.image' #You choose the name of your TP image
+#importfits(fitsimage=TPfits,imagename=TPim)  ## You just need to do this the first time, in order to get your TP Fits file into the CASA format (*.image)
+vis12m7m = '12m7m.ms' #You choose the name of your combined interferometry image
+'''
+
+#1.1: Make a pointing (ptg) file
+listobs(vis12m,listfile='calibrated_12m.log')
+'''!cat calibrated_12m.log | grep "none" | awk '{print $4,$5}' | sed 's/\([0-9]*\)\:\([0-9]*\):\([0-9.]*\) /\1h\2m\3 /' | sed 's/\([0-9][0-9]\)\.\([0-9][0-9]\)\.\([0-9][0-9]\)\./\1d\2m\3\./' | awk '{printf("J2000 %ss %ss\n",$1,$2)}' > 12.ptg
+'''
+#1.2: Find a reasonable RMS
+TPrms=imstat(TPim,axes=[0,1])['rms'][20:30].mean() #remember, these are the channels of the SD image (which has more than 10 channels)
+print('#TP rms: {}'.format(TPrms))
+#TP rms: 0.188200941992
+
+#2. Run TP2VIS:
+#You may need to: execfile('distribute/tp2vis.py')                                          # load tp2vis 
+tp2vis(TPim,'tp.ms','12.ptg',rms=TPrms)                     # make visibilities, winpix is important if emission around edges
+tp2vis(TPim,'tp_winpix9.ms','12.ptg',rms=TPrms, winpix=9)            # Again, make visibilities, winpix is important if emission around edges
+
+#2.1 Check the tclean of the TP *.ms file, with niter=0
+lineimagename =  'tp2vis'
+field='Lupus_3_MMS*' # science field(s). 
+phasecenter='J2000 16h09m18.1 -39d04m44.0'
+
+lineimage = {"restfreq"   : '115.27120GHz',
+  'start'      : '0.0km/s', 
+  'width'      : '1.0km/s',
+  'nchan'      : 4,
+  'imsize'     : [900,600], #[896,540]
+  'cell'       : '0.4arcsec',
+  'gridder'    : 'mosaic',
+  'weighting'  : 'briggs',
+  'robust'     : 0.5,
+}
+
+tclean(vis=['tp.ms'],imagename=lineimagename+'_wp0_niter0',field=field,spw='',phasecenter=phasecenter,mosweight=True,specmode='cube',niter=0,interpolation='nearest',**lineimage)
+
+### ONGOING!
