@@ -14,6 +14,9 @@ We should have PDF's of the following papers
 
 * Ekers and Rots 1979 : https://ui.adsabs.harvard.edu/abs/1979ASSL...76...61E/abstract
     *Short Spacing Synthesis from a Primary Beam Scanned Interferometer*
+    
+* Cotton 2017, PASP: https://iopscience.iop.org/article/10.1088/1538-3873/aa793f/pdf 
+    *Feather
 
 * ALMA cycle 7 technical handbook (version 1.1)
 
