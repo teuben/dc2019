@@ -16,7 +16,7 @@ We should have PDF's of the following papers
     *Short Spacing Synthesis from a Primary Beam Scanned Interferometer*
     
 * Cotton 2017, PASP: https://iopscience.iop.org/article/10.1088/1538-3873/aa793f/pdf 
-    *Feather
+    *Feather*
 
 * ALMA cycle 7 technical handbook (version 1.1)
 
