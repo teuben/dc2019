@@ -65,3 +65,10 @@ DataComb_Memo_Template:
 
 Obit:
 	git clone https://github.com/bill-cotton/Obit
+
+# i had to install 'flex' to make the compilation work
+carma-miriad:
+	git clone https://github.com/pkgw/carma-miriad
+	(cd carma-miriad; ./autogen.sh ; ./configure --prefix=`pwd`/build F77=gfortran ; make; make install)
+	echo source `pwd`/carma-miriad/automiriad.sh  > miriad_start.sh
+	echo source `pwd`/carma-miriad/automiriad.csh > miriad_start.csh
