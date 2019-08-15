@@ -72,3 +72,7 @@ carma-miriad:
 	(cd carma-miriad; ./autogen.sh ; ./configure --prefix=`pwd`/build F77=gfortran ; make; make install)
 	echo source `pwd`/carma-miriad/automiriad.sh  > miriad_start.sh
 	echo source `pwd`/carma-miriad/automiriad.csh > miriad_start.csh
+
+SoFIA:
+	git clone https://github.com/SoFiA-Admin/SoFiA
+	(cd SoFIA; python setup.py build --no-gui=True )
