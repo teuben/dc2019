@@ -1,3 +1,4 @@
+'''
 Instructions on how to create cube of Gaussian beams in casa/python for SD data.
 
 
@@ -21,6 +22,7 @@ The equation for fluxval below is the integrated flux of the entire Gaussian to 
 
 
 Code:
+'''
 
 #############################################################
 ## Load in some modules in case you need them
