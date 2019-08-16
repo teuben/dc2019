@@ -1,12 +1,18 @@
 # SDINT example:
 
 # First we combine the 7m INT with the 12m TP data; we use the benchmark M100 data
+#
+# 1. the TP cube needs the same freq order as the MS
+#    imtrans('M100_TP_CO_cube.bl.image','M100_TP_CO_cube.blr.image','012-3')
 
-# to prepare PSF, run QAC/workflows/workflow6.py first
+# 2. to prepare PSF, run QAC/workflows/workflow6.py first, and copy 'test6/tp0/clean0/dirtymap.psf' locally
 
 vis     = 'M100_aver_7.ms'
 sdimage = 'M100_TP_CO_cube.bl.image'
+sdimage = 'M100_TP_CO_cube.blr.image'
 sdpsf   = 'test6/tp0/clean0/dirtymap.psf'
+sdpsf   = 'dirtymap.psf'
+
 
 deconvolver = 'clark'
 specmode    = 'cube'
