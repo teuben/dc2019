@@ -1,14 +1,16 @@
-Datasets we're working on (scripts is whole other matter)
+Datasets we've used at SD2019
 
 1) M100 (from the casaguides)                Peter           [done] +FIG=M100.png
 2) NGC 346 (SMC observatory project)         Dirk/Thomas     [done]
-3) skymodel GMC fractal/powerspectrum (Koda) Peter           [done] +FIG=skymode.png
+3) Skymodel GMC fractal/powerspectrum (Koda) Peter           [done] +FIG=skymode.png
 4) Gaussian Models (Fomalont)                Ed              [done] +FIG=HexPointing.png
 5) Protostellar outflow                      Adele           [done]
-6) MC/GMC - apex + alma	      	             Alvaro          --data will not be used this week--
-7) LOFAR / HI                                Nickolas        [USB2]
-8) papersky (for WidebandSDINT)              Urvashi         [done]
+*) MC/GMC - apex + alma	      	             Alvaro          --data will not be used this week--
+6) LOFAR / HI                                Nickolas        [USB2]
+*) Papersky (for WidebandSDINT)              Urvashi         [done]
 
+Two datasets marked by a '*' did not get used, although "papersky" was available and was tested
+by some that it worked. The SDINT method that was 
 
 
 1) M100 from casaguides
