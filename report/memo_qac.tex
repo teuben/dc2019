@@ -1,0 +1,287 @@
+%Template credit: Jan-Willem Steeb, NRAO
+
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{graphics,graphicx}
+\usepackage[%
+    font={small,sf},
+    labelfont=bf,
+    format=hang,    
+    format=plain,
+    margin=0pt,
+    width=0.8\textwidth,
+]{caption}
+\usepackage[list=true]{subcaption}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{lmodern}  
+\usepackage{amsmath}  
+\usepackage{xcolor}   
+\lstset{
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  frame=single,
+  breaklines=true,
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+}
+
+\textheight=247mm
+\textwidth=180mm
+\topmargin=-7mm
+\oddsidemargin=-10mm
+\evensidemargin=-10mm
+\parindent 10pt
+
+%%%%%%%%%%%%%%%%%%%%%
+%%%%% Custom Commands %%%%
+%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\vb}[1]{\text{\textbf{#1}}} %make non special characters bold in math mode, used for vectors and matrices
+\newcommand{\n}[1]{\text{{#1}}} %removes math styling, useful for subscripts
+
+%Mathematic Functions
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\mmid}{mid}
+\DeclareMathOperator*{\at}{arctan2}
+
+%%%%%%%%%%%%%%%%%%%%%
+%%%%% Start of document %%%%% 
+%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\pagestyle{plain}
+\pagenumbering{arabic}
+ 
+%%%%%%%%%%%%%
+%%%%% Title  %%%%%
+%%%%%%%%%%%%%%
+
+\begin{center}
+{\Large{\bf{  Data Comb 2019: QAC Memo \\  }}} 
+
+\end{center}
+\bigskip
+
+\centerline{Peter Teuben (University of Maryland)}
+
+\centerline{\today}
+\bigskip
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Please include this line
+\noindent \textit{This memo was prepared as part of the workshop ``Improving Image Fidelity on Astronomical Data: Radio Interferometer and Single-Dish Data Combination,'' held on 12-16 Aug 2019 at the Lorentz Center in Leiden, The Netherlands.}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+
+The Quick Array Combination (QAC) toolkit came first into existence to shortcut some tedious organizational python code that seemed to be always needed
+writing codes to run combinations and comparisons, in particular in simulations. It follows the strategy used in the CASA simulator, in which
+datasets are maintained within a project directory. In addition, QAC would fix and containerize some CASA issues. Thus QAC is a python layer for CASA,
+and QAC and CASA commands can be used interchangeably.
+
+QAC is also described in ngVLA memo 59.
+
+\section{Installing QAC}
+
+Do we need this?  Or just refer to the github repo?
+
+\section{Using QAC}
+
+With a CASA script \verb+foo.py+, you can execute this directly from the Unix shell (e.g. bash) 
+
+\begin{lstlisting}[language=bash]
+    % casa --nogui -c foo.py pixel=0.1 > test1.log 2>&1
+\end{lstlisting}
+
+which preserves the screen output in \verb+test.log+.  Or you can execute it directly from within CASA's ``ipython'' session
+
+\begin{lstlisting}[language=Python]
+CASA <1>:   execfile("foo.py")
+\end{lstlisting}
+
+but this has the disadvantage that no command line parameters can be given. All your parameters need to be hardcoded
+in \verb+foo.py+ \footnote{Python's execfile command only works in Python 2}.
+
+\subsection{A poor man's command line parser}
+
+You can also use Python's {\tt argparse}   (ref....) or use QAC's poor man's (very limited error checking).  You first define
+the keywords with a default, then parse the command line, after which their values have been overriden from the ones on
+the command line.
+
+\begin{lstlisting}[language=Python]
+  # set defaults
+  pdir    = 'sky1'
+  imsize  = 2048
+  pixel   = 0.05
+  niter   = [0,1000,4000]
+
+  # parse the command line
+  import sys
+  for arg in qac_argv(sys.argv):   
+      exec(arg)
+
+  # use the new values
+  print(pdir,imsize,pixel,niter)
+
+\end{lstlisting}
+
+after which you can use it as in the following example (note the double quoting to escape the shell meta characters):
+
+\begin{lstlisting}[language=bash]
+  % casa --nogui -c foo.py pdir='"test1"' imsize=1024 pixel=0.1 niter='[0,1000]'  > test1.log 2>&1
+\end{lstlisting}
+
+\subsection{Using make}
+
+The classic ``make'' command in Unix uses a Makefile where the recipes (normally called targets) are stored. This has the advantage that
+
+\begin{lstlisting}[language=bash]
+  astroload -v 5.6 casa
+  make bench
+  mv bench bench_56
+  astroload -v 5.5 casa
+  make bench
+  mv bench bench_55
+  tkdiff bench_56/bench.log bench_55/bench.log
+  casa -c 'qac_math("diff1.im","bench_55/clean/tpint.image","-","bench_56/clean/tpint.image")'
+  casaviewer diff1.im
+\end{lstlisting}
+
+
+\section{Combination Methods}
+
+\subsection{Method 1: Feather}
+
+There are currently two ``feather'' type implementations in QAC:
+
+\subsubsection{CASA feather}
+
+\begin{lstlisting}[language=Python]
+def qac_feather(project, highres=None, lowres=None, label="", niteridx=0, name="dirtymap"):
+    """
+    Feather combination of a highres and lowres image. See also qac_ssc()
+
+    project  --  typical  "sky3/clean2", somewhere where tclean has run
+    highres  --  override default, needs full name w/ its project
+    lowres   --  override default, needs full name w/ its project
+    
+    If the standard workflow is used, project contains the correctly named
+    dirtymap.image and otf.image from qac_clean1() and qac_tp_otf() resp.
+    @todo figure out if a manual mode will work
+
+    Typical use in a simulation:
+\end{lstlisting}
+
+\subsubsection{Faridani's SSC}
+
+\begin{lstlisting}[language=Python]
+def qac_ssc(project, highres=None, lowres=None, f=1.0, sdTel = None, regrid=True, cleanup=True, label="", niteridx=0, name="dirtymap"):
+    """
+        project --    directory in which all work will be performed
+        highres --    high res (interferometer) image
+        lowres  --    low res (SD/TP) image
+        sdTEL   --    if not provided, sdFITS must contain the telescope
+        regrid  --    if you are sure of the same WCS, set this to False
+    """
+\end{lstlisting}
+
+\subsection{Method 2: Joint Deconvolution}
+
+Again, we have several implementations available:
+
+\subsubsection{tp2vis}
+
+\begin{lstlisting}[language=Python]
+def qac_tp_vis(project, imagename, ptg=None, pixel=None, phasecenter=None, rms=None, maxuv=10.0, nvgrp=4, fix=1, deconv=True, winpix=0, **line):    
+           
+    """
+      Simple frontend to call tp2vis() 
+    
+    
+      _required_keywords:
+      ===================
+      project:       identifying (one level deep directory) name within which all files are places
+      imagename:     casa image in RA-DEC-POL-FREQ order (fits file is ok too)
+      ptg            1) Filename with pointings (ptg format) to be used
+                     2_ List of (string) pointings
+                     If none specified, it will currently return, but there may be a
+                     plan to allow auto-filling the (valid) map with pointings.
+                     A list of J2000/RA/DEC strings can also be given.
+    
+    
+      _optional_keywords:
+      ===================
+    
+      pixel:         pixel size, in arcsec, if to be overriden from the input map. Default: None
+                     Note we won't allow you to change the imsize.
+      phasecenter    Defaults to mapcenter (note special format)
+                     e.g. 'J2000 00h48m15.849s -73d05m0.158s'
+      rms            if set, this is the TP cube noise to be used to set the weights
+      maxuv          maximum uv distance of TP vis distribution (in m)  [10m] 
+      nvgrp          Number of visibility group (nvis = 1035*nvgrp)
+      fix            Various fixes such that tclean() can handle a list of ms.
+                     ** this parameter will disappear or should have default 1
+                     0   no fix, you need to run mstransform()/concat() on the tp.ms
+                     1   output only the CORRECTED_DATA column, remove other *DATA*, POINTING table also removed
+                     2   debug mode, keep all intermediate MS files
+                     @todo   there is a flux difference between fix=0 and fix=1 in dirtymap
+      deconv         Use the deconvolved map as model for the simulator
+                     Within CASA you can use use deconvolve() to construct a Jy/pixel map.
+
+      winpix         Tukey window [0]
+
+      line           Dictionary of tclean() parameters, usually the line parameters are useful, e.g.
+                     line = {"restfreq":"115.271202GHz","start":"1500km/s", "width":"5km/s","nchan":5}
+    """
+\end{lstlisting}
+
+\subsubsection{sdvis}
+
+From the Nordic ARC. Handles one pointing. Not tested in this workshop.
+
+\begin{lstlisting}[language=Python]
+
+  def qac_sd_vis(**kwargs):
+  """
+  SD2vis from the Nordoc Tools
+  """
+
+\end{lstlisting}
+
+
+\subsubsection{sdint}
+
+Currently under evaluation in the CASA developers team.  Being implemented in QAC as well.
+Minor issue: did not handle spectral axis being different in MS and IM.
+
+\begin{lstlisting}[language=Python]
+
+def qac_sd_int(sdimage, vis, sdpsf, **kwargs):
+    """
+    QAC interface to sdint
+    """
+
+
+\end{lstlisting}
+
+
+\subsection{Method 3 (hybrid startmodel)}
+
+TBD. Partially tested. Needs a proper QAC implementation the way Kauffmann described it.
+
+\bigskip
+{\bf Acknowledgements:} partially written under the influence of good Dutch coffee and apple pie in ``Brasserie Buitenhuis''.
+
+\clearpage
+\section{Appendix: ???}
+
+\begin{lstlisting}[language=Python]
+
+\end{lstlisting}
+
+
+
+\end{document}
