@@ -88,6 +88,7 @@ gain=0.05 ## It was recommended to me to use a smaller (<0.1 default) gain, but 
 threshold='5mJy' 
 tclean(vis=['12m7m.ms'],imagename=lineimagename+'_7m12m',field=field,spw='',phasecenter=phasecenter,mosweight=True,specmode='cube',niter=niter,cycleniter=cniter,gain=gain,threshold=threshold,usemask='pb',pbmask=0.3,**lineimage)
 ## I tweaked pbmask to be slightly higher than the default (which is 0.2?) because the edges in this map may be particularly noisy, with bright emission.
+## YOU can do more iterations of TCLEAN
 
 imsmooth(imagename=lineimagename+'_7m12m.image',outfile=lineimagename+'_7m12m.imsmooth',kernel='commonbeam') #this is a trick when you need a single beam, rather than a beam per channel.  It will be necessary for the feather with TP image.
 ## SOME warnings liks this, but I ignore it for now: 2019-08-14 07:45:07	WARN	imsmooth::Image2DConvolver::_dealWithRestoringBeam	Convolving kernel has minor axis 0.0736102 arcsec which is less than the pixel diagonal length of 0.565685 arcsec. Thus, the kernel is poorly sampled, and so the output of this application may not be what you expect. You should consider increasing the kernel size or regridding the image to a smaller pixel size
@@ -176,7 +177,7 @@ feather(imagename='Feather.image',
 
 '''
 #1.0 Collect the files
-#You might need this again, in case you started again.
+#You might need this, in case you started again.
 datadir = '/Users/aplunket/ResearchNRAO/Meetings/DataComb2019/Lup3mms/Lup3mms_Share/' #the directory where your test data are held
 vis7m = datadir+'mst_07_nchan10_start0kms.ms'
 vis12m = datadir+'mst_12_nchan10_start0kms.ms'
@@ -218,4 +219,71 @@ lineimage = {"restfreq"   : '115.27120GHz',
 
 tclean(vis=['tp.ms'],imagename=lineimagename+'_wp0_niter0',field=field,spw='',phasecenter=phasecenter,mosweight=True,specmode='cube',niter=0,interpolation='nearest',**lineimage)
 
-### ONGOING!
+## IF OK, the you should add the 12m and 7m visibilities as input to TCLEAN.
+
+######################
+## Day 3: SDInt
+## Documentation here: https://github.com/urvashirau/WidebandSDINT
+########################
+
+## NOT WORKING YET: execfile('/Users/aplunket/ResearchNRAO/Meetings/DataComb2019/dc2019/scripts/make_gauss_beam_cube.py')
+## INstead I use the PSF from TP2VIS+Tclean
+
+## FILE List FOR runsdint.py:
+vis = '12m7m.ms'
+sdimage = 'TP.image' ## Original, with ra,dec,freq,stokes
+sdpsf = 'tp2vis_wp0_niter0.psf' ## Need to drop the degenerate axis
+
+## CHECK HEADER DIMENSIONS
+axim = imhead(sdimage)['axisnames']
+axpsf = imhead(sdpsf)['axisnames']
+print('Image axes; PSF axes: {} {}'.format(axim,axpsf))
+
+## Switch Stokes and Freq axis so that dimensions = [ra,dec,freq,stokes] for convenience in CASA
+imtrans(imagename='TP.image',outfile='TP.image.trans',order='0132')   # switch stokes (2) and freq (3) axes
+sdimage = 'TP.image.trans' ## Dropped the degenerate axis
+
+
+## Cut the SD image to have the same number of frequency channels as the PSF 
+shapeim = imhead(sdimage)['shape']
+shapepsf = imhead(sdpsf)['shape']
+print('Image shape; PSF Shape: {} {}'.format(shapeim,shapepsf))
+imregrid(imagename=sdimage,
+         template=sdpsf,
+         axes=[3],
+         output=sdimage+'.regrid')
+## Check again:
+shapeim = imhead(sdimage+'.regrid')['shape']
+shapepsf = imhead(sdpsf)['shape']
+print('Image shape; PSF Shape: {} {}'.format(shapeim,shapepsf))
+
+#### FINALLY, Use these parameters in runsdint.py
+vis = '12m7m.ms'
+sdimage = 'TP.image.trans.regrid' ## Dropped the degenerate axis
+sdpsf = 'tp2vis_wp0_niter0.psf' ## Need to drop the degenerate axis
+
+deconvolver='hogbom'
+specmode='cube'
+gridder='mosaic'
+
+phasecenter='J2000 16h09m18.1 -39d04m44.0'
+imsize=[900,600]
+cell='0.4arcsec'
+reffreq='115.27120GHz'
+dishdia=12.0 # in meters
+niter=10000
+cycleniter= 500
+scales=[0,12,20,40,60,80,100]
+pblimit=0.2
+mythresh='5mJy'
+mask=''
+nchan=4
+start='0.0km/s'
+width='1.0km/s'
+
+## We should also try to use the same parameters across the previous cleans, in order to make a really careful comparison.
+## This last clean was done with multi-scale, while the others were not.
+
+
+
+
