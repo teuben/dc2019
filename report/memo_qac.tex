@@ -293,12 +293,24 @@ TBD. Partially tested. Needs a proper QAC implementation the way Kauffmann descr
 {\bf Acknowledgements:} partially written under the influence of good Dutch coffee and apple pie in ``Brasserie Buitenhuis''.
 
 \clearpage
-\section{Appendix: ???}
+\section{Appendix: Unresolved Issues}
 
-\begin{lstlisting}[language=Python]
+Although you may find these also in the github issue tracker for dc2019, we list here some issues to be resolved related to QAC/TP2VIS
+and possible need fixes in CASA as well:
 
-\end{lstlisting}
+\begin{enumerate}
 
+\item imtrans() on the TP does not preserve flux in benchmark (1 on 474)
+\item differencing two runs on the benchmark shows some numbers that vary, where our seed=123 should have fixed everything?
+  The flux is conserved though. Something clearly odd.
+\item despite gridding the benchmark data from 1400 to 1775 km/s in steps of 5 km/s, we get unpredictable bad first or last channel
+  (either 0 or combinations fail in those channels). Is this a CASA roundoff problem?  Data are all supposed to be in LSRK, so no more
+  Doppler shifting should be needed.
+  
+  
+
+
+\end{enumerate}
 
 
 \end{document}
