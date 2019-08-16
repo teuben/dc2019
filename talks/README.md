@@ -15,6 +15,6 @@ Talks that should be here:
 | Saito         | pdf |
 | Burkutean     | pdf |
 | | |
-| Hacar         | - |
+| Hacar         | pdf |
 | Herrera       | - |
 | SDINT (Braun) | pdf |
