@@ -103,7 +103,7 @@ CASA <1>:   execfile("foo.py")
 \end{lstlisting}
 
 but this has the disadvantage that no command line parameters can be given. All your parameters need to be hardcoded
-in \verb+foo.py+ \footnote{Python's execfile command only works in Python 2}.
+in \verb+foo.py+ \footnote{Python's execfile only works in Python 2, and will thus disappear from CASA once it changes to Python 3}
 
 \subsection{A poor man's command line parser}
 
@@ -134,9 +134,25 @@ after which you can use it as in the following example (note the double quoting 
   % casa --nogui -c foo.py pdir='"test1"' imsize=1024 pixel=0.1 niter='[0,1000]'  > test1.log 2>&1
 \end{lstlisting}
 
-\subsection{Using make}
+\subsection{Using ``make''}
 
-The classic ``make'' command in Unix uses a Makefile where the recipes (normally called targets) are stored. This has the advantage that
+The classic ``make'' command in Unix uses a \verb+Makefile+ where the recipes (normally called targets) are stored. This has the advantage that
+it self-documents all the work needed or was done in a particular directory. Running CASA scripts via a Unix commandline also has the
+advantage that log files can be compared, and a  graphical difference between two logfiles.
+Here is the Makefile entry for running the benchmark ``bench'':
+
+\begin{lstlisting}[language=make]
+  # pick your CASA or use a smart $PATH
+CASA = time /Applications/CASA.app/Contents/MacOS/casa --nogui -c 
+CASA = time casa --nogui -c
+  
+bench:
+    $(CASA) bench.py > bench.log 2>&1
+    cp bench.log bench
+\end{lstlisting}
+
+and here an example\footnote{``astroload'' is a personal alias to load in different versions of CASA, YMMV} of comparing the
+benchmark for two difference version of CASA:
 
 \begin{lstlisting}[language=bash]
   astroload -v 5.6 casa
@@ -150,6 +166,7 @@ The classic ``make'' command in Unix uses a Makefile where the recipes (normally
   casaviewer diff1.im
 \end{lstlisting}
 
+In my experience looking at the difference between logfiles and maps this way, a lot of problems can be uncovered more quickly.
 
 \section{Combination Methods}
 
