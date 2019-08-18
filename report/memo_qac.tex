@@ -78,7 +78,7 @@
 \section{Introduction}
 
 The Quick Array Combination (QAC) toolkit came first into existence to shortcut some tedious organizational python code that seemed to be always needed
-writing codes to run combinations and comparisons, in particular in simulations. It follows the strategy used in the CASA simulator, in which
+writing codes to run simulations, combinations and comparisons. It follows the strategy used in the CASA simulator, in which
 datasets are maintained within a project directory. In addition, QAC would fix and containerize some CASA issues. Thus QAC is a python layer for CASA,
 and QAC and CASA commands can be used interchangeably.
 
@@ -90,13 +90,14 @@ Do we need this?  Or just refer to the github repo?
 
 \section{Using QAC}
 
-With a CASA script \verb+foo.py+, you can execute this directly from the Unix shell (e.g. bash) 
-
+Given a CASA script \verb+foo.py+, you can execute this in two ways. First, directly from the Unix shell (e.g. bash), and optionally
+pass it command line arguments:
+ 
 \begin{lstlisting}[language=bash]
     % casa --nogui -c foo.py pixel=0.1 > test1.log 2>&1
 \end{lstlisting}
 
-which preserves the screen output in \verb+test.log+.  Or you can execute it directly from within CASA's ``ipython'' session
+This redirects the screen output to \verb+test.log+.  Or you can execute it directly from within CASA's ``ipython'' session
 
 \begin{lstlisting}[language=Python]
 CASA <1>:   execfile("foo.py")
@@ -143,7 +144,8 @@ Here is the Makefile entry for running the benchmark ``bench'':
 
 \begin{lstlisting}[language=make]
   # pick your CASA or use a smart $PATH
-CASA = time /Applications/CASA.app/Contents/MacOS/casa --nogui -c 
+CASA = time /Applications/CASA.app/Contents/MacOS/casa --nogui -c
+CASA = time /opt/casa-release-5.6.0-60.el7/bin/casa --nogui -c
 CASA = time casa --nogui -c
   
 bench:
@@ -167,6 +169,35 @@ benchmark for two difference version of CASA:
 \end{lstlisting}
 
 In my experience looking at the difference between logfiles and maps this way, a lot of problems can be uncovered more quickly.
+
+\section{Example Script}
+
+Here is a simple example of combining Visibilities and TP data:
+
+\begin{lstlisting}[language=Python]
+  # Datasets we need (assumed to be all gridded on the same spectral grid)
+  ms12 = '12m.ms'
+  ms7  = '7m.ms'
+  tpim = 'tp.im'
+
+  
+  # Do all the work in the directory "M100" (it will be created, if exists, all contents removed)
+  qac_test('M100')
+  
+  # get the pointings from the 12m data
+  qac_ms_ptg(ms12,'M100/12m.ptg')
+
+  # generate the visibilities from the TP map
+  qac_tp_vis('M100',tpim,'M100.ptg',rms=0.15)
+
+  # tclean the 7m, 12m and TP visibilities
+  qac_clean('M100/clean1','M100/tp.ms',[ms12,ms7],800,0.5,phasecenter='J2000 12h22m54.900s +15d49m15.000s',niter=[0,10000])
+
+  # feather the 7m+12m with the TP image  [@todo the regrid]
+  qac_feather('M100','M100/clean1/tpint_2.image.pbcor','tp.im',regrid=True)
+
+\end{lstlisting}
+
 
 \section{Combination Methods}
 
@@ -307,9 +338,6 @@ and possible need fixes in CASA as well:
   (either 0 or combinations fail in those channels). Is this a CASA roundoff problem?  Data are all supposed to be in LSRK, so no more
   Doppler shifting should be needed.
   
-  
-
-
 \end{enumerate}
 
 
