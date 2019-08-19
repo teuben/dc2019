@@ -1,10 +1,11 @@
 # N346 debugging
-#
+# your shell needs: ulimit -Sn 8000
+#   unless you use casa 5.4 which doesn't limit the # open file!
 
-npoint = 500
+npoint = 1345
 p      = qac_ms_ptg('region3by3-7M-leiden-avg.ms','12m.ptg')
 
-if False:
+if True:
     # this will use all 1345 pointings !!!
     tp2vis('new.cube.spw23-forLeiden.image','new.cube.spw23-forLeiden.image.ms','12m.ptg',rms=0.5)
 else:
