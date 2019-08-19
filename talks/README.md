@@ -16,5 +16,5 @@ Talks that should be here:
 | Burkutean     | pdf |
 | | |
 | Hacar         | pdf |
-| Herrera       | - |
+| Herrera       | pdf |
 | SDINT (Braun) | pdf |
