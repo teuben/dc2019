@@ -78,15 +78,23 @@
 \section{Introduction}
 
 The Quick Array Combination (QAC) toolkit came first into existence to shortcut some tedious organizational python code that seemed to be always needed
-writing codes to run simulations, combinations and comparisons. It follows the strategy used in the CASA simulator, in which
-datasets are maintained within a project directory. In addition, QAC would fix and containerize some CASA issues. Thus QAC is a python layer for CASA,
+writing codes to run simulations, combinations and comparisons. QAC follows the strategy used in the CASA simulator, in which
+datasets are maintained within a project directory with predictable names.
+In addition, QAC would fix and containerize some CASA issues we ran into during the TP2VIS development. Thus QAC is a python layer to CASA,
 and QAC and CASA commands can be used interchangeably.
 
 QAC is also described in ngVLA memo 59.
 
 \section{Installing QAC}
 
-Do we need this?  Or just refer to the github repo?
+Typically QAC is installed by adding the line
+\begin{lstlisting}[language=bash]
+    execfile(os.environ['HOME'] + '/.casa/QAC/casa.init.py')
+\end{lstlisting}
+
+to your \verb+~/.casa/init.py+ file. You can either place a symbolic link to the location where you keep QAC, or place it directly
+inside the \verb+~/.casa+ directory.  QAC has optional methods to install other useful CASA components, such
+as the public tp2vis release, SDINT, SD2VIS etc. More information can be found in the QAC distribution.
 
 \section{Using QAC}
 
@@ -108,23 +116,23 @@ in \verb+foo.py+ \footnote{Python's execfile only works in Python 2, and will th
 
 \subsection{A poor man's command line parser}
 
-You can also use Python's {\tt argparse}   (ref....) or use QAC's poor man's (very limited error checking).  You first define
+You can also use Python's {\tt argparse} or use QAC's poor man's (very limited error checking).  You first define
 the keywords with a default, then parse the command line, after which their values have been overriden from the ones on
 the command line.
 
 \begin{lstlisting}[language=Python]
-  # set defaults
+  # set defaults for parameters
   pdir    = 'sky1'
   imsize  = 2048
   pixel   = 0.05
   niter   = [0,1000,4000]
 
-  # parse the command line
+  # parse the ``keyword=value'' based command line parameters
   import sys
   for arg in qac_argv(sys.argv):   
       exec(arg)
 
-  # use the new values
+  # show the new values of the parameters
   print(pdir,imsize,pixel,niter)
 
 \end{lstlisting}
@@ -168,17 +176,17 @@ benchmark for two difference version of CASA:
   casaviewer diff1.im
 \end{lstlisting}
 
-In my experience looking at the difference between logfiles and maps this way, a lot of problems can be uncovered more quickly.
+In my experience looking at the difference between logfiles and maps this way, a lot of obvious problems can be uncovered more quickly.
 
 \section{Example Script}
 
-Here is a simple example of combining Visibilities and TP data:
+Here is a simple example of combining Visibilities and TP data, the QAC style:
 
 \begin{lstlisting}[language=Python]
   # Datasets we need (assumed to be all gridded on the same spectral grid)
-  ms12 = '12m.ms'
-  ms7  = '7m.ms'
-  tpim = 'tp.im'
+  ms12 = '12m.ms'   # 12m visibilities
+  ms7  = '7m.ms'    # 7m visibilities
+  tpim = 'tp.im'    # TP image cube
 
   
   # Do all the work in the directory "M100" (it will be created, if exists, all contents removed)
@@ -187,21 +195,27 @@ Here is a simple example of combining Visibilities and TP data:
   # get the pointings from the 12m data
   qac_ms_ptg(ms12,'M100/12m.ptg')
 
-  # generate the visibilities from the TP map
+  # generate the visibilities from the TP cube, using a known rms of 0.15 Jy/beam in the TP cube
   qac_tp_vis('M100',tpim,'M100.ptg',rms=0.15)
 
-  # tclean the 7m, 12m and TP visibilities
+  # tclean the 7m, 12m and TP visibilities together
   qac_clean('M100/clean1','M100/tp.ms',[ms12,ms7],800,0.5,phasecenter='J2000 12h22m54.900s +15d49m15.000s',niter=[0,10000])
 
   # feather the 7m+12m with the TP image  [@todo the regrid]
   qac_feather('M100','M100/clean1/tpint_2.image.pbcor','tp.im',regrid=True)
+
+  # SSC
+  qac_ssc()
+
+  # SDVIS
+  qac_sd_int('M100',...)
 
 \end{lstlisting}
 
 
 \section{Combination Methods}
 
-\subsection{Method 1: Feather}
+\subsection{Method 1: Feather (combining after deconvolution)}
 
 There are currently two ``feather'' type implementations in QAC:
 
@@ -225,6 +239,8 @@ def qac_feather(project, highres=None, lowres=None, label="", niteridx=0, name="
 
 \subsubsection{Faridani's SSC}
 
+This method is also available in NOD3 as ``immerge''. ( check ). The QAC version assumes a directory structure.
+
 \begin{lstlisting}[language=Python]
 def qac_ssc(project, highres=None, lowres=None, f=1.0, sdTel = None, regrid=True, cleanup=True, label="", niteridx=0, name="dirtymap"):
     """
@@ -236,7 +252,7 @@ def qac_ssc(project, highres=None, lowres=None, f=1.0, sdTel = None, regrid=True
     """
 \end{lstlisting}
 
-\subsection{Method 2: Joint Deconvolution}
+\subsection{Method 2: Joint Deconvolution (combining before deconvolution)}
 
 Again, we have several implementations available:
 
@@ -246,41 +262,17 @@ Again, we have several implementations available:
 def qac_tp_vis(project, imagename, ptg=None, pixel=None, phasecenter=None, rms=None, maxuv=10.0, nvgrp=4, fix=1, deconv=True, winpix=0, **line):    
            
     """
-      Simple frontend to call tp2vis() 
-    
-    
-      _required_keywords:
-      ===================
       project:       identifying (one level deep directory) name within which all files are places
       imagename:     casa image in RA-DEC-POL-FREQ order (fits file is ok too)
-      ptg            1) Filename with pointings (ptg format) to be used
-                     2_ List of (string) pointings
-                     If none specified, it will currently return, but there may be a
-                     plan to allow auto-filling the (valid) map with pointings.
-                     A list of J2000/RA/DEC strings can also be given.
-    
-    
-      _optional_keywords:
-      ===================
-    
-      pixel:         pixel size, in arcsec, if to be overriden from the input map. Default: None
-                     Note we won't allow you to change the imsize.
-      phasecenter    Defaults to mapcenter (note special format)
-                     e.g. 'J2000 00h48m15.849s -73d05m0.158s'
+      ptg            filename of list of pointings
+      pixel:         pixel size, in arcsec, if to be overriden from the input map. 
+      phasecenter    Defaults to mapcenter
       rms            if set, this is the TP cube noise to be used to set the weights
       maxuv          maximum uv distance of TP vis distribution (in m)  [10m] 
       nvgrp          Number of visibility group (nvis = 1035*nvgrp)
-      fix            Various fixes such that tclean() can handle a list of ms.
-                     ** this parameter will disappear or should have default 1
-                     0   no fix, you need to run mstransform()/concat() on the tp.ms
-                     1   output only the CORRECTED_DATA column, remove other *DATA*, POINTING table also removed
-                     2   debug mode, keep all intermediate MS files
-                     @todo   there is a flux difference between fix=0 and fix=1 in dirtymap
-      deconv         Use the deconvolved map as model for the simulator
-                     Within CASA you can use use deconvolve() to construct a Jy/pixel map.
-
+      fix            Various fixes such that tclean() can handle a list of ms [fix=1]
+      deconv         Use the deconvolved map as model for the simulator.
       winpix         Tukey window [0]
-
       line           Dictionary of tclean() parameters, usually the line parameters are useful, e.g.
                      line = {"restfreq":"115.271202GHz","start":"1500km/s", "width":"5km/s","nchan":5}
     """
@@ -294,7 +286,7 @@ From the Nordic ARC. Handles one pointing. Not tested in this workshop.
 
   def qac_sd_vis(**kwargs):
   """
-  SD2vis from the Nordoc Tools
+  SD2vis from the Nordic ARC Tools
   """
 
 \end{lstlisting}
@@ -303,22 +295,25 @@ From the Nordic ARC. Handles one pointing. Not tested in this workshop.
 \subsubsection{sdint}
 
 Currently under evaluation in the CASA developers team.  Being implemented in QAC as well.
-Minor issue: did not handle spectral axis being different in MS and IM.
+Minor issue: did not handle spectral axis being different in MS and IM, some extra pre-processing
+is needed.
 
 \begin{lstlisting}[language=Python]
 
 def qac_sd_int(sdimage, vis, sdpsf, **kwargs):
     """
-    QAC interface to sdint
+    sdimage:
+    vis:
+    sdpsf:
     """
-
 
 \end{lstlisting}
 
 
-\subsection{Method 3 (hybrid startmodel)}
+\subsection{Method 3 (hybrid startmodel) (combining during deconvolution)}
 
-TBD. Partially tested. Needs a proper QAC implementation the way Kauffmann described it.
+TBD. Partially tested. Needs a proper QAC implementation the way Kauffmann described it, but our qac\_clean() supports the
+startmodel= keyword.
 
 \bigskip
 {\bf Acknowledgements:} partially written under the influence of good Dutch coffee and apple pie in ``Brasserie Buitenhuis''.
@@ -333,10 +328,21 @@ and possible need fixes in CASA as well:
 
 \item imtrans() on the TP does not preserve flux in benchmark (1 on 474)
 \item differencing two runs on the benchmark shows some numbers that vary, where our seed=123 should have fixed everything?
-  The flux is conserved though. Something clearly odd.
-\item despite gridding the benchmark data from 1400 to 1775 km/s in steps of 5 km/s, we get unpredictable bad first or last channel
+  The flux is conserved though. Something clearly odd in tp2vis.
+\item despite gridding the benchmark data from 1400 to 1745 km/s in steps of 5 km/s, we get unpredictable bad first or last channel
   (either 0 or combinations fail in those channels). Is this a CASA roundoff problem?  Data are all supposed to be in LSRK, so no more
   Doppler shifting should be needed.
+
+\end{enumerate}
+
+\section{tips}
+
+\begin{enumerate}
+
+\item authors of scripts for community use should list how much memory and diskspace it will take, and some idea of the CPU time
+
+\item it helps to develop a script that with a few obvious changes to the parameters at the top will run quickly, vs. the full run.
+  Examples could be to easily set fewer channels, fewers pointings etc.
   
 \end{enumerate}
 
