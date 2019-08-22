@@ -1,5 +1,7 @@
-#  Use the QAC bench data to run the M100 combination
-
+#  Use the new CASA5 QAC bench data to run the M100 combination
+#
+#  curl http://admit.astro.umd.edu/~teuben/QAC/qac_bench5.tar.gz | tar zxf -
+#
 import os
 
 pdir = 'M100qac'
@@ -9,9 +11,24 @@ ms2 = '../M100_aver_7.ms'
 tp1 = '../M100_TP_CO_cube.bl.image'
 
 
+# QAC: start with a clean 'pdir' and do all the work inside
 qac_begin(pdir)
 qac_project(pdir)
 os.chdir(pdir)
+
+# Assert files exist
+print("If you do not have the 3 QAC benchmark files, issue")
+print("curl http://admit.astro.umd.edu/~teuben/QAC/qac_bench5.tar.gz | tar zxf -")
+QAC.assertf(ms1)
+QAC.assertf(ms2)
+QAC.assertf(tp1)
+
+
+
+# sanity
+qac_stats(ms1)
+qac_stats(ms2)
+qac_stats(tp1)
 
 #
 listobs(ms1,listfile=ms1 + '.listobs',overwrite=True)
@@ -31,7 +48,10 @@ ms3 = 'M100_combine_CO.ms'
 
 # Concat and scale weights
 os.system('rm -rf %s' % ms3)
-concat(vis=[ms1,ms2], concatvis=ms3)
+if True:
+    concat(vis=[ms1,ms2], concatvis=ms3)
+else:
+    concat(vis=[ms2], concatvis=ms3)    
 
 # In CASA
 plotms(vis=ms3,yaxis='wt',xaxis='uvdist',spw='0~2:200',coloraxis='spw',plotfile='combine_CO_WT.png',showgui=True,overwrite=True)
@@ -48,7 +68,7 @@ prename  = 'M100_combine_CO_cube'     # or replace .ms by _cube   # 'M100_combin
 imsize   = 800
 cell     = '0.5arcsec'
 minpb    = 0.2
-restfreq = '115.271201800GHz'
+restfreq = '115.271201800GHz'         # ? should be '115.271202GHz' to match the QAC benchmark data
 outframe = 'LSRK'
 spw      = ''
 width    = '5km/s'
@@ -372,3 +392,5 @@ qac_end()
 # benchmark 5km/s
 
 # 5.6    2852.29        2853.72        3084.51
+
+#  (2972 +/- 319 Jy km/s from the BIMA SONG; Helfer et al. 2003).
