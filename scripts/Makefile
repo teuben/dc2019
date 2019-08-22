@@ -16,13 +16,17 @@ FeatheringPresentation.ipynb:
 M100all: M100 M100qac M100tp2vis M100sdint
 
 
-# full data (in current directory)
+# full resolution data (all producte will be in current directory)
 M100:
 	$(CASA) M100_combine1.py > M100_combine1.log  2>&1
 
 # NOTE: the order of these is important:   2-4-3
 
 # QAC benchmark data (all data in M100qac) - this needs the new qac_bench5.tar.gz
+
+M100data:
+	curl http://admit.astro.umd.edu/~teuben/QAC/qac_bench5.tar.gz | tar zxf -
+
 M100feather: M100qac
 
 M100qac:
