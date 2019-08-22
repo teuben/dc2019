@@ -1,17 +1,41 @@
-# SDINT example:
+# SDINT example - needs to have run M100_combine2 and M100_combine4 before
 
-# First we combine the 7m INT with the 12m TP data; we use the benchmark M100 data
+# Timing:
+#     7m combination takes about 26min
+#  12+7m combination takes about 18min
 #
-# 1. the TP cube needs the same freq order as the MS
-#    imtrans('M100_TP_CO_cube.bl.image','M100_TP_CO_cube.blr.image','012-3')
 
-# 2. to prepare PSF, run QAC/workflows/workflow6.py first, and copy 'test6/tp0/clean0/dirtymap.psf' locally
+use12m = True
 
-vis     = 'M100_aver_7.ms'
-sdimage = 'M100_TP_CO_cube.bl.image'
-sdimage = 'M100_TP_CO_cube.blr.image'
-sdpsf   = 'test6/tp0/clean0/dirtymap.psf'
-sdpsf   = 'dirtymap.psf'
+#-- do not change parameters below this ---
+import sys
+for arg in qac_argv(sys.argv):
+    exec(arg)
+
+
+
+pdir = 'M100qac'
+
+ms1     = '../M100_aver_7.ms'              # from qac_bench5
+ms2     = '../M100_aver_12.ms'             # from qac_bench5
+ms3     = 'M100_combine_CO.ms'             # from running M100_combine2
+sdimage = '../M100_TP_CO_cube.bl.image'    # from qac_bench5
+sdpsf   = 'test6/tp0/clean0/dirtymap.psf'  # from running M100_combine4
+
+if use12m:
+    # 12+7m
+    vis = ms3
+else:
+    # just 7m
+    vis = ms1
+
+os.chdir("M100qac")    
+
+QAC.assertf(ms1)    
+QAC.assertf(ms2)    
+QAC.assertf(ms3)    
+QAC.assertf(sdimage)
+QAC.assertf(sdpsf)
 
 
 deconvolver = 'clark'
@@ -32,7 +56,10 @@ mythresh    = '.050mJy'
 mask        = 'M100.im.masklist'  ## region file, or mask image with 1,0.
 
 #Joint reconstruction file name
-jointname   = 'tryit'
+if use12m:
+    jointname = 'M100sdint_12'
+else:
+    jointname = 'M100sdint_7'    
 
 os.system('rm -rf '+jointname+'*')
 
