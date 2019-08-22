@@ -98,14 +98,15 @@ as the public tp2vis release, SDINT, SD2VIS etc. More information can be found i
 
 \section{Using QAC}
 
-Given a CASA script \verb+foo.py+, you can execute this in two ways. First, directly from the Unix shell (e.g. bash), and optionally
-pass it command line arguments:
+Given a CASA script \verb+foo.py+, you can execute this in two ways
+First, directly from the Unix shell (e.g. bash), and optionally
+pass it command line arguments if the script knows how to do it:
  
 \begin{lstlisting}[language=bash]
-    % casa --nogui -c foo.py pixel=0.1 > test1.log 2>&1
+    % casa --nogui -c foo.py pixel=0.1 > foo.log 2>&1
 \end{lstlisting}
 
-This redirects the screen output to \verb+test.log+.  Or you can execute it directly from within CASA's ``ipython'' session
+This redirects the screen output to \verb+foo.log+.  Secondly, you can execute it directly from within CASA's ``ipython'' session
 
 \begin{lstlisting}[language=Python]
 CASA <1>:   execfile("foo.py")
@@ -113,6 +114,9 @@ CASA <1>:   execfile("foo.py")
 
 but this has the disadvantage that no command line parameters can be given. All your parameters need to be hardcoded
 in \verb+foo.py+ \footnote{Python's execfile only works in Python 2, and will thus disappear from CASA once it changes to Python 3}
+
+% In the RICA package you can find a 3rd variant using the ipython {\tt run} command - but this is virgin python that needs casa imports.
+
 
 \subsection{A poor man's command line parser}
 
@@ -140,7 +144,7 @@ the command line.
 after which you can use it as in the following example (note the double quoting to escape the shell meta characters):
 
 \begin{lstlisting}[language=bash]
-  % casa --nogui -c foo.py pdir='"test1"' imsize=1024 pixel=0.1 niter='[0,1000]'  > test1.log 2>&1
+  % casa --nogui -c foo.py pdir='"test1"' imsize=1024 pixel=0.1 niter='[0,1000]'  >foo.log 2>&1
 \end{lstlisting}
 
 \subsection{Using ``make''}
@@ -237,6 +241,9 @@ def qac_feather(project, highres=None, lowres=None, label="", niteridx=0, name="
     Typical use in a simulation:
 \end{lstlisting}
 
+CASA's feather() implemention can also be used, if you know all your filenames, there is no need to use the QAC version
+in that case.
+
 \subsubsection{Faridani's SSC}
 
 This method is also available in NOD3 as ``immerge''. ( check ). The QAC version assumes a directory structure.
@@ -280,7 +287,7 @@ def qac_tp_vis(project, imagename, ptg=None, pixel=None, phasecenter=None, rms=N
 
 \subsubsection{sdvis}
 
-From the Nordic ARC. Handles one pointing. Not tested in this workshop.
+From the Nordic ARC. Handles one pointing only. Not tested in this workshop.
 
 \begin{lstlisting}[language=Python]
 
@@ -295,7 +302,7 @@ From the Nordic ARC. Handles one pointing. Not tested in this workshop.
 \subsubsection{sdint}
 
 Currently under evaluation in the CASA developers team.  Being implemented in QAC as well.
-Minor issue: did not handle spectral axis being different in MS and IM, some extra pre-processing
+Minor issue: does not handle spectral axis being different in MS and IM yet, so some extra pre-processing
 is needed.
 
 \begin{lstlisting}[language=Python]
@@ -343,8 +350,25 @@ and possible need fixes in CASA as well:
 
 \item it helps to develop a script that with a few obvious changes to the parameters at the top will run quickly, vs. the full run.
   Examples could be to easily set fewer channels, fewers pointings etc.
+
+\item related to the previous item,
+  if you develop a script inside of CASA, the command \verb+%history -f mysession.py+ can be used to save your session and
+  transform into a re-usable script instead of cutting and pasting commands over and over again.
   
 \end{enumerate}
 
+
+\section{new features}
+
+Many small changes to QAC and related software, but worth noting
+from this week are:
+
+\begin{enumerate}
+
+\item tp2vis should check if outfile exists, and not overwrite it
+
+\item provisionary sdint interface added 
+  
+\end{enumerate}
 
 \end{document}
