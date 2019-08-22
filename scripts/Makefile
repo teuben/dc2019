@@ -22,7 +22,7 @@ M100:
 
 # NOTE: the order of these is important:   2-4-3
 
-# QAC benchmark data (all data in M100qac)
+# QAC benchmark data (all data in M100qac) - this needs the new qac_bench5.tar.gz
 M100feather: M100qac
 
 M100qac:
