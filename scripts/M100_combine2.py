@@ -10,6 +10,9 @@ ms1 = '../M100_aver_12.ms'
 ms2 = '../M100_aver_7.ms'
 tp1 = '../M100_TP_CO_cube.bl.image'
 
+# some testing, to confirm that M100_combine2 in QAC mode gives the same results as without
+qac1 = True
+
 
 # QAC: start with a clean 'pdir' and do all the work inside
 qac_begin(pdir)
@@ -64,11 +67,11 @@ plotms(vis=ms3,yaxis='amp',xaxis='velocity',spw='', avgtime='1e8',avgscan=True,c
 
 ### Define clean parameters
 vis      = ms3          
-prename  = 'M100_combine_CO_cube'     # or replace .ms by _cube   # 'M100_combine_CO.ms'
+prename  = 'M100_combine_CO_cube'     # or replace .ms by _cube   # 'M100_combine_CO.ms'   
 imsize   = 800
 cell     = '0.5arcsec'
 minpb    = 0.2
-restfreq = '115.271201800GHz'         # ? should be '115.271202GHz' to match the QAC benchmark data
+restfreq = '115.271202GHz'            # this value needs to be consistent on how
 outframe = 'LSRK'
 spw      = ''
 width    = '5km/s'
@@ -80,7 +83,7 @@ phasecenter = 'J2000 12h22m54.9 +15d49m15'
 ### Setup stopping criteria with multiplier for rms.
 stop        = 3.
 
-### Make initial dirty image
+### Make initial dirty image to get the rms in the line free channels
 os.system('rm -rf '+prename+'_dirty.*')
 tclean(vis=vis,
     imagename=prename + '_dirty',
@@ -110,7 +113,7 @@ tclean(vis=vis,
 myimage = prename+'_dirty.image'
 bigstat = imstat(imagename=myimage)
 peak    = bigstat['max'][0]
-print 'peak (Jy/beam) in cube = '+str(peak)
+print 'peak (Jy/beam) in dirty cube = '+str(peak)
 
 # find the RMS of a line free channel (should be around 0.011
 chanstat = imstat(imagename=myimage,chans='4')
@@ -163,26 +166,31 @@ tclean(vis=vis,
 
 #
 # viewer('M100_combine_CO_cube.image',gui=True)
+# note this should be referred to with the variable prename
+# and the rest of the script as well.
 
-myimage  = 'M100_combine_CO_cube.image'
+myimage  = 'M100_combine_CO_cube.image'                  #   should be:   prename + '.image'
 chanstat = imstat(imagename=myimage,chans='4')
 rms1     = chanstat['rms'][0]
 chanstat = imstat(imagename=myimage,chans='66')
 rms2     = chanstat['rms'][0]
 rms      = 0.5*(rms1+rms2)
 print 'rms in a channel = '+str(rms)
+chan_rms = [0,8,62,69]    # to complement the '9~61'
 
-
-os.system('rm -rf M100_combine_CO_cube.image.mom0')
-immoments(imagename = 'M100_combine_CO_cube.image',
+if qac1:
+    qac_mom('M100_combine_CO_cube.image', chan_rms, rms=rms)
+else:
+    os.system('rm -rf M100_combine_CO_cube.image.mom0')
+    immoments(imagename = 'M100_combine_CO_cube.image',
          moments = [0],
          axis = 'spectral',chans = '9~61',
          mask='M100_combine_CO_cube.pb>0.3',
          includepix = [rms*2,100.],
          outfile = 'M100_combine_CO_cube.image.mom0')
 
-os.system('rm -rf M100_combine_CO_cube.image.mom1')
-immoments(imagename = 'M100_combine_CO_cube.image',
+    os.system('rm -rf M100_combine_CO_cube.image.mom1')
+    immoments(imagename = 'M100_combine_CO_cube.image',
          moments = [1],
          axis = 'spectral',chans = '9~61',
          mask='M100_combine_CO_cube.pb>0.3',
@@ -232,7 +240,6 @@ qac_fits('M100_combine_CO_cube.image.mom0.pbcor')
 qac_fits('M100_combine_CO_cube.image.mom1')
 
 
-
 imhead(tp1,                         mode='get',hdkey='restfreq')
 imhead('M100_combine_CO_cube.image',mode='get',hdkey='restfreq')
 
@@ -275,18 +282,21 @@ chanstat = imstat(imagename=myimage,chans='4')
 rms1     = chanstat['rms'][0]
 chanstat = imstat(imagename=myimage,chans='66')
 rms2     = chanstat['rms'][0]
-rms      = 0.5*(rms1+rms2)  
+rms      = 0.5*(rms1+rms2)
 
-os.system('rm -rf M100_TP_CO_cube.regrid.subim.mom0')
-immoments(imagename='M100_TP_CO_cube.regrid.subim',
+if qac1:
+    qac_mom('M100_TP_CO_cube.regrid.subim', chan_rms, rms=rms)
+else:
+    os.system('rm -rf M100_TP_CO_cube.regrid.subim.mom0')
+    immoments(imagename='M100_TP_CO_cube.regrid.subim',
          moments=[0],
          axis='spectral',
          chans='10~61',
          includepix=[rms*2., 50],
          outfile='M100_TP_CO_cube.regrid.subim.mom0')
  
-os.system('rm -rf M100_TP_CO_cube.regrid.subim.mom1')
-immoments(imagename='M100_TP_CO_cube.regrid.subim',
+    os.system('rm -rf M100_TP_CO_cube.regrid.subim.mom1')
+    immoments(imagename='M100_TP_CO_cube.regrid.subim',
          moments=[1],
          axis='spectral',
          chans='10~61',
@@ -317,16 +327,19 @@ rms2     = chanstat['rms'][0]
 rms      = 0.5*(rms1+rms2)  
 
 
-os.system('rm -rf M100_Feather_CO.image.mom0')
-immoments(imagename='M100_Feather_CO.image',
+if qac1:
+    qac_mom('M100_Feather_CO.image', chan_rms, rms=rms)
+else:
+    os.system('rm -rf M100_Feather_CO.image.mom0')
+    immoments(imagename='M100_Feather_CO.image',
          moments=[0],
          axis='spectral',
          chans='10~61',
          includepix=[rms*2., 50],
          outfile='M100_Feather_CO.image.mom0')
  
-os.system('rm -rf M100_Feather_CO.image.mom1')
-immoments(imagename='M100_Feather_CO.image',
+    os.system('rm -rf M100_Feather_CO.image.mom1')
+    immoments(imagename='M100_Feather_CO.image',
          moments=[1],
          axis='spectral',
          chans='10~61',
@@ -374,6 +387,18 @@ imview(raster=[{'file': 'M100_Feather_CO.image.mom0.pbcor',
 
 imstat('M100_combine_CO_cube.image.subim')
 
+r1 = '0.0012482416759620851 0.022885155827339781 -0.097563751041889191 0.77106547355651855 881.60255738809212'
+r2 = '0.85800511534968704 2.1029488639827396 0.10577000677585602 47.981842041015625 3038.8259741599804'
+r3 = '0.0027783475502910714 0.021545069499004026 -0.082641437649726868 0.78546744585037231 2826.1533279353807'
+r4 = '0.0029995717493774485 0.024097159582836203 -0.16380690038204193 0.79057258367538452 3051.1840323921738'
+r5 = '1.4254396459758483 2.8135560574036953 0.10561800003051758 51.054183959960938 3882.9384027157043'
+
+qac_stats('M100_combine_CO_cube.image',       r1)
+qac_stats('M100_combine_CO_cube.image.mom0',  r2)
+qac_stats('M100_Feather_CO.image',            r3)
+qac_stats('M100_Feather_CO.image.pbcor',      r4)
+qac_stats('M100_Feather_CO.image.mom0.pbcor', r5)
+
 
 f1=imstat('M100_TP_CO_cube.regrid.subim.depb')['flux']
 f2=imstat('M100_Feather_CO.image')['flux']
@@ -394,3 +419,4 @@ qac_end()
 # 5.6    2852.29        2853.72        3084.51
 
 #  (2972 +/- 319 Jy km/s from the BIMA SONG; Helfer et al. 2003).
+
