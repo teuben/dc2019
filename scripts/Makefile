@@ -16,6 +16,7 @@ FeatheringPresentation.ipynb:
 
 # full resolution data (all producte will be in current directory)
 # 5525.68user 168.67system 30:08.01elapsed 314%CPU
+# 22'
 M100:
 	$(CASA) M100_combine1.py > M100_combine1.log  2>&1
 
@@ -25,6 +26,10 @@ M100all: M100data M100qac M100tp2vis M100sdint
 # QAC benchmark data (all data in M100qac) - this needs the new qac_bench5.tar.gz
 M100data:
 	curl http://admit.astro.umd.edu/~teuben/QAC/qac_bench5.tar.gz | tar zxf -
+
+# 242.69user 3.90system 2:20.63elapsed 175%CPU 
+M100trim:
+	$(CASA) M100_trimdata.py > M100_trimdata.log  2>&1
 
 # alias for first 
 M100feather: M100qac
