@@ -18,6 +18,7 @@ phasecenter = 'J2000 12h22m54.900s +15d49m15.000s'
 phasecenter = 'J2000 185.72875deg +15.820833deg'
 
 line = {"restfreq":'115.271202GHz','start':'1400km/s', 'width':'5km/s','nchan':70}
+line = {"restfreq":'115.271202GHz','start':'1745km/s', 'width':'-5km/s','nchan':70}
 
 tpim  = '../M100_TP_CO_cube.bl.image'
 ms07  = '../M100_aver_7.ms'
@@ -57,7 +58,7 @@ if True:
 else:
     qac_im_ptg(phasecenter,nsize,pixel,30,outfile=ptg)
 
-qac_log("TP2VIS with rms=0.15")       # rms from imstat() on edge channels
+qac_log("TP2VIS with rms=0.15")       # rms from imstat() on edge channels   [0.13 seems to be a better value]
 qac_project('test6/tp0')
 qac_tp_vis('test6/tp0',tpim,ptg,rms=0.15,phasecenter=phasecenter)  
 qac_log("TP2VISWT - should show no change; about 0.0107354")
@@ -96,7 +97,7 @@ if True:
 
 if True:
     # plot comparing flux of TP
-    f0a =  imstat(tpim,                                    axes=[0,1])['flux']
+    f0a =  imstat(tpim,                                    axes=[0,1])['flux']     # [::-1]    # revert axis when needed
     f1a =  imstat('test6/tp0/clean0/dirtymap.image',       axes=[0,1])['flux']
     f1b =  imstat('test6/tp1/clean0/dirtymap.image',       axes=[0,1])['flux']
     f1c =  imstat('test6/M100_TP_CO_cube.bl.smo',          axes=[0,1])['flux']
@@ -163,10 +164,10 @@ f3  =  imstat('test6/clean6/tpint_3.image',      axes=[0,1],box=box)['flux']
 f4  =  imstat('test6/clean6/tpint_2.tweak.image',axes=[0,1],box=box)['flux']
 f5  =  imstat('test6/clean6/tpint_3.tweak.image',axes=[0,1],box=box)['flux']
 #
-#plot2a([f0,f1,f2,f3],  'plot2h1',       'test6/plot2h1.png')
-plot2a([f1,f2,f3],  'plot2h1',       'test6/plot2h1.png')
-plot2a([f1,f4,f5],  'plot2h2 tweak', 'test6/plot2h2.png')
-#plot2a([f0,f1,f4,f5],  'plot2h2 tweak', 'test6/plot2h2.png')
+#plot2a([f0,f1,f2,f3],  'plot2h1',       'test6/plot2h1.png',dv=5)
+plot2a([f1,f2,f3],  'plot2h1',       'test6/plot2h1.png',dv=5)
+plot2a([f1,f4,f5],  'plot2h2 tweak', 'test6/plot2h2.png',dv=5)
+#plot2a([f0,f1,f4,f5],  'plot2h2 tweak', 'test6/plot2h2.png',dv=5)
 
 qac_log("PAPER FIGURE-4")
 # figure 4 in the paper , comparing without (left) and with (right) 
