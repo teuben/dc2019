@@ -9,8 +9,8 @@ ms12  = '../M100_aver_12.ms'
 os.chdir(pdir)
 
 if True:
-    # plot comparing flux of TP
-    f0a =  imstat(tpim,                                    axes=[0,1])['flux']     # [::-1]    # revert axis when needed
+    # plot comparing flux of TP ; use [::-1] when an axis needs to be reverted
+    f0a =  imstat(tpim,                                    axes=[0,1])['flux']
     f1a =  imstat('test6/tp0/clean0/dirtymap.image',       axes=[0,1])['flux']
     f1b =  imstat('test6/tp1/clean0/dirtymap.image',       axes=[0,1])['flux']
     f1c =  imstat('test6/M100_TP_CO_cube.bl.smo',          axes=[0,1])['flux']
@@ -44,26 +44,68 @@ if True:
 
     label = []
     label.append("TP")                    # f0a
-    label.append("TP vis deconv=True")     # f2a
     label.append("SDINT 7m")
     label.append("SDINT 7m SD")
     label.append("SDINT 7+12m")
     label.append("SDINT 7+12m SD")
     
-    plot2a([f0a,f2a,f4a,f4b,f5a,f5b],'Flux Comparison M100','flux-cmp2.png', dv=5, label=label)
+    plot2a([f0a,f4a,f4b,f5a,f5b],'Flux Comparison M100','flux-cmp2.png', dv=5, label=label)
 
     label = []
     label.append("TP")                    # f0a
-    label.append("TP vis deconv=True")     # f2a
     label.append("Feather")               # f6a
     label.append("SDINT")                 # f5a
-    label.append("tp2vis")               # f7a
+    label.append("tp2vis")                # f7e
     
-    plot2a([f0a,f2a,f6a,f5a,f7e],'Flux Comparison M100','flux-cmp3.png', dv=5, label=label)
+    plot2a([f0a,f6a,f5a,f7e],'Flux Comparison M100','flux-cmp3.png', dv=5, label=label)
 
     label = []
     label.append("TP")                    # f0a
     label.append("Feather")               # f6a
     label.append("Feather-full")          # f6b
-    
+
     plot2a([f0a,f6a,f6b],'Flux Comparison M100','flux-cmp4.png', dv=5, label=label)
+
+    label = []
+    label.append("TP")                    # f0a
+    label.append("Feather")               # f6a
+    label.append("SDINT 7+12m")
+    
+    plot2a([f0a,f6a,f5a],'Flux Comparison M100','flux-cmp5.png', dv=5, label=label)
+
+
+if True:
+    # shows min,max,mean,disp,flux
+    qac_stats(tpim)
+    qac_stats('test6/tp0/clean0/dirtymap.image.pbcor')
+    qac_stats('M100_combine_CO_cube.image.pbcor')
+    qac_stats('M100_Feather_CO.image.pbcor') 
+    qac_stats('M100sdint_7.joint.cube.image')
+    qac_stats('M100sdint_12.joint.cube.image') 
+    qac_stats('test6/clean1/tpint.image.pbcor')   
+    qac_stats('test6/clean6/tpint_2.image.pbcor')
+    qac_stats('test6/clean6/tpint_2.tweak.image')
+
+if True:
+    # shows the RMS in a noise-flat (for some we don't have that, so use the flux-flat excluding a generous border)
+    qac_flux(tpim,                                    edge=8)
+    qac_flux('test6/tp0/clean0/dirtymap.image',       edge=8)
+    qac_flux('M100_combine_CO_cube.image',            edge=8)
+    qac_flux('M100_Feather_CO.image',                 edge=8)
+    qac_flux('M100sdint_7.joint.cube.image',          edge=8, border=300) # pbcor
+    qac_flux('M100sdint_12.joint.cube.image',         edge=8, border=300) # pbcor
+    qac_flux('test6/clean1/tpint.image',              edge=8)
+    qac_flux('test6/clean6/tpint_2.image',            edge=8)
+    qac_flux('test6/clean6/tpint_2.tweak.image',      edge=8, border=300) # pbcor
+
+if True:
+    # save some fits cubes for other analysis
+    qac_fits(tpim,                                    'cube0.fits')
+    qac_fits('test6/tp0/clean0/dirtymap.image.pbcor', 'cube1.fits')
+    qac_fits('M100_combine_CO_cube.image.pbcor',      'cube2.fits')
+    qac_fits('M100_Feather_CO.image.pbcor',           'cube3.fits')
+    qac_fits('M100sdint_7.joint.cube.image',          'cube4.fits')
+    qac_fits('M100sdint_12.joint.cube.image',         'cube5.fits')
+    qac_fits('test6/clean1/tpint.image.pbcor',        'cube6.fits')
+    qac_fits('test6/clean6/tpint_2.image.pbcor',      'cube7.fits')
+    qac_fits('test6/clean6/tpint_2.tweak.image',      'cube8.fits')
