@@ -12,7 +12,8 @@ tp1 = '../M100_TP_CO_cube.bl.image'
 
 # some testing, to confirm that M100_combine2 in QAC mode gives the same results as without
 qac1 = True
-
+# with 1745 as first channel
+qac2 = True
 
 # QAC: start with a clean 'pdir' and do all the work inside
 qac_begin(pdir)
@@ -74,8 +75,12 @@ minpb    = 0.2
 restfreq = '115.271202GHz'            # this value needs to be consistent on how
 outframe = 'LSRK'
 spw      = ''
-width    = '5km/s'
-start    = '1400km/s'
+if qac2:
+    width    = '-5km/s'
+    start    = '1745km/s'
+else:
+    width    = '5km/s'
+    start    = '1400km/s'
 nchan    = 70
 robust   = 0.5
 phasecenter = 'J2000 12h22m54.9 +15d49m15'
@@ -116,11 +121,15 @@ peak    = bigstat['max'][0]
 print 'peak (Jy/beam) in dirty cube = '+str(peak)
 
 # find the RMS of a line free channel (should be around 0.011
-chanstat = imstat(imagename=myimage,chans='4')
-rms1     = chanstat['rms'][0]
-chanstat = imstat(imagename=myimage,chans='66')
-rms2     = chanstat['rms'][0]
-rms      = 0.5*(rms1+rms2)        
+if qac2:
+    chanstat1 = imstat(imagename=myimage,chans='3')
+    chanstat2 = imstat(imagename=myimage,chans='65')
+else:
+    chanstat1 = imstat(imagename=myimage,chans='4')
+    chanstat2 = imstat(imagename=myimage,chans='66')
+rms1      = chanstat1['rms'][0]
+rms2      = chanstat2['rms'][0]
+rms       = 0.5*(rms1+rms2)        
 
 print 'rms (Jy/beam) in a channel = '+str(rms)
 
@@ -170,11 +179,15 @@ tclean(vis=vis,
 # and the rest of the script as well.
 
 myimage  = 'M100_combine_CO_cube.image'                  #   should be:   prename + '.image'
-chanstat = imstat(imagename=myimage,chans='4')
-rms1     = chanstat['rms'][0]
-chanstat = imstat(imagename=myimage,chans='66')
-rms2     = chanstat['rms'][0]
-rms      = 0.5*(rms1+rms2)
+if qac2:
+    chanstat1 = imstat(imagename=myimage,chans='3')
+    chanstat2 = imstat(imagename=myimage,chans='65')
+else:
+    chanstat1 = imstat(imagename=myimage,chans='4')
+    chanstat2 = imstat(imagename=myimage,chans='66')
+rms1      = chanstat1['rms'][0]
+rms2      = chanstat2['rms'][0]
+rms       = 0.5*(rms1+rms2)
 print 'rms in a channel = '+str(rms)
 chan_rms = [0,8,62,69]    # to complement the '9~61'
 
@@ -277,12 +290,16 @@ feather(imagename='M100_Feather_CO.image',
 
 # Make Moment Maps of the Feathered Images
 
-myimage  = 'M100_TP_CO_cube.regrid.subim'
-chanstat = imstat(imagename=myimage,chans='4')
-rms1     = chanstat['rms'][0]
-chanstat = imstat(imagename=myimage,chans='66')
-rms2     = chanstat['rms'][0]
-rms      = 0.5*(rms1+rms2)
+myimage   = 'M100_TP_CO_cube.regrid.subim'
+if qac2:
+    chanstat1 = imstat(imagename=myimage,chans='3')
+    chanstat2 = imstat(imagename=myimage,chans='65')
+else:
+    chanstat1 = imstat(imagename=myimage,chans='4')
+    chanstat2 = imstat(imagename=myimage,chans='66')
+rms1      = chanstat1['rms'][0]
+rms2      = chanstat2['rms'][0]
+rms       = 0.5*(rms1+rms2)
 
 if qac1:
     qac_mom('M100_TP_CO_cube.regrid.subim', chan_rms, rms=rms)
@@ -319,12 +336,16 @@ imview(raster=[{'file': 'M100_TP_CO_cube.regrid.subim.mom1',
 
 
 
-myimage  = 'M100_Feather_CO.image'
-chanstat = imstat(imagename=myimage,chans='4')
-rms1     = chanstat['rms'][0]
-chanstat = imstat(imagename=myimage,chans='66')
-rms2     = chanstat['rms'][0]
-rms      = 0.5*(rms1+rms2)  
+myimage   = 'M100_Feather_CO.image'
+if qac2:
+    chanstat1 = imstat(imagename=myimage,chans='3')
+    chanstat2 = imstat(imagename=myimage,chans='65')
+else:
+    chanstat1 = imstat(imagename=myimage,chans='4')
+    chanstat2 = imstat(imagename=myimage,chans='66')
+rms1      = chanstat1['rms'][0]
+rms2      = chanstat2['rms'][0]
+rms       = 0.5*(rms1+rms2)  
 
 
 if qac1:
