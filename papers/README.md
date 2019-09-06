@@ -40,3 +40,5 @@ We should have PDF's of the following papers
 
 * Williams et al. 2019 : https://iopscience.iop.org/article/10.3847/2515-5172/ab35d5/meta
     *A Tool and Workflow for Radio Astronomical "Peeling" in CASA*
+    
+* Report: "Combination of the ALMA Main Array, 7M, and TP imaging products for Cycles 1 and 2" : https://www.eso.org/projects/alma/arc/tw/pub/External/CombinationWorkshop2016/ALMACycle12Combination.pdf
