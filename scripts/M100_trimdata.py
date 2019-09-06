@@ -28,7 +28,8 @@
 #    mv M100_Band3_7m_CalibratedData/M100_Band3_7m_CalibratedData.ms     .
 #    mv M100_Band3_ACA_ReferenceImages_5.1/M100_TP_CO_cube.spw3.image.bl .
 
-# BIMA SONG data:
+# BIMA SONG data:  See also: https://ui.adsabs.harvard.edu/abs/2003ApJS..145..259H/
+#                  and:      http://nedwww.ipac.caltech.edu/level5/March02/SONG/SONG.html
 #    wget https://ned.ipac.caltech.edu/level5/March02/SONG/NGC4321.bima12m.cm.fits.gz
 #    wget https://ned.ipac.caltech.edu/level5/March02/SONG/NGC4321.bima12m.mmom0.fits.gz
 #    wget https://ned.ipac.caltech.edu/level5/March02/SONG/NGC4321.bima12m.gmom1.fits.gz
@@ -42,6 +43,9 @@ tp1 = 'M100_TP_CO_cube.spw3.image.bl'
 QAC.assertf(ms1)
 QAC.assertf(ms2)
 QAC.assertf(tp1)
+
+# the casaguide box based on the 800x800 map
+box  = '219,148,612,579'
 
 # pick a consistent restfreq
 rf0 = 115.2712018   # this might be the more formal restfreq, but wasn't used
@@ -156,5 +160,6 @@ Sizes:
 35396   M100_aver_7.ms
 2452    M100_TP_CO_cube.spw3.image.bl/
 
+A note on TP fluxes in the smaller box
 
 """
