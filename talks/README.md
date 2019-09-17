@@ -15,6 +15,6 @@ Talks that should be here:
 | Saito         | pdf | |
 | Burkutean     | pdf | |
 | | | |
-| Hacar         | pdf | ftp://ftp.astro.umd.edu/pub/teuben/dc2019/Hacar+Herrera.mp4 |
-| Herrera       | pdf | |
+| Hacar         | pdf | [Hacar+Herrera](ftp://ftp.astro.umd.edu/pub/teuben/dc2019/Hacar+Herrera.mp4) |
+| Herrera       | pdf | [Hacar+Herrera](ftp://ftp.astro.umd.edu/pub/teuben/dc2019/Hacar+Herrera.mp4) |
 | SDINT (Braun) | pdf | |
