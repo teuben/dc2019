@@ -77,8 +77,8 @@ tpms = 'test6a/tp0/tp.ms'
 line['usemask']   = 'pb'
 line['pbmask']    = 0.3    # new
 line['threshold'] = 0.011  # new   the sigma in the line free channels
-line['nsigma']    = 2.0    # new   _9
-line['nsigma']    = 1.0    # new   for _10
+line['nsigma']    = 2.0    # new   _9         -> this gave small residuals, no striping
+line['nsigma']    = 1.0    # new   for _10    -> this gave striping
 
 for wtfac in wtfacs:
     clean3 = 'clean3_%g' % wtfac
