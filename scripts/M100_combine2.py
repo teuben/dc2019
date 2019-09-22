@@ -1,7 +1,9 @@
 #  Use the new CASA5 QAC bench data to run the M100 combination
+#  Takes about 18-20' to run. Fills about 3.3GB but needs quite a bit more scratch space to run.
 #
 #  curl http://admit.astro.umd.edu/~teuben/QAC/qac_bench5.tar.gz | tar zxf -
 #
+#  some figures have been made to adjust the box so we can better compare the Compare and Feather
 import os
 
 pdir = 'M100qac'
@@ -11,9 +13,16 @@ ms2 = '../M100_aver_7.ms'
 tp1 = '../M100_TP_CO_cube.bl.image'
 
 # some testing, to confirm that M100_combine2 in QAC mode gives the same results as without
+
+# use qac_mom() instead
 qac1 = True
 # with 1745 as first channel
 qac2 = True
+
+# a better box size so all figures are the same .... (see M100_combine1.py how we got this)
+box='219,148,612,579'
+boxlist = QAC.iarray(box)
+zoom={'blc': [boxlist[0],boxlist[1]],'trc': [boxlist[2],boxlist[3]]}
 
 # QAC: start with a clean 'pdir' and do all the work inside
 qac_begin(pdir)
@@ -161,7 +170,7 @@ tclean(vis=vis,
     veltype='radio',
     restoringbeam='common',
     mosweight=True,
-    niter=10000,
+    niter=100000,
     usemask='auto-multithresh',
     threshold=str(stop*rms)+'Jy/beam',
     sidelobethreshold=sidelobethresh,
@@ -213,13 +222,17 @@ else:
 os.system('rm -rf M100_combine_CO_cube.image.mom*.png')
 imview (raster=[{'file': 'M100_combine_CO_cube.image.mom0',
                  'range': [-0.3,25.],'scaling': -1.3,'colorwedge': True}],
-         zoom={'blc': [190,150],'trc': [650,610]},
+         zoom=zoom,
          out='M100_combine_CO_cube.image.mom0.png')
 
 imview (raster=[{'file': 'M100_combine_CO_cube.image.mom1',
                  'range': [1440,1695],'colorwedge': True}],
-         zoom={'blc': [190,150],'trc': [650,610]}, 
+         zoom=zoom,
          out='M100_combine_CO_cube.image.mom1.png')
+imview (raster=[{'file': 'M100_combine_CO_cube.image.mom2',
+                 'range': [0,50],'colorwedge': True}],
+         zoom=zoom,
+         out='M100_combine_CO_cube.image.mom2.png')
 
 
 os.system('rm -rf M100_combine_CO_cube.pb.1ch')
@@ -237,13 +250,12 @@ imview (raster=[{'file': 'M100_combine_CO_cube.image.mom0',
                  'range': [-0.3,25.],'scaling': -1.3},
                 {'file': 'M100_combine_CO_cube.image.mom0.pbcor',
                  'range': [-0.3,25.],'scaling': -1.3}],
-         zoom={'blc': [190,150],'trc': [650,610]})
-
+         zoom=zoom)
 
 os.system('rm -rf M100_combine_CO_cube.image.mom0.pbcor.png')
 imview (raster=[{'file': 'M100_combine_CO_cube.image.mom0.pbcor',
                  'range': [-0.3,25.],'scaling': -1.3,'colorwedge': True}],
-         zoom={'blc': [190,150],'trc': [650,610]},
+         zoom=zoom,
          out='M100_combine_CO_cube.image.mom0.pbcor.png')
 
 qac_fits('M100_combine_CO_cube.image')
@@ -264,17 +276,17 @@ imregrid(imagename=tp1,
 
 imsubimage(imagename='M100_TP_CO_cube.regrid',
            outfile='M100_TP_CO_cube.regrid.subim',
-           box='219,148,612,579',
+           box=box,
            overwrite=True)
 
 imsubimage(imagename='M100_combine_CO_cube.image',
            outfile='M100_combine_CO_cube.image.subim',
-           box='219,148,612,579',
+           box=box,
            overwrite=True)
 
 imsubimage(imagename='M100_combine_CO_cube.pb',
            outfile='M100_combine_CO_cube.pb.subim',
-           box='219,148,612,579',
+           box=box,
            overwrite=True)
 
 os.system('rm -rf M100_TP_CO_cube.regrid.subim.depb')
@@ -335,7 +347,6 @@ imview(raster=[{'file': 'M100_TP_CO_cube.regrid.subim.mom1',
 
 
 
-
 myimage   = 'M100_Feather_CO.image'
 if qac2:
     chanstat1 = imstat(imagename=myimage,chans='3')
@@ -379,6 +390,11 @@ imview(raster=[{'file': 'M100_Feather_CO.image.mom1',
                 'colorwedge': True}], 
        out='M100_Feather_CO.image.mom1.png')
 
+imview(raster=[{'file': 'M100_Feather_CO.image.mom2',
+                'range': [0, 50],
+                'colorwedge': True}], 
+       out='M100_Feather_CO.image.mom2.png')
+
 
 
 os.system('rm -rf M100_Feather_CO.image.pbcor')
@@ -415,7 +431,11 @@ r4 = '0.0029995717493774485 0.024097159582836203 -0.16380690038204193 0.79057258
 r5 = '1.4254396459758483 2.8135560574036953 0.10561800003051758 51.054183959960938 3882.9384027157043'
 
 qac_stats('M100_combine_CO_cube.image',       r1)
+qac_stats('M100_combine_CO_cube.image.pbcor')
 qac_stats('M100_combine_CO_cube.image.mom0',  r2)
+qac_stats('M100_combine_CO_cube.image',       box=box)
+qac_stats('M100_combine_CO_cube.image.pbcor', box=box)
+qac_stats('M100_combine_CO_cube.image.mom0',  box=box)
 qac_stats('M100_Feather_CO.image',            r3)
 qac_stats('M100_Feather_CO.image.pbcor',      r4)
 qac_stats('M100_Feather_CO.image.mom0.pbcor', r5)
@@ -439,5 +459,5 @@ qac_end()
 
 # 5.6    2852.29        2853.72        3084.51
 
-#  (2972 +/- 319 Jy km/s from the BIMA SONG; Helfer et al. 2003).
+#  (2972 +/- 319 Jy km/s from the BIMA SONG; Helfer et al. 2003, Table 4).
 
