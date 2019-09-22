@@ -30,13 +30,17 @@ box1  = '219,148,612,579'       # same box as in workflow6a where we want to com
 box   = box1
 boxlist = QAC.iarray(box)       # convert to an ascii list of ints [219,148,612,579] for qac_plot()
 
+rms = 0.15                      # rms in TP cube (0.13 is better)
+rms = 0.13
+
 winpix = 0   # not used yet
+
+niter = [0, 1000, 3000, 10000, 30000, 50000]
 
 #   do the work inside this directory
 pdir = 'M100qac'
 os.chdir(pdir)
     
-
 #   report
 qac_begin("M100")
 qac_log("QAC_VERSION")
@@ -58,20 +62,19 @@ if True:
 else:
     qac_im_ptg(phasecenter,nsize,pixel,30,outfile=ptg)
 
-qac_log("TP2VIS with rms=0.15")       # rms from imstat() on edge channels   [0.13 seems to be a better value]
+qac_log("TP2VIS with rms=%g" % rms)       # rms from imstat() on edge channels   [0.13 seems to be a better value]
 qac_project('test6/tp0')
-qac_tp_vis('test6/tp0',tpim,ptg,rms=0.15,phasecenter=phasecenter)  
+qac_tp_vis('test6/tp0',tpim,ptg,rms=rms,phasecenter=phasecenter)  
 qac_log("TP2VISWT - should show no change; about 0.0107354")
-tp2viswt('test6/tp0/tp.ms',value=0.15,mode='rms')
+tp2viswt('test6/tp0/tp.ms',value=rms,mode='rms')
 qac_clean1('test6/tp0/clean0','test6/tp0/tp.ms',nsize,pixel,niter=0,phasecenter=phasecenter,**line)
-
 
 if True:
     psf = ['56.899arcsec', '56.899arcsec', '0deg']
     deconvolve(tpim,'test6/tp.model',psf=psf,alg='clark')
     
     qac_project('test6/tp1')
-    qac_tp_vis('test6/tp1','test6/tp.model',ptg,rms=0.15,phasecenter=phasecenter,deconv=False)
+    qac_tp_vis('test6/tp1','test6/tp.model',ptg,rms=rms,phasecenter=phasecenter,deconv=False)
     qac_clean1('test6/tp1/clean0','test6/tp1/tp.ms',nsize,pixel,niter=0,phasecenter=phasecenter,**line)
 
 if True:
@@ -82,11 +85,12 @@ if True:
     # imhead('test6/M100_TP_CO_cube.bl.model','put','unit','Jy/pixel')      should file a ticket on this
     imhead('test6/M100_TP_CO_cube.bl.model','put','bunit','Jy/pixel')
     qac_project('test6/tp2')    
-    qac_tp_vis('test6/tp2','test6/M100_TP_CO_cube.bl.model',ptg,rms=0.15,phasecenter=phasecenter,deconv=False)
+    qac_tp_vis('test6/tp2','test6/M100_TP_CO_cube.bl.model',ptg,rms=rms,phasecenter=phasecenter,deconv=False)
     qac_clean1('test6/tp2/clean0','test6/tp2/tp.ms',nsize,pixel,niter=0,phasecenter=phasecenter,**line)
 
 # decide on which tp.ms we will use (tp1 and tp2 were progressively worse)
 tpms = 'test6/tp0/tp.ms'    
+tp2vispl([tpms,ms07,ms12],outfig='test6/tp2vispl_3.png')
 
 if True:
     temp_dict = imregrid(imagename='test6/tp0/clean0/dirtymap.image', template="get")
@@ -122,40 +126,40 @@ qac_beam('test6/clean2/tpint.psf',plot='test6/clean2/qac_beam.png',normalized=Tr
 # QAC_BEAM: Max/Last/PeakLoc 4.11547851528 3.62032676416 76.5
 
 qac_log("CLEAN clean3: TP+7m+12m")
-qac_clean('test6/clean3',tpms,[ms12,ms07],nsize,pixel,niter=[0,3000,10000],phasecenter=phasecenter,do_concat=True,do_int=True,**line)
+qac_clean('test6/clean3',tpms,[ms12,ms07],nsize,pixel,niter=niter,phasecenter=phasecenter,do_concat=True,do_int=True,**line)
 qac_beam('test6/clean3/tpint.psf',plot='test6/clean3/qac_beam.png',normalized=True)
 # QAC_BEAM: test2e/tpalma.psf  4.4261 2.94494 0.5 59.0776 59.0776
 # QAC_BEAM: Max/Last/PeakLoc 2.95162277943 2.47391209456 76.0
-tp2vistweak('test6/clean3/tpint','test6/clean3/tpint_2')
-# scale  0.7455
-tp2vistweak('test6/clean3/tpint','test6/clean3/tpint_3')
-# scale  0.732610
+for i in range(1,len(niter)):
+    tp2vistweak('test6/clean3/tpint','test6/clean3/tpint_%d' % (i+1))
 
 qac_log("TP2VISWT wt*10")
 tp2viswt(tpms,mode='multiply',value=10)
+tp2vispl([tpms,ms07,ms12],outfig='test6/tp2vispl_4.png')
 # wt -> 0.1073537
 
 qac_log("CLEAN clean4")
-qac_clean('test6/clean4',tpms,[ms12,ms07],nsize,pixel,niter=0,phasecenter=phasecenter,do_concat=True,**line)
+qac_clean('test6/clean4',tpms,[ms12,ms07],nsize,pixel,niter=niter,phasecenter=phasecenter,do_concat=True,do_int=True,**line)
 qac_beam('test6/clean4/tpint.psf',plot='test6/clean4/qac_beam.png',normalized=True)
 # QAC_BEAM: test2f/tpalma.psf  4.73778 3.16311 0.5 67.9224 67.9224
 # QAC_BEAM: Max/Last/PeakLoc 20.2581768937 19.8506027809 76.5
+for i in range(1,len(niter)):
+    tp2vistweak('test6/clean4/tpint','test6/clean4/tpint_%d' % (i+1))
 
 # beam size weights 
-qac_log("TP2VISTWEAK")
+qac_log("TP2VISWT beammatch")
 tp2viswt([tpms,ms07,ms12], makepsf=True, mode='beammatch')
+tp2vispl([tpms,ms07,ms12],outfig='test6/tp2vispl_6.png')
 # wt -> 0.0044103029511 -> 0.00433382295945 -> 0.00465955996837  -> 0.002709 
 
 qac_log("CLEAN clean6")
-qac_clean('test6/clean6',tpms,[ms12,ms07],nsize,pixel,niter=[0,3000,10000],phasecenter=phasecenter,do_concat=True,**line)
+qac_clean('test6/clean6',tpms,[ms12,ms07],nsize,pixel,niter=niter,phasecenter=phasecenter,do_concat=True,do_int=True,**line)
 qac_beam('test6/clean6/tpint.psf',plot='test6/clean6/qac_beam.png',normalized=True)
 # -> QAC_BEAM: test2h/tpalma.psf  4.40321 2.92833 0.5 58.4404 58.4404
 #    QAC_BEAM: Max/Last/PeakLoc 1.86142086595 0.623532966042 7.5
 
-tp2vistweak('test6/clean6/tpint','test6/clean6/tpint_2')
-# scale 3.129287
-tp2vistweak('test6/clean6/tpint','test6/clean6/tpint_3')
-# scale 2.939141
+for i in range(1,len(niter)):
+    tp2vistweak('test6/clean6/tpint','test6/clean6/tpint_%d' % (i+1))
 
 # f0  =  imstat('M100_TP_CO_cube.regrid',          axes=[0,1],box=box)['flux']
 f1  =  imstat('test6/clean6/tpint.image',        axes=[0,1],box=box)['flux']
