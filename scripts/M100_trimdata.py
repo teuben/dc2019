@@ -49,6 +49,7 @@ box  = '219,148,612,579'
 
 # pick a consistent restfreq
 rf0 = 115.2712018   # this might be the more formal restfreq, but wasn't used
+                    # though this value is in the header of the TP data
 rf0 = 115.271202    # (114.60024366825306, 114.73289732123453, 115.271202,  1744.9999999999588, 1399.9999999999975, -4.9999999999994396, 70)
 
 #   this is the spectral axis we want, given in the LSRK frame
