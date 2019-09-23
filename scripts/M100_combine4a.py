@@ -29,12 +29,12 @@ boxlist = QAC.iarray(box)       # convert to an ascii list of ints [219,148,612,
 rms = 0.13                      # rms in TP cube
 
 #   wtfacs is a list of scaling factors for tp2viswt() because the rms based weights for M100 seem to large
-wtfacs = [1.0, 0.61, 0.40, 0.25, 0.18]     # loop over these
 wtfacs = [0.61]      # _5
 wtfacs = [0.25, 0.4] # _6
 wtfacs = [1.0]       # _7
 wtfacs = [0.18]      # _8
 wtfacs = [0.61]      # _9 _10
+wtfacs = [1.0, 0.61, 0.40, 0.25, 0.18]   
 
 winpix = 0   # not used yet
 
