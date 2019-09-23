@@ -178,7 +178,7 @@ if QAC.select(5,select,"M100_weights.png"):
 
 if QAC.select(6,select,"M100_niter.png"):        
     # make M100final; open M100qac/test6a_5/M100_niter.png
-    if not QAC.exists('test6a_5'):
+    if QAC.exists('test6a_5'):
         os.chdir('test6a_5')
         n1 = ['clean3_0.61']
         m1 = ['int%s.image', 'tpint%s.image', 'tpint%s.residual', 'tpint%s.tweak.image']
@@ -446,7 +446,7 @@ if QAC.select(8,select,"tp2vis flux vs. niter M100_flux_niter.png "):
 
 
 if QAC.select(9,select,"test6a_5/clean3_0.61/  plot7a,b,c,d"):
-    if not QAC.exists('test6a_5/clean3_0.61/'):
+    if QAC.exists('test6a_5/clean3_0.61/'):
         os.chdir('test6a_5/clean3_0.61/')
         plot7('.',2, 15, range=[-0.05,0.05],residual=True,box=QAC.iarray(box),plot='plot7a.png')
         plot7('.',3, 15, range=[-0.05,0.05],residual=True,box=QAC.iarray(box),plot='plot7b.png')
