@@ -491,3 +491,13 @@ if QAC.select(10,select,"plot flux(box-size) for TP data"):
             
 
 
+if QAC.select(11,select,"Difference plot niter=10000 combine2 and combine4"):
+    # they should look the same and diff should be "0", but it's not (yet)
+    im2 = 'M100_combine_CO_cube.image'
+    im4 = 'test6/clean3/int_4.image'
+    im5 = 'test6/clean3/int_4.image.imtrans'
+    # os.system('rm -rf %s' % im5)
+    if not QAC.exists(im5):
+        imtrans(im4,im5,'012-3')
+    qac_plot_grid([im2,im5], 15, QAC.iarray(box1), diff=10,plot='M100_final11.png')
+    
