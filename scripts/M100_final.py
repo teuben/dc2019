@@ -1,12 +1,14 @@
 #  some final analysis / plotting after all the M100_combine* scripts have been run.
 #
-#  example run
+#  you can also try out 
 #          casa -c M100_final.py select=8
+#  or
+#          casa -c M100_final.py select='[5,6,7]'
 
 import numpy as np
 import matplotlib.pyplot as pl
 
-pdir = 'M100qac'
+pdir = 'M100qac'              # all operations in this directory
 
 tpim  = '../M100_TP_CO_cube.bl.image'
 ms07  = '../M100_aver_7.ms'
@@ -454,7 +456,38 @@ if QAC.select(9,select,"test6a_5/clean3_0.61/  plot7a,b,c,d"):
         plot7('.',5, 15, range=[-0.05,0.05],residual=True,box=QAC.iarray(box),plot='plot7d.png')
         os.chdir('..')
 
-
-
+if QAC.select(10,select,"plot flux(box-size) for TP data"):
+    tpim1 = 'M100_TP_CO_cube.regrid'
+    tpim2 = 'M100_TP_CO_cube.regrid.mom0'
+    nsigma = 2
+    qac_mom(tpim1,[0,9,60,69],rms=0.13, momfac = [nsigma, 5, 5])
+    #qac_mom(tpim1,[0,9,60,69])
+    box  = box1
+    if QAC.exists(tpim1):
+        b  = list(range(-50,50,5))
+        f1 = np.zeros(len(b))
+        f2 = np.zeros(len(b))
+        bl = QAC.iarray(box)
+        for i in range(len(b)):
+            b1 = '%d,%d,%d,%d' % (bl[0]-b[i],bl[1]-b[i],bl[2]+b[i],bl[3]+b[i])
+            f1[i] = imstat(tpim1, box=b1)['flux'][0]
+            f2[i] = imstat(tpim2, box=b1)['flux'][0]
+            print(b[i],b1,f1[i],f2[i])
+        f3 = f2 * 0 + 3118
+        f4 = f2 * 0 + 2972   # error: 319
+        #
+        plt.figure()
+        plt.plot(b,f1,'-',label='flux in cube')
+        plt.plot(b,f2,'-',label='flux in mom0 w/ %g sigma cut' % nsigma)
+        plt.plot(b,f3,'--',label='ALMA')
+        plt.plot(b,f4,'--',label='BIMASONG (+/- 319)')
+        plt.plot([-35,-35],[2400,2800],'--',label='box2 (roughly)')
+        plt.xlabel('Box size difference from box1 (arcsec)')    # this assumes pixel=1"
+        plt.ylabel('Flux (Jy.km/s)')
+        plt.title('TP Flux as function of box size (box1=%s)' % box1)
+        plt.legend(loc='best')
+        plt.savefig('M100_TP_boxflux.png')
+        plt.show()
+            
 
 
