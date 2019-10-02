@@ -1,0 +1,10 @@
+#!/bin/csh
+
+set mylog = "ngvlaSimImage.log"
+rm $mylog
+casa -c simNgvlaCore30dor.py |& tee -a $mylog
+casa -c simNgvlaSba30dor_new.py  |& tee -a $mylog
+casa -c simNgvlaSd30dor_new.py   |& tee -a $mylog
+casa -c image_sba_30dor_new.py  |& tee -a $mylog
+casa -c image_joint_30dor_new.py |& tee -a $mylog
+
