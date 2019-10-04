@@ -18,6 +18,8 @@ We should have PDF's of the following papers
     
 * Cotton 2017, PASP: https://iopscience.iop.org/article/10.1088/1538-3873/aa793f/pdf 
     *Feather*
+    
+* Faridani et al. 2017 https://arxiv.org/pdf/1709.09365.pdf *A new approach for short-spacing correction of radio interferometric data sets*
 
 * ALMA cycle 7 technical handbook (version 1.1)
 
