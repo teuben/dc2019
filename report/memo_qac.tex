@@ -65,7 +65,7 @@
 \end{center}
 \bigskip
 
-\centerline{Peter Teuben (University of Maryland)}
+\centerline{Peter Teuben (University of Maryland, USA)}
 
 \centerline{\today}
 \bigskip
@@ -77,13 +77,19 @@
 
 \section{Introduction}
 
-The Quick Array Combination (QAC) toolkit came first into existence to shortcut some tedious organizational python code that seemed to be always needed
-writing codes to run simulations, combinations and comparisons. QAC follows the strategy used in the CASA simulator, in which
-datasets are maintained within a project directory with predictable names.
-In addition, QAC would fix and containerize some CASA issues we ran into during the TP2VIS development. Thus QAC is a python layer to CASA,
-and QAC and CASA commands can be used interchangeably.
+The Quick Array Combination (QAC) toolkit came first into existence to
+shortcut some tedious organizational python code that seemed to be
+always needed writing codes to run simulations, combinations and
+comparisons. QAC follows the strategy used in the CASA simulator, in
+which datasets are maintained within a project directory with
+predictable names.  In addition, QAC would fix and containerize some
+CASA issues we ran into during the TP2VIS development. Thus QAC is a
+python layer to CASA, and QAC and CASA commands can be used
+interchangeably.
 
 QAC is also described in ngVLA memo 59.
+
+
 
 \section{Installing QAC}
 
@@ -92,9 +98,12 @@ Typically QAC is installed by adding the line
     execfile(os.environ['HOME'] + '/.casa/QAC/casa.init.py')
 \end{lstlisting}
 
-to your \verb+~/.casa/init.py+ file. You can either place a symbolic link to the location where you keep QAC, or place it directly
-inside the \verb+~/.casa+ directory.  QAC has optional methods to install other useful CASA components, such
-as the public tp2vis release, SDINT, SD2VIS etc. More information can be found in the QAC distribution.
+to your \verb+~/.casa/init.py+ file. You can either place a symbolic
+link to the location where you keep QAC, or place it directly inside
+the \verb+~/.casa+ directory.  QAC has optional methods to install
+other useful CASA components, such as the public tp2vis release,
+SDINT, SD2VIS etc. More information can be found in the QAC
+distribution.
 
 \section{Using QAC}
 
@@ -106,23 +115,27 @@ pass it command line arguments if the script knows how to do it:
     % casa --nogui -c foo.py pixel=0.1 > foo.log 2>&1
 \end{lstlisting}
 
-This redirects the screen output to \verb+foo.log+.  Secondly, you can execute it directly from within CASA's ``ipython'' session
+This redirects the screen output to \verb+foo.log+.  Secondly, you can
+execute it directly from within CASA's ``ipython'' session
 
 \begin{lstlisting}[language=Python]
 CASA <1>:   execfile("foo.py")
 \end{lstlisting}
 
-but this has the disadvantage that no command line parameters can be given. All your parameters need to be hardcoded
-in \verb+foo.py+ \footnote{Python's execfile only works in Python 2, and will thus disappear from CASA once it changes to Python 3}
+but this has the disadvantage that no command line parameters can be
+given. All your parameters need to be hardcoded in
+\verb+foo.py+ \footnote{Python's execfile only works in Python 2, and
+  will thus disappear from CASA once it changes to Python 3}
 
 % In the RICA package you can find a 3rd variant using the ipython {\tt run} command - but this is virgin python that needs casa imports.
 
 
 \subsection{A poor man's command line parser}
 
-You can also use Python's {\tt argparse} or use QAC's poor man's (very limited error checking).  You first define
-the keywords with a default, then parse the command line, after which their values have been overriden from the ones on
-the command line.
+You can also use Python's {\tt argparse} or use QAC's poor man's (very
+limited error checking).  You first define the keywords with a
+default, then parse the command line, after which their values have
+been overriden from the ones on the command line.
 
 \begin{lstlisting}[language=Python]
   # set defaults for parameters
@@ -141,7 +154,8 @@ the command line.
 
 \end{lstlisting}
 
-after which you can use it as in the following example (note the double quoting to escape the shell meta characters):
+after which you can use it as in the following example (note the
+double quoting to escape the shell meta characters):
 
 \begin{lstlisting}[language=bash]
   % casa --nogui -c foo.py pdir='"test1"' imsize=1024 pixel=0.1 niter='[0,1000]'  >foo.log 2>&1
@@ -149,10 +163,13 @@ after which you can use it as in the following example (note the double quoting 
 
 \subsection{Using ``make''}
 
-The classic ``make'' command in Unix uses a \verb+Makefile+ where the recipes (normally called targets) are stored. This has the advantage that
-it self-documents all the work needed or was done in a particular directory. Running CASA scripts via a Unix commandline also has the
-advantage that log files can be compared, and a  graphical difference between two logfiles.
-Here is the Makefile entry for running the benchmark ``bench'':
+The classic ``make'' command in Unix uses a \verb+Makefile+ where the
+recipes (normally called targets) are stored. This has the advantage
+that it self-documents all the work needed or was done in a particular
+directory. Running CASA scripts via a Unix commandline also has the
+advantage that log files can be compared, and a graphical difference
+between two logfiles.  Here is the Makefile entry for running the
+benchmark ``bench'':
 
 \begin{lstlisting}[language=make]
   # pick your CASA or use a smart $PATH
@@ -181,6 +198,24 @@ benchmark for two difference version of CASA:
 \end{lstlisting}
 
 In my experience looking at the difference between logfiles and maps this way, a lot of obvious problems can be uncovered more quickly.
+
+\subsection{Data Directories}
+
+Although the user is free to choose a naming convention, there is some structure imposed on certain QAC commands. As a result of using
+\verb+tclean()+ the extensions are also normalized.
+
+\begin{verbatim}
+  M100/
+       clean0/dirtymap.image.pbcor
+       clean1/int.image.pbcor
+              int_2.image.pbcor
+              tpint.image.pbcor
+              tpint.image.psf
+              tpint.image.pb
+
+       
+\end{verbatim}
+
 
 \section{Example Script}
 
@@ -246,7 +281,7 @@ in that case.
 
 \subsubsection{Faridani's SSC}
 
-This method is also available in NOD3 as ``immerge''. ( check ). The QAC version assumes a directory structure.
+This method is also available in NOD3 as ``immerge''. The QAC version assumes a directory structure.
 
 \begin{lstlisting}[language=Python]
 def qac_ssc(project, highres=None, lowres=None, f=1.0, sdTel = None, regrid=True, cleanup=True, label="", niteridx=0, name="dirtymap"):
