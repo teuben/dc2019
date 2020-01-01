@@ -13,7 +13,7 @@ Depends upon some functions combo_utils.py
 
 Included here:
 
-combo_utils.py
+combo_utils.py - put this in your CASA path.
 run_all - shell script to run simulations and imaging
 ngvla-sd_loc.cfg  - 
 ngvla-core-revC_loc.cfg 
