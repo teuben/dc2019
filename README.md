@@ -1,10 +1,10 @@
 # *Improving Image Fidelity on Astronomical Data: Radio Interferometer and Single-Dish Data Combination* (DC2019)
 
-This is the material for the
+This was the material we used for the
 [DC2019](https://www.lorentzcenter.nl/lc/web/2019/1179/info.php3?wsid=1179&venue=Oort)
-workshop. We plan to have all scripts, code, documentation, and presentations here,
+workshop. We planned to have all scripts, code, documentation, and presentations here,
 but our data are typically large and we will supply URLs from where you can download them
-from.
+from. Some scripts were taking from other projects, and may not be maintained here so well.
 
 ## Combination Techniques
 
@@ -26,11 +26,11 @@ WSL on Window10 is currently too slow to be useful (but hasn't been tested).
       * [https://casa.nrao.edu/casadocs/casa-5.6.0/introduction/release-notes-560](5.6.0 Release notes)
       * [https://casa.nrao.edu/casadocs/casa-5.6.0/introduction/release-notes-560[(5.5.0 Release notes)
       * [CASA 6](https://science.nrao.edu/enews/casa_008/) can also be installed via pip wheels. We also have a helper script.
-   * QAC (this will also install TP2VIS, SD2VIS, and AU)
+   * QAC (this will also install TP2VIS, SD2VIS, SDINT and AU)
    * TP2VIS (comes with QAC)
    * SD2VIS (optional, can come with QAC)
    * AU (comes with QAC)
-   * WidebandSDINT
+   * WidebandSDINT (comes with QAC)
 
 and recommended software
 
