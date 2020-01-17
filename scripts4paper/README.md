@@ -4,17 +4,17 @@ Here we gather (now in a more organized way) the scripts for the paper.
 
 ## Methods teams
 
-Each method team should provide the way how the data teams should 
+Each method team should provide the way how the data teams should be calling that method:
 
-   * feather 
+   * feather - 
    * tp2vis - experimenting with CASA 6
    * sdint - upcoming in CASA 5.7
-   * faridani (?)
-   * hybrid (?)
+   * faridani (?) - is also in QAC
+   * hybrid (?) - not really easily available
 
 ## Data teams
 
-The data will be prepared in a form ready for the different methods. 
+The data will be prepared in a form ready for the different methods API's:
 
    * M100 (line)
    * Lupus (line)
