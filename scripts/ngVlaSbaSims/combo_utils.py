@@ -7,6 +7,7 @@
 #
 # Brian Mason (NRAO)  
 #  v1 - Sept 2019
+#     - Jan 2020 - add peak finding, aperture flux comparison
 #
 # NOTE: do not do this:
 # import combo_utils as cu
@@ -15,6 +16,7 @@
 #
 #################################
 
+# CASA stuff-
 from taskinit import *
 from imhead_cli import imhead_cli as imhead
 from immath_cli import immath_cli as immath
@@ -22,7 +24,10 @@ from imregrid_cli import imregrid_cli as imregrid
 from rmtables_cli import rmtables_cli as rmtables
 from feather_cli import feather_cli as feather
 
+# Python stuff-
+import analysisUtils as au
 import numpy as np
+from scipy.ndimage.filters import maximum_filter
 
 def fix_image_calib(sd_image,sd_img_fixed,cal_factor=1.0,beam_factor=1.0):
     """
@@ -331,6 +336,193 @@ def calc_fidelity(inimg,refimg,pbimg='',psfimg='',fudge_factor=1.0,scale_factor=
         rmtables(smo_ref_img_regridded)
 
     return fidelity_results
+
+def jyBm2jyPix(in_image,out_image):
+    """ 
+    Blindly convert pixel values of in_image to Jy/pix, assuming they are Jy/bm.
+    we check nothing and overwrite out_image so you best watch yourself.
+    """
+
+    rad_to_arcsec = 206264.81
+    twopi_over_eightLnTwo = 1.133
+
+    hdr=imhead(in_image)
+
+    flux_conversion = (rad_to_arcsec*np.abs(hdr['incr'][0]))*(rad_to_arcsec*np.abs(hdr['incr'][1])) / (twopi_over_eightLnTwo * hdr['restoringbeam']['major']['value'] * hdr['restoringbeam']['minor']['value'])
+    flux_string = "(IM0 * %f)" % flux_conversion
+
+    rmtables(out_image)
+    immath(imagename=in_image,expr=flux_string,outfile=out_image,mode='evalexpr')
+    new_unit = 'Jy/pixel'
+    imhead(imagename=out_image,mode='put',hdkey='BUNIT',hdvalue=new_unit)
+
+    return 0
+
+
+def sum_region_fluxes(imvals,peak_indices,radius=4.0):
+    fluxes = np.zeros(peak_indices.shape[0])
+    x_flux = np.zeros(peak_indices.shape[0])
+    y_flux = np.zeros(peak_indices.shape[0])
+    # radius to extract in pixels - 
+    rr = radius
+    for k in range(fluxes.size):
+        i_low = peak_indices[k][0] - np.round(rr)
+        i_high = peak_indices[k][0] + np.round(rr)
+        j_low = peak_indices[k][1] - np.round(rr)
+        j_high = peak_indices[k][1] + np.round(rr)
+        x_flux[k] = peak_indices[k][0]
+        y_flux[k] = peak_indices[k][1]
+        if i_low < 0:
+            i_low = 0
+        if i_high >= imvals.shape[0]:
+            i_high = imvals.shape[0]-1
+        if j_low < 0:
+            j_low = 0
+        if j_high >= imvals.shape[1]:
+            j_high = imvals.shape[1]-1
+        subimage = imvals[i_low:i_high,j_low:j_high]
+        fluxes[k] = subimage.sum()
+        #print k,fluxes[k]
+    
+    return fluxes,x_flux,y_flux
+
+def compare_fluxes(img1="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.autoDev2.image",img2="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.skymodel.flat",mask1="",mask2="",search_size = 2.0, thresh = 4.5,search_img=1):
+    """
+    img1,img2: casa images to compare
+    search_size: width of search region in beams (beam is takem from chosen search image)
+    thresh: threshold for peak detection (robust sigma above median, default = 4.5)
+    search_img: which image (1 or 2) to search for peaks    
+    rstart, rstop, rdelta: start, stop, and delta radii for flux sums (in beams, again taken from search image)
+    
+    images are presumed to be on the same grid to start with (shape, pixel size) -- use imgregrid task
+    and presumed to be in Jy/pixel (or otherwise same brightness unit per pixel) -- use combut.jyBm2jyPix()
+
+    returns: flux(search), flux(other), peak_locations
+
+    22jan2020 currently uses a square aperture (needs updating to circular) and hard wires the range of radii. return radii are in 
+      pixels not arcsec.
+
+    """
+
+    print "THRESH ", thresh
+    if (search_img == 1):
+        main_img = img1
+        aux_img = img2
+    else:
+        main_img = img2
+        aux_img = img1
+
+    print " main image = ",main_img
+        
+    ia=iatool()
+
+    # main image characteristics
+    ia.open(main_img)
+    # average over the stokes axis to get it down to 3 axes which is what our other one has
+    main_img_cs = ia.coordsys()
+    # how to trim the freq axis--
+    #img_shape = (ia.shape())[0:3]
+    main_img_shape = ia.shape()
+    print main_img_shape
+    imvals=np.squeeze(ia.getchunk())
+    immask=np.squeeze(ia.getchunk(getmask=True))
+    ia.close()
+    # get beam info
+    hdr = imhead(imagename=main_img,mode='summary')
+    bmaj_str = str(hdr['restoringbeam']['major']['value'] )+hdr['restoringbeam']['major']['unit']
+    bmin_str = str(hdr['restoringbeam']['minor']['value'] )+hdr['restoringbeam']['minor']['unit']
+    bpa_str =  str(hdr['restoringbeam']['positionangle']['value'])+hdr['restoringbeam']['positionangle']['unit']
+    beam_fwhm = ( hdr['restoringbeam']['major']['value'] * hdr['restoringbeam']['minor']['value'] )**0.5
+    print beam_fwhm
+
+    # secondary image characteristics
+    ia.open(aux_img)
+    # average over the stokes axis to get it down to 3 axes which is what our other one has
+    aux_img_cs = ia.coordsys()
+    # how to trim the freq axis--
+    #img_shape = (ia.shape())[0:3]
+    aux_img_shape = ia.shape()
+    print aux_img_shape
+    auxvals=np.squeeze(ia.getchunk())
+    auxmask=np.squeeze(ia.getchunk(getmask=True))
+    ia.close()
+    # get beam info
+    aux_hdr = imhead(imagename=aux_img,mode='summary')
+    #aux_bmaj_str = str(aux_hdr['restoringbeam']['major']['value'] * fudge_factor)+aux_hdr['restoringbeam']['major']['unit']
+    #aux_bmin_str = str(aux_hdr['restoringbeam']['minor']['value'] * fudge_factor)+aux_hdr['restoringbeam']['minor']['unit']
+    #aux_bpa_str =  str(aux_hdr['restoringbeam']['positionangle']['value'])+aux_hdr['restoringbeam']['positionangle']['unit']
+    #aux_beam_fwhm = ( aux_hdr['restoringbeam']['major']['value'] * aux_hdr['restoringbeam']['minor']['value'] )**0.5
+    #print beam_fwhm
+
+    # create joint mask and zero out fluxes in either
+    #  that are not in the joint mask
+    totmask = immask & auxmask
+    imvals[~totmask] = 0.0
+    auxvals[~totmask]=0.0
+
+    # set this correctly - 
+    pix_search_size = search_size * 8.0
+    peak_indices = find_peaks(inimg=main_img,search_size = pix_search_size, thresh = thresh)    
+    # hard wire radii - geez dude! ---
+    radii = np.arange(500)*2.0 + 2.0
+    flux_vs_rad = np.array([])
+    rms_vs_rad = np.array([])
+    for i in radii:
+        # these return an array of fluxes of individual regions
+        main_flux,xx,yy = sum_region_fluxes(imvals,peak_indices,radius=i)
+        aux_flux, dumx,dumy = sum_region_fluxes(auxvals,peak_indices,radius=i)
+        # take the median and MAD of these
+        flux_vs_rad = np.append(flux_vs_rad,np.median(main_flux/aux_flux))
+        rms_vs_rad = np.append(rms_vs_rad,au.MAD(main_flux/aux_flux))
+
+    return radii,flux_vs_rad,rms_vs_rad
+
+def find_peaks(inimg="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.skymodel.flat",search_size = 55, thresh = 4.5):
+"""
+
+   Find peaks in a CASA image. respects image mask. Heuristic: do a local max filter over a
+   neighborhood of size search_size, and select those which are > 4.5 sigma (with sigma estimated
+   as MAD of the image as a whole)
+
+"""
+  print "THRESH ", thresh
+  ia=iatool()
+  ia.open(inimg)
+  imvals=np.squeeze(ia.getchunk())
+  # somewhat confusingly, the mask is True where pixels are good, and False where bad.
+  immask=np.squeeze(ia.getchunk(getmask=True))
+  ia.close()
+  print imvals.shape
+
+  # compute some stats excluding NaN's - 
+  #imvals2 = imvals[~np.isnan(imvals)]
+  imvals2 = imvals[np.isfinite(imvals) & immask]
+  pix_mean = imvals2.mean()
+  #pix_sd = np.std(imvals2)
+  print "MEDIAN"
+  pix_median = np.median(imvals2)
+  # note: by default this is normalized so that the std dev of
+  #  a gaussian is 1.0
+  pix_mad = au.MAD(imvals2)
+
+  neighborhood = np.ones([search_size,search_size],dtype=np.bool)
+  print neighborhood.shape
+
+  print "MAX Filter"
+  is_local_max = maximum_filter(imvals,footprint=neighborhood)==imvals
+
+  # this is a boolean array, same dims as imvals. True where you have a local max
+  #  that's over the threshold specified here - 
+  #highest_peaks = is_local_max & np.asarray(np.asarray(imvals > pix_median + 5.0*pix_mad))
+  # so is this - 
+  print is_local_max.shape
+  highest_peaks = is_local_max & (imvals > (pix_median + thresh*pix_mad))
+  print highest_peaks.shape,pix_median,thresh,pix_mad
+  # this gives the indices where the value is TRUE - 
+  peak_indices = np.argwhere(highest_peaks)
+  print peak_indices.shape
+
+  return peak_indices
 
 
 # run as
