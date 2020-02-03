@@ -2,6 +2,14 @@
 
 Here we gather (now in a more organized way) the scripts for the paper.
 
+
+## 
+
+This is a discussion how the DC2019 data should be circulated, and
+easily match a CASA tasks API for the different combination techniques
+discussed in the paper
+
+
 ## Methods teams
 
 Each method team should provide the way how the data teams should be calling that method:
