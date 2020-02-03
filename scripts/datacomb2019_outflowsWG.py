@@ -3,7 +3,7 @@
 ## Developed at Data Combination 2019 workshop at Lorentz Center, August, 2019
 ## Report can be found here: https://github.com/teuben/dc2019/tree/master/report 
 ## Script started by Adele Plunkett, 14 August 2019
-## Updated 17 August 2019; 20 November 2019
+## Updated 17 August 2019; 20 November 2019; January 2020
 ################################
 
 ## Some important details:
@@ -37,7 +37,7 @@ mstransform(sharedir+vis12m,‘mst_12_nchan10_start0kms.ms’,
 #################################
 
 datadir = '/Users/aplunket/ResearchNRAO/Meetings/DataComb2019/Lup3mms/Lup3mms_Share/' #the directory where your test data are held
-workingdir ='/Users/aplunket/ResearchNRAO/Meetings/DataComb2019/Lup3mms/Post-workshop/' #the directory where you want to work
+workingdir ='/Users/aplunket/ResearchNRAO/Meetings/DataComb2019/Lup3mms/Post-workshop2/' #the directory where you want to work
 vis7m = datadir+'mst_07_nchan10_start0kms.ms' #7m-array interferometry (uv) data
 vis12m = datadir+'mst_12_nchan10_start0kms.ms' #12m-array interferometry (uv) data
 TPfits = datadir+'TP_12CO.fits'  #Single dish/ Total power image in fits format (as delivered by ALMA)
@@ -97,21 +97,26 @@ listobs(vis=vis12m7m,listfile='12m7m.listobs')
 #2019-08-17 14:26:05 WARN  MSConcat::copySysCal+   the MS to be appended, however, has one. Result won't have one.
 #2019-08-17 14:26:05 WARN  MSConcat::concatenate (file ../../ms/MSOper/MSConcat.cc, line 825)  Could not merge SysCal subtables
 
+## You may need this combined *.ms later
+os.system('mv *12m7m.ms ../NewData/.')
+vis12m7m = workingdir+'NewData/'+vis12m7m
+
 os.chdir(workingdir)
 
 
 ####################################
 ## CLEAN the interferometry data
+## NOTE: You are currently in the Feather directory, but maybe better to move to 'NewData'
 ###################################
 
-os.system('mkdir -p Feather')
-os.chdir('Feather')
+os.system('mkdir -p NewImages')
+os.chdir('NewImages')
 
 '''
 Use these *.ms:
 datadir = '/Users/aplunket/ResearchNRAO/Meetings/DataComb2019/Lup3mms/Lup3mms_Share/' #the directory where your test data are held
 vis12m = datadir+'mst_12_nchan10_start0kms.ms'
-vis12m7m = workingdir+'Diagnostics/int12m7m.ms' #You chose the name of your combined interferometry image
+vis12m7m = workingdir+'NewData/int12m7m.ms' #You chose the name of your combined interferometry image
 vis7m = workingdir+'Diagnostics/7m.ms.spl' ## You had to create this in the previous step
 '''
 
@@ -123,6 +128,13 @@ phasecenter='J2000 16h09m18.1 -39d04m44.0' # Look in the listobs, or use the kno
      if i%2.==0 and i%3.==0 and i%7.==0:
          print i
 '''
+
+iminfo12m = au.plotmosaic(vis12m,sourceid='0')
+iminfo7m = au.plotmosaic(vis7m,sourceid='0')
+## I also save the output in the variables iminfo, because they hold the size of the image we will want to create, in arcsec. 
+imsize_x = iminfo7m[1]-iminfo7m[2]
+imsize_y = iminfo7m[3]-iminfo7m[4]
+print('#***** Image size should be approximately: {0:.0f} x {1:.0f} arcsec'.format(imsize_x,imsize_y))
 
 ## Find the beamsizes.  You will need AnalysisUtils (au), found here: https://casaguides.nrao.edu/index.php/Analysis_Utilities
 expected_hpbw12m = au.estimateSynthesizedBeam(vis12m)
@@ -180,25 +192,44 @@ tclean(vis=vis12m7m,imagename='int12m7m_niter0',field=field,spw='',phasecenter=p
 ## Use CASAviewer: viewer(infile='int7m_niter0.image')
 
 #Next, RUN a deeper TCLEAN of each map
-niter=50000 ## You can increase this when things are going well.  I usually begin with 10000-20000, and then repeat as needed.
+niter=20000 ## You can increase this when things are going well.  I usually begin with 10000-20000, and then repeat as needed.
 cniter=500 ## It was recommended to me to use a smaller (<1000) cniter, but this takes longer
 gain=0.05 ## It was recommended to me to use a smaller (<0.1 default) gain, but this takes longer
 threshold='0mJy' ## You can clean based on iterations or threshold 
 
 ## YOUR 12m+7m map
 tclean(vis=vis12m7m,imagename='int7m12m_clean',field=field,spw='',phasecenter=phasecenter,mosweight=True,specmode='cube',niter=niter,cycleniter=cniter,gain=gain,threshold=threshold,usemask='pb',pbmask=0.3,restoringbeam='common',**lineimage12m)
+## Save the intermediate product
+'''
+os.system('mkdir 7m12m_iter100000')
+os.system('cp -rf int7m12m_clean.* 7m12m_iter100000/.')
+'''
 
-## YOUR 12m-only map
+## YOUR 12m-only map 
 tclean(vis=vis12m,imagename='int12m_clean',field=field,spw='',phasecenter=phasecenter,mosweight=True,specmode='cube',niter=niter,cycleniter=cniter,gain=gain,threshold=threshold,usemask='pb',pbmask=0.3,restoringbeam='common',**lineimage12m)
+## Save the intermediate product
+'''
+os.system('mkdir 12m_iter100000')
+os.system('cp -rf int12m_clean.* 12m_iter100000/.')
+'''
 
-## YOUR 7m-only map
+## YOUR 7m-only map 
 tclean(vis=vis7m,imagename='int7m_clean',field=field,spw='',phasecenter=phasecenter,mosweight=True,specmode='cube',niter=niter,cycleniter=cniter,gain=gain,threshold=threshold,usemask='pb',pbmask=0.3,restoringbeam='common',**lineimage7m)
+## Save the intermediate product
+'''
+os.system('mkdir 7m_iter80000')
+os.system('cp -rf int7m_clean.* 7m_iter80000/.')
+'''
+
 ## I tweaked pbmask to be slightly higher than the default (which is 0.2?) because the edges in this map may be particularly noisy, with bright emission.
 ## YOU can do more iterations of TCLEAN, until you are happy with the "CLEAN" image
-
+## v1:
 ## NOTE: I have run 12m for 20000 iterations; I could run more.
 ## NOTE: I have run 7m for 80000 iterations; I could run more.
 ## NOTE: I have run 7m12m for 150000 iterations; Between 100000-150000 iterations, a more sophisticated clean might be needed.
+## v2:
+## We chose to run the same iterations for each method.  Also, we want to test outputs at different iterations.
+## Let's run: 40000, 60000, 80000, 100000 for each map.
 
 ## This next step will be needed (kernel='commonbeam') if restoringbeam='common' is not included in TCLEAN.  
 ## In other words, you want a single beam, NOT a beam per channel.  
@@ -211,17 +242,22 @@ imsmooth(imagename='int12m_clean.image',outfile='int12m.imsmooth',kernel='common
 
 ## You may get some warnings like this, but I ignore it for now: 2019-08-14 07:45:07	WARN	imsmooth::Image2DConvolver::_dealWithRestoringBeam	Convolving kernel has minor axis 0.0736102 arcsec which is less than the pixel diagonal length of 0.565685 arcsec. Thus, the kernel is poorly sampled, and so the output of this application may not be what you expect. You should consider increasing the kernel size or regridding the image to a smaller pixel size
 
+os.chdir(workingdir)
 
 
 ########################
 ## Prepare to FEATHER
 ########################
 
-intimagename = 'int7m12m_clean' #prefix from the TCLEAN command above 
+os.system('mkdir -p Feather')
+os.chdir('Feather')
+
+intimagename = '../NewImages/int7m12m_clean' #prefix from the TCLEAN command above 
 #Drop the Stokes axis in both images
 #Remember to use the *.smooth image, if you had to smooth after clean
-imsubimage(imagename='int7m12m_clean.image',dropdeg=True,outfile='IntForComb.imsmooth.dropdeg') 
-imsubimage(imagename='TP.image',dropdeg=True,outfile='TPForComb.dropdeg')
+imsubimage(imagename=intimagename+'.image',dropdeg=True,outfile='IntForComb.imsmooth.dropdeg') 
+#importfits(fitsimage=TPfits,imagename=TPim)  ## You just need to do this the first time, in order to get your TP Fits file into the CASA format (*.image)
+imsubimage(imagename=TPim,dropdeg=True,outfile='TPForComb.dropdeg')
 
 Intim =  'IntForComb.imsmooth.dropdeg' #12m+7m image from TCLEAN, after imsubimage
 Intpb =  intimagename+'.pb' #primary beam response, this was created in your previous 12m+7m TCLEAN
@@ -240,12 +276,13 @@ tp_restfreq=imhead(TPim,mode='get',hdkey='restfreq')
 int_restfreq=imhead(Intim,mode='get',hdkey='restfreq')
 if tp_restfreq == int_restfreq: print('## Frequencies match')
 else: print('##**** Need to align frequencies: TP: {0}; Interf.: {1}'.format(tp_restfreq,int_restfreq))
+## IF YOU SEE ##**** Need to align frequencies:
 imreframe(imagename=TPim,output=TPim+'.ref',outframe='lsrk',restfreq='115271199999.99998Hz') ## You would need to indicate the rest frequency for your dataset.
 tp_restfreq=imhead(TPim+'.ref',mode='get',hdkey='restfreq') #check again
 if tp_restfreq == int_restfreq: print('## Frequencies match!!')
 else: print('##**** Need to align frequencies: TP: {0}; Interf.: {1}'.format(tp_restfreq,int_restfreq))
 ## In case you want to use this version elsewhere:
-## exportfits(imagename='TP.image.ref/',fitsimage='TP.image.ref.fits',velocity=True)
+## exportfits(imagename=TPim+'.ref/',fitsimage='TP.image.ref.fits',velocity=True)
 
 #Regrid TP image to match Interferometry image (note that the 'Freq' and 'Stokes' axes are flipped)
 imregrid(imagename=TPim+'.ref',
@@ -253,30 +290,39 @@ imregrid(imagename=TPim+'.ref',
          axes=[0,1,2],
          output='TP.image.regrid')
 
+'''
+#Regrid TP image to match Interferometry in spectral axis only
+imregrid(imagename=TPim+'.ref',
+		template=Intim,
+		axes = [2],
+		output = 'TP.image.regrid.spec')
+'''
 
 #Trim the 7m+12m and (regridded) TP images
 #Do this with the mask that was created in TCLEAN based on the PB (can also do with a box, as in CASAGuides)
 os.system('rm -rf TP.regrid.subim')
-imsubimage(imagename='TP.image.regrid', 
+os.system('ln -s ../NewImages/int7m12m_clean.mask.cut .')
+
+imsubimage(imagename='TP.image.regrid',
            outfile='TP.regrid.subim',
-           mask=Intmask+'.cut',stretch=True)
+           mask='int7m12m_clean.mask.cut',stretch=True)
 
 os.system('rm -rf Int.image.subim')
 imsubimage(imagename=Intim,
            outfile='Int.image.subim',
-           mask=Intmask+'.cut',stretch=True)
+           mask='int7m12m_clean.mask.cut',stretch=True)
 
 #CONTINUE WITH TP.regrid.subim and Int.image.subim
 
 #Mask the PB image to match the Int/TP images
 imsubimage(imagename=Intpb+'.cut',
-           outfile=Intpb+'.subim',
-           mask=Intmask+'.cut')
+           outfile='Int.pb.subim',
+           mask='int7m12m_clean.mask.cut')
 
 #Multiply the TP image by the 7m+12m primary beam response 
 os.system('rm -rf TP.subim.depb')
 immath(imagename=['TP.regrid.subim',
-                  Intpb+'.subim'],
+                  'Int.pb.subim'],
        expr='IM0*IM1',stretch=True,
        outfile='TP.subim.depb')
 
@@ -294,10 +340,73 @@ feather(imagename='Feather.image',
         lowres='TP.subim.depb')
 
 exportfits(imagename='Feather.image',fitsimage='final_feather.fits',velocity=True)
+exportfits(imagename='TP.subim.depb',fitsimage='TP.subim.depb.fits',velocity=True)
 exportfits(imagename='int7m12m_clean.image',fitsimage='final_int7m12m_clean.fits',velocity=True)
 exportfits(imagename='int7m12m_clean.residual',fitsimage='final_int7m12m_clean.res.fits',velocity=True)
 
 os.chdir(workingdir)
+
+######################
+# HYBRID -- IN PROGRESS!!!
+######################
+
+os.system('mkdir -p Hybrid1')
+os.chdir('Hybrid1')
+
+TPforComb = workingdir+'Feather/TP.image.regrid.spec'
+vis12m7m = workingdir+'NewData/int12m7m.ms' #You chose the name of your combined interferometry image
+
+'''
+# May need again:
+field='Lupus_3_MMS*' # Look in the log to find the name of your source; * is wild-card.
+phasecenter='J2000 16h09m18.1 -39d04m44.0' # Look in the listobs, or use the known source coordinates
+'''
+
+## May need to mask pixels in TP
+os.system('rm -rf TP_unmasked.image')
+os.system('cp -r ../Feather/TP.image.regrid.spec ' +
+          'TP_unmasked.image')
+ia.open('TP_unmasked.image')
+ia.replacemaskedpixels(0., update=True)
+ia.close()
+
+## May also need to downsample the TP to make a smaller image?
+
+## HYBRID 1
+## use TP as model for cleaning 7m+12m; feather TP with this image
+
+## 12m parameters
+lineimage12m = {"restfreq"   : '115.27120GHz',
+  'start'      : '0.0km/s', #you can set this in km/s
+  'width'      : '1.0km/s', #you can set this in km/s
+  'nchan'      : 8, #you can choose fewer channels to save time; I'm choosing not to image first and last channels
+  'imsize'     : [896,630], #also tried [896,540]; [900,600]
+  'cell'       : '0.4arcsec',
+  'gridder'    : 'mosaic',
+  'weighting'  : 'briggs',
+  'robust'     : 0.5,
+}
+
+#RUN TCLEAN as above
+niter=20000 ## You can increase this when things are going well.  I usually begin with 10000-20000, and then repeat as needed.
+cniter=500 ## It was recommended to me to use a smaller (<1000) cniter, but this takes longer
+gain=0.05 ## It was recommended to me to use a smaller (<0.1 default) gain, but this takes longer
+threshold='0mJy' ## You can clean based on iterations or threshold 
+
+## YOUR 12m+7m map -- HERE...
+tclean(vis=vis12m7m,imagename='int7m12m_TPmodel',startmodel='TP_unmasked.image',field=field,spw='',phasecenter=phasecenter,mosweight=True,specmode='cube',niter=niter,cycleniter=cniter,gain=gain,threshold=threshold,usemask='pb',pbmask=0.3,restoringbeam='common',**lineimage12m)
+## Save the intermediate product
+'''
+os.system('mkdir 7m12m_TPmodel_iter40000')
+os.system('cp -rf int7m12m_TPmodel.* 7m12m_TPmodel_iter40000/.')
+'''
+
+
+
+
+## HYBRID 2
+## use TP as model for cleaning 7m; feather TP with 7m image; this as model for cleaning 12m; feather 
+my7mimage = workingdir+'Feather/7m_iter80000/int7m_clean.image/'
 
 ######################
 ## Day 2: TP2VIS
@@ -360,7 +469,7 @@ tclean(vis=['tp_winpix9.ms'],imagename=lineimagename+'_wp9_niter0',field=field,s
 ## First assess the weights, using a plotting function in TP2VIS
 ## If you only have the 12m+7m ms already concatenated:
 #tp2vispl([vis12m7m,'tp_winpix9.ms'],outfig='tp2vispl.png') 
-## Otherwise, separate 7m and 12m for visualization:
+## Otherwise, separate 7m and 12m for visualization: 
 tp2vispl([vis12m,vis7m,'tp_winpix9.ms'],outfig='tp2vispl_v2.png') 
 
 ##Next, RUN a TCLEAN with niter=0
