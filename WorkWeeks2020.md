@@ -27,6 +27,8 @@ All leaders of the sub-teams, and active members who are testing methods and dev
 * Devaky Kunneriath (NA)
 * Peter Teuben (NA)
 
+*Anyone who would like to dedicate time to this is welcome to participate!  Contact Adele, or anyone listed here.*
+
 
 ## Combination Techniques
 
