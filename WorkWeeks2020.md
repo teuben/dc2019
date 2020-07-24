@@ -9,9 +9,10 @@ A lot of work has already been done, which should not be lost or forgotten, and 
 
 Specific goals are (to be discussed with team):
 * Return to manuscript draft, **before July 29**
-* Develop specific tasks for each team **July 29-31** 
-* Share data/scripts, testing methods **July 31-August 24**
+* Develop specific tasks for each team, **July 29-31** 
+* Share data/scripts, and test methods, **July 31-August 24**
 * Develop publicly sharable code, **before August 24**
+* Final hack-a-thon, **August 24-28**
 * Robust manuscript draft, **end of August**
 
 ## FORMAT
