@@ -19,7 +19,7 @@ Specific goals are (to be discussed with team):
 
 We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  
 We will tentatively plan on MEETING (virtually) at UTC 11-13.  These are mornings in the US (~7:00-9:00 EDT); afternoon in Europe (13:00-15:00); and night in Japan (20:00-22:00) and in Australia (21:00-23:00).  Outside of these hours, we dedicate some time each day to make progress on the agreed upon tasks.
-I apologize that the hours are not convenient for Japan and Australia (and rather early in US). In case the times are a problem for anyone, we can send updates by email and Slack messages each day.
+I apologize that the hours are not convenient for Japan and Australia (and rather early in US). In case the times are a problem for anyone, we can send updates by email or/and Slack messages each day.
 
 ### Draft schedule:
 * Wednesday 11-12 UT: General opening discussion, and each sub-team makes a 5 minute presentation (informal)
@@ -28,17 +28,15 @@ I apologize that the hours are not convenient for Japan and Australia (and rathe
 * Thursday 12:10-13 UT: General discussion
 * Friday 11-12 UT: Each sub-team gives a 5 minute update
 * Friday 12:10-13 UT: Plan for August
-* 
 
 
 ### Preferred communication: 
-Via Slack datacomb2019.slack.com
+Via Slack, datacomb2019.slack.com
 
 ## PARTICIPANTS
 
 All leaders of the sub-teams, and active members who are testing methods and developing the manuscript draft.  
 
-### Nominally:
 * Nickolas Pingel (Australia)  - confirmed
 * Toshi Takagi (Japan) 
 * Yusuke Miyamoto (Japan)
