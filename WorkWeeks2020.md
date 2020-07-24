@@ -8,7 +8,7 @@ workshop, and a sprint to make progress on the [Github](https://github.com/teube
 A lot of work has already been done, which should not be lost or forgotten, and some final coordination is needed to close out the [manuscript](https://www.overleaf.com/project/5d829641216025000191a049).
 
 Specific goals are (to be discussed with team):
-* Return to manuscript draft, **before July 29**
+* Return to [manuscript](https://www.overleaf.com/project/5d829641216025000191a049) draft, **before July 29**
 * Develop specific tasks for each team, **July 29-31** 
 * Share data/scripts, and test methods, **July 31-August 24**
 * Develop publicly sharable code, **before August 24**
