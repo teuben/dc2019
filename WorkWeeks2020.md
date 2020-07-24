@@ -9,8 +9,8 @@ A lot of work has already been done, which should not be lost or forgotten, and 
 
 ## FORMAT
 
-We will dedicate two ``work weeks'' on July 29-31; and again August 24-28.  
-We will tentatively plan on mornings (~7:00-9:00) in the US; afternoon in Europe (13:00-15:00); and night in Japan (20:00-22:00) and in Australia (21:00-23:00).  
+We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  
+We will tentatively plan on mornings in the US (~7:00-9:00 EDT); afternoon in Europe (13:00-15:00); and night in Japan (20:00-22:00) and in Australia (21:00-23:00).  
 I apologize that the hours are not convenient for Japan and Australia (and rather early in US). In case the times are a problem for anyone, we can send updates by email and Slack messages each day.
 
 ## Participants: 
