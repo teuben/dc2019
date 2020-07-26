@@ -1,4 +1,4 @@
-# *2020 Follow-up: Improving Image Fidelity on Astronomical Data *
+# *2020 Follow-up: Improving Image Fidelity on Astronomical Data*
 
 ## AIM
 
