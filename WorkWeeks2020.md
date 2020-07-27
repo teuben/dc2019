@@ -37,15 +37,18 @@ Via Slack, datacomb2019.slack.com
 
 All leaders of the sub-teams, and active members who are testing methods and developing the manuscript draft.  
 
-* Nickolas Pingel (Australia)  - confirmed
-* Toshi Takagi (Japan) 
+* Nickolas Pingel (Australia) 
+* Toshi Takagi (Japan)
 * Yusuke Miyamoto (Japan)
-* Kelley Hess (EU) - confirmed
-* Dirk Petry (EU) 
-* Alvaro Hacar (EU) - confirmed
-* Adele Plunkett (NA) - confirmed
-* Devaky Kunneriath (NA) - confirmed
-* Peter Teuben (NA) - confirmed
+* Kelley Hess (EU)
+* Dirk Petry (EU) *to be confirmed*
+* Alvaro Hacar (EU) 
+* Adele Plunkett (NA) 
+* Devaky Kunneriath (NA)
+* Peter Teuben (NA) 
+* Brian Mason (NA) *will participate in August*
+* Urvashi Rau (NA) *will participate in August*
+* Tim Braun (NA) *to be confirmed*
 
 *Anyone who would like to dedicate time to this is welcome to participate!  Contact Adele, or anyone listed here.*
 
