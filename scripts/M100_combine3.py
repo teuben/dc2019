@@ -1,4 +1,4 @@
-# SDINT example - needs to have run M100_combine2 and M100_combine4 before
+# SDINTIMAGING example - needs to have run M100_combine2 and M100_combine4 before
 
 # Timing:
 #     7m combination takes about 26min
@@ -63,7 +63,9 @@ else:
 
 os.system('rm -rf '+jointname+'*')
 
-jointim = SDINT_imager(vis=vis,
+# jointim = SDINT_imager(vis=vis,
+
+jointim = sdintimaging(vis=vis,
                            
                        sdimage=sdimage,
                        sdpsf=sdpsf,
@@ -98,8 +100,9 @@ jointim = SDINT_imager(vis=vis,
                        # mask=mask,
 )
     
-
-decname = jointim.do_reconstruct()
+#   the old SDINT_imager()  needed this
+#   the new one returns an empty dictionary
+#decname = jointim.do_reconstruct()
 
 ###################################
 
