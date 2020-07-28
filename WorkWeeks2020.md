@@ -29,9 +29,11 @@ I apologize that the hours are not convenient for Japan and Australia (and rathe
 * Friday 11-12 UT: Each sub-team gives a 5 minute update
 * Friday 12:10-13 UT: Plan for August
 
-
 ### Preferred communication: 
 Via Slack, datacomb2019.slack.com
+
+*Wednesday-Friday Zoom connection information in Slack channel #manuscript-leads*
+
 
 ## PARTICIPANTS
 
@@ -41,7 +43,7 @@ All leaders of the sub-teams, and active members who are testing methods and dev
 * Toshi Takagi (Japan)
 * Yusuke Miyamoto (Japan)
 * Kelley Hess (EU)
-* Dirk Petry (EU) *to be confirmed*
+* Dirk Petry (EU) 
 * Alvaro Hacar (EU) 
 * Adele Plunkett (NA) 
 * Devaky Kunneriath (NA)
