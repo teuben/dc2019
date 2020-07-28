@@ -18,10 +18,12 @@ Specific goals are (to be discussed with team):
 ## FORMAT
 
 We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  
-We will tentatively plan on MEETING (virtually) at UTC 11-13.  These are mornings in the US (~7:00-9:00 EDT); afternoon in Europe (13:00-15:00); and night in Japan (20:00-22:00) and in Australia (21:00-23:00).  Outside of these hours, we dedicate some time each day to make progress on the agreed upon tasks.
+We will tentatively plan on MEETING (virtually) at UTC 11-13.  These are mornings in the US (~7:00-9:00 EDT; 5:00 MT); afternoon in Europe (13:00-15:00); and night in Japan (20:00-22:00) and in Australia (21:00-23:00).  Outside of these hours, we dedicate some time each day to make progress on the agreed upon tasks.
 I apologize that the hours are not convenient for Japan and Australia (and rather early in US). In case the times are a problem for anyone, we can send updates by email or/and Slack messages each day.
 
 ### Draft schedule:
+*Wednesday-Friday Zoom connection information in Slack channel #manuscript-leads*
+
 * Wednesday 11-12 UT: General opening discussion, and each sub-team makes a 5 minute presentation (informal)
 * Wednesday 12:10-13 UT: Make a 3-day plan with action-items
 * Thursday 11-12 UT: Each sub-team gives a 5 minute update
@@ -31,9 +33,6 @@ I apologize that the hours are not convenient for Japan and Australia (and rathe
 
 ### Preferred communication: 
 Via Slack, datacomb2019.slack.com
-
-*Wednesday-Friday Zoom connection information in Slack channel #manuscript-leads*
-
 
 ## PARTICIPANTS
 
