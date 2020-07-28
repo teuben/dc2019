@@ -30,7 +30,8 @@ WSL on Window10 is currently too slow to be useful (but hasn't been tested).
    * TP2VIS (comes with QAC)
    * SD2VIS (optional, can come with QAC)
    * AU (comes with QAC)
-   * WidebandSDINT (comes with QAC)
+   * WidebandSDINT (comes with QAC) - as of July 2020 CASA 5.7 has this included as sdintimaging()
+   * 
 
 and recommended software
 
