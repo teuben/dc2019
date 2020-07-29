@@ -1,6 +1,6 @@
 #
 
-ALL = m100 tp2vis qac
+ALL = m100 tp2vis qac M51
 
 help:
 	@echo Help is in the Makefile
@@ -19,3 +19,8 @@ tp2vis:
 qac:
 	wget http://admit.astro.umd.edu/~teuben/QAC/qac_bench.tar.gz 
 
+
+M51:    M51ha.fits
+
+M51ha.fits:
+	wget https://casaguides.nrao.edu/images/3/3f/M51ha.fits.txt -O M51ha.fits
