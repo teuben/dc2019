@@ -24,12 +24,23 @@ I apologize that the hours are not convenient for Japan and Australia (and rathe
 ### Draft schedule:
 *Wednesday-Friday Zoom connection information in Slack channel #manuscript-leads*
 
-* Wednesday 11-12 UT: General opening discussion, and each sub-team makes a 5 minute presentation (informal)
-* Wednesday 12:10-13 UT: Make a 3-day plan with action-items
-* Thursday 11-12 UT: Each sub-team gives a 5 minute update
-* Thursday 12:10-13 UT: General discussion
-* Friday 11-12 UT: Each sub-team gives a 5 minute update
-* Friday 12:10-13 UT: Plan for August
+* Wednesday 11-12 UT: 
+    * General opening discussion
+    * Discuss methods; Each sub-team makes a 5 minute presentation (informal)
+* Wednesday 12:10-13 UT: 
+    * Discuss datasets; Each sub-team makes a 5 minute presentation (informal)
+    * Make a 3-day plan with action-items
+* Thursday 11-12 UT: 
+    * Assessment methods (Alvaro)
+* Thursday 12:10-13 UT: 
+    * Discussion on consistent imaging (TCLEAN/sdintimaging) techniques
+    * Short updates from any team
+* Friday 11-12 UT: 
+    * (1) select a color map for plots
+    * (2) make a list of important output plots for manuscript
+* Friday 12:10-13 UT: 
+    * (1) Manuscript outline
+    * (2) Plan for August
 
 ### Preferred communication: 
 Via Slack, datacomb2019.slack.com
