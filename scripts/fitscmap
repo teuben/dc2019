@@ -30,7 +30,7 @@ except:
     Qaplpy = False    
 
 if len(sys.argv) == 1:
-    sys.stderr.write("Usage %s FITSFILE [cmr.]CMAP [min max asigh_sigma]\n" % sys.argv[0])
+    sys.stderr.write("Usage %s FITSFILE [cmr.]CMAP [min max asinh_sigma]\n" % sys.argv[0])
     sys.stderr.write("  See e.g. https://cmasher.readthedocs.io/user/cmap_overviews/mpl_cmaps.html\n")
     sys.stderr.write("  for advanced colormaps\n")
     sys.stderr.write("  The prefix 'cmr.' is optional, it will try CMAP with and without\n")
@@ -58,16 +58,12 @@ try:
     cmap = plt.get_cmap(colormap_name)
     sys.stderr.write("Found %s\n" % colormap_name)
 except:
-    try:
-        cmap = plt.get_cmap('cmr.%s' % colormap_name)
-        sys.stderr.write("Found cmr.%s\n" % colormap_name)        
-    except:
-        print("# No known colormap %s, valid ones are:" % colormap_name)
-        cmaps = plt.colormaps()
-        for cmap in cmaps:
-            print(cmap)
-        print("# These are the %d currently known colormaps" % len(cmaps))
-        sys.exit(1)
+    print("# No known colormap %s, valid ones are:" % colormap_name)
+    cmaps = plt.colormaps()
+    for cmap in cmaps:
+        print(cmap)
+    print("# These are the %d currently known colormaps" % len(cmaps))
+    sys.exit(1)
 
 
 data =  fits.open(fitsfile)[0].data.squeeze()
@@ -104,3 +100,5 @@ if Qaplpy:
     # fig.set_nan_color('black')
     #fig.set_theme('publication')
     fig.save(plotname)
+
+print("Wrote %s" % plotname)
