@@ -21,7 +21,7 @@ We should have PDF's of the following papers
     
 * Faridani et al. 2017 https://arxiv.org/pdf/1709.09365.pdf *A new approach for short-spacing correction of radio interferometric data sets*
 
-* Hoffman & Kepley 2018, GBT Memo 300: Correcting ALMA 12-m Array Data for Missing Short Spacings Using the Green Bank Telescope: https://library.nrao.edu/public/memos/gbt/GBT_300.pdf
+* Hoffman & Kepley 2018 https://library.nrao.edu/public/memos/gbt/GBT_300.pdf *GBT Memo 300: Correcting ALMA 12-m Array Data for Missing Short Spacings Using the Green Bank Telescope*
 
 * ALMA cycle 7 technical handbook (version 1.1)
 
