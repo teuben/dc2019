@@ -1,0 +1,47 @@
+## Written by Toshi Takagi (ttakagi@jsforum.or.jp)    2020/07/29
+
+This is a set of python script to run simobserve() and symanalyze()
+to make simulated MS and imaging.
+
+#########
+# Files 
+#########
+README:
+  This file
+ACASimulation.py:
+  Wrapping script for simobserve(). Basic parameters are given in
+  param.py. In default setting, 
+ACAanalyze.py:
+  Wrapping script for simanalyze(). The imaging method should be
+  implemented in this script. Imaging will be done following ARC's
+  recommendation. 
+ACAanalyze2.py:
+  Another version of ACAanalyze.py for imaging with CASA Guide method. 
+param.py:
+  Parameter file to control the simulation.
+mkplot.py:
+  Script to make fidelity vs model flux plot. 
+dataCombineSimulation.pdf:
+  Report and some description of this simulation script. 
+
+#########
+# How to use 
+#########
+1. Prepare your input FITS image. For M51 (fitsFile = 'M51ha.fits'),
+   FITS file will be automatically downloaded.
+2. Edit param.py for basic parameters. 
+3. Run ACASimulation.py
+   $ CASA <1>: execfile('ACASimulation.py')
+   This will read param.py and execute simobserve() and then call
+   ACAanalyze.py
+4. To make fidelity vs model flux plot, run mkplot.py after setting
+   proper project name in the script
+   $ CASA <2>: execfile('mkplot.py')
+
+In the default package, you can get simulation results for M51
+only by running ACASimulation.py with any preparation.
+
+
+EOF 
+
+
