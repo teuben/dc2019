@@ -36,11 +36,11 @@ I apologize that the hours are not convenient for Japan and Australia (and rathe
     * Discussion on consistent imaging (TCLEAN/sdintimaging) techniques
     * Short updates from any team
 * Friday 11-12 UT: 
-    * (1) select a color map for plots
-    * (2) make a list of important output plots for manuscript
+    * Select a color map for plots
+    * Make a list of important output plots for manuscript
 * Friday 12:10-13 UT: 
-    * (1) Manuscript outline
-    * (2) Plan for August
+    * Manuscript outline
+    * Plan for August
 
 ### Preferred communication: 
 Via Slack, datacomb2019.slack.com
