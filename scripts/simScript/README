@@ -10,7 +10,7 @@ README:
   This file
 ACASimulation.py:
   Wrapping script for simobserve(). Basic parameters are given in
-  param.py. In default setting, 
+  param.py. 
 ACAanalyze.py:
   Wrapping script for simanalyze(). The imaging method should be
   implemented in this script. Imaging will be done following ARC's
