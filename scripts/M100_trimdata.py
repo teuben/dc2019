@@ -140,8 +140,11 @@ if True:
     qac_stats(tp1q,r3q)
     qac_stats(tp1,r3)
     print("Note the total flux includes all the data, including the fake guards")
-    
-os.system("tar zcf %s %s %s %s %s" % (benchtar,tp1q,ms1q,ms2q,'M100_trimdata.py'))
+
+
+cmd = "cp M100_trimdata.py M100_trimdata5.py; tar zcf %s %s %s %s M100_trimdata5.py" % (benchtar,tp1q,ms1q,ms2q)
+print(cmd)
+os.system(cmd)
 
 """
 4.3 has a 56.8986" beam from the 4.3 reference images and is 110 x 110 in 5.641" pixels 
