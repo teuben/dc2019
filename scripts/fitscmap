@@ -1,9 +1,14 @@
 #! /usr/bin/env python
 #
 #  Create a color image from a FITS file, using a colormap and optional min/max/sigma
-#  if sigma given, if will use that for the ASINH rescaling, units will be those
+#  if sigma given, if will use that for the ASINH rescaling, units will be this rescaled
+#  one.
 #
 #  Supposed to work within casa as well, but it won't return valid cmap names
+#  You will need to have casa's python in your $PATH.
+#
+#  Warning: If you python has aplpy, it will use that at the end instead.
+#      pip install aplpy
 #
 #  Optionally 
 #      pip install cmasher
@@ -79,7 +84,7 @@ if sigma != None and sigma != 0.0:
     print("ASINH rescaling %g" % sigma) 
     data = np.arcsinh((data-dmin)/sigma)
     dmin = 0.0
-    dmax = np.arcsinh((dmax-dmin)/sigma)        
+    dmax = np.arcsinh((dmax-dmin)/sigma)
 
 plotname = '%s.%s.png' % (fitsfile,colormap_name)
 
@@ -95,10 +100,15 @@ plt.show()
 if Qaplpy:
     print("Trying aplpy")
     fig = aplpy.FITSFigure(fitsfile)
-    fig.show_colorscale(cmap=colormap_name)
+    if sigma != 0.0:
+        # there is no way to use our sigma here.
+        # https://github.com/aplpy/aplpy/issues?q=arcsinh
+        fig.show_colorscale(cmap=colormap_name,vmin=dmin,vmax=dmax,stretch='arcsinh')
+    else:
+        fig.show_colorscale(cmap=colormap_name,vmin=dmin,vmax=dmax)
     fig.add_colorbar()
     # fig.set_nan_color('black')
-    #fig.set_theme('publication')
+    # fig.set_theme('publication')
     fig.save(plotname)
 
-print("Wrote %s" % plotname)
+print("xdg-open %s" % plotname)
