@@ -3,8 +3,9 @@
 #  The original M100 data, as described in the casaguide, are rather big (26 GB)
 #
 #  For various workshops we trim these down to a more manageable 70 channel 5km/s data set
-#  But you can edit this file to trim it down even more. Sometimes referred to as the QAC benchmark
-#  data, as it's used by the 2 minute tp2vis benchmark in QAC (cd QAC/test ; make bench)
+#  (which is that of the SD data)
+#  You could edit this file to trim it down even more. Sometimes referred to as the QAC benchmark
+#  data, as it is used by the 2 minute tp2vis benchmark in QAC (cd QAC/test ; make bench)
 #  An earlier version of the benchmark was based on CASA4 , but this script has been updated to
 #  reflect a more modern CASA5. For sake of insanity, we kept the names the same.
 
@@ -33,11 +34,12 @@
 #    wget https://ned.ipac.caltech.edu/level5/March02/SONG/NGC4321.bima12m.cm.fits.gz
 #    wget https://ned.ipac.caltech.edu/level5/March02/SONG/NGC4321.bima12m.mmom0.fits.gz
 #    wget https://ned.ipac.caltech.edu/level5/March02/SONG/NGC4321.bima12m.gmom1.fits.gz
+#    tar zcf M100_bima.tar.gz NGC4321.bima12m.mmom0.fits NGC4321.bima12m.gmom1.fits NGC4321.bima12m.cm.fits
 
 #   we start with this data from the 5.1 M100Band3...
-ms1 = 'M100_Band3_12m_CalibratedData.ms'
-ms2 = 'M100_Band3_7m_CalibratedData.ms'
-tp1 = 'M100_TP_CO_cube.spw3.image.bl'
+ms1 = 'M100_Band3_12m_CalibratedData.ms'     # first ch. at high vel, ch.width 
+ms2 = 'M100_Band3_7m_CalibratedData.ms'      # first ch. at high vel
+tp1 = 'M100_TP_CO_cube.spw3.image.bl'        # first ch. at 1400, reversed from the MS files !
 
 #   make sure they exist
 QAC.assertf(ms1)
@@ -52,6 +54,8 @@ rf0 = 115.2712018   # this might be the more formal restfreq, but wasn't used
                     # though this value is in the header of the TP data
 rf0 = 115.271202    # (114.60024366825306, 114.73289732123453, 115.271202,  1744.9999999999588, 1399.9999999999975, -4.9999999999994396, 70)
 
+rf0 = 115.271204    # header of original TP
+
 #   this is the spectral axis we want, given in the LSRK frame
 #   note were are struggling with a bug in mstransform()
 #   Formerly CAS-7371, now https://open-jira.nrao.edu/browse/CASR-57
@@ -62,10 +66,24 @@ line = {"restfreq":'%sGHz'%rf0, 'start':'1400km/s', 'width':'+5km/s','nchan':70}
 
 ms1q = 'M100_aver_12.ms'
 ms2q = 'M100_aver_7.ms'
-tp1q = 'M100_TP_CO_cube.bl.image'
+tp1q  = 'M100_TP_CO_cube.bl.image'
+tp1q2 = 'M100_TP_CO_cube.bl.image.2'
 
 #   this is the final product here
 benchtar = 'qac_bench5.tar.gz'
+
+
+#    TP first
+# we use imtrans() to flip the 3rd axis to align them with the other MS
+if False:
+    os.system('rm -rf %s' % tp1q2)
+    imtrans(tp1, tp1q2, '012-3')
+    # imreframe() is another task that may be useful to bring your TP into MS frame
+    imreframe(tp1q2,tp1q,outframe='LSRK',restfreq='%fGHz' % rf0)
+else:
+    os.system('rm -rf %s' % tp1q)
+    imtrans(tp1, tp1q, '012-3')
+
 
 #   to add to the challenge, the TP map has the highest frequency first, the MS files are lowest frequency first
 #   generally tclean, if used with specmode='cube', does not like to combine these.
@@ -84,6 +102,7 @@ mstransform(ms2, ms2q,
             **line)
 
 # the M100_aver_12.ms dataset has a missing getcol::REST_FREQUENCY, the ones in the M100_aver_7.ms are wrong
+# so we overwrite them with one consistent rf0
 if True:
     tb.open(ms1q + '/SOURCE', nomodify=False)
     rf = np.array([[rf0*1e9]]) 
@@ -96,14 +115,10 @@ if True:
     tb.putcol('REST_FREQUENCY', rf)
     tb.close()
 
-# we use imtrans() to flip the 3rd axis.
-os.system('rm -rf %s' % tp1q)
-imtrans(tp1, tp1q, '012-3')
-
-# imreframe() is another task that may be useful to bring your TP into MS frame
-imreframe(tp1q,tp1q+'.2',outframe='LSRK',restfreq='%gGHz' % rf0)
 
 
+
+    
 qac_summary(tp1q, [ms1q,ms2q])
 
 # input data (qac_stats() take a long time)
@@ -126,7 +141,7 @@ if True:
     qac_stats(tp1,r3)
     print("Note the total flux includes all the data, including the fake guards")
     
-os.system("tar zcf %s qac_bench5.tar.gz %s %s %s" % (benchtar,tp1q,ms1q,ms2q))
+os.system("tar zcf %s %s %s %s %s" % (benchtar,tp1q,ms1q,ms2q,'M100_trimdata.py'))
 
 """
 4.3 has a 56.8986" beam from the 4.3 reference images and is 110 x 110 in 5.641" pixels 
