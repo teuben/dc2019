@@ -40,9 +40,10 @@ This totals 24GB and we will have this on a USB.
 
 
 We are also planning on a trimmed version of these big data to immediately jump into data combination.
-See http://admit.astro.umd.edu/~teuben/QAC/qac_bench.tar.gz with trimmed M100 data, good for the
+See http://admit.astro.umd.edu/~teuben/QAC/qac_bench5.tar.gz with trimmed M100 data, good for the
 QAC benchmark.
-
+Another reason for this trimmed version is to ensure that all data have been sorted correctly, as
+some programs (certainly in the past) could not deal with sorted differently by frequency.
 
 TP2VIS: https://github.com/tp2vis/distribute/blob/master/example1.md   needs to be updated
 
@@ -61,7 +62,7 @@ Smaller data in : ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/N346
 
 http://admit.astro.umd.edu/~teuben/QAC/skymodel.fits    
 http://admit.astro.umd.edu/~teuben/QAC/skymodel.ptg     
-http://admit.astro.umd.edu/~teuben/QAC/qac_bench.tar.gz
+http://admit.astro.umd.edu/~teuben/QAC/qac_bench5.tar.gz
 
 These are from the old 4096 x 4096 models. A newer 16k x 16k model,
 and associate pre-computed MS, available here:
@@ -122,3 +123,14 @@ You can find the data in Leiden/data folder on the USB key.
 
 A direct link to the data:  http://www.aoc.nrao.edu/~rurvashi/DataFiles/Data_For_WidebandSDINT_UR_github.tgz
 and untar these in the WidebandSDINT/Data directory.
+
+9) casaguide simulations
+
+There is also a casaguide on similating ALMA data:
+
+https://casaguides.nrao.edu/index.php?title=ACA_Simulation_(CASA_5.4)_v2
+
+for which an Halpha M51 dataset is used to simulate a complex structure. This should be similar to the skymodel
+mentioned before, see 3).
+
+Data is in https://casaguides.nrao.edu/images/3/3f/M51ha.fits.txt
