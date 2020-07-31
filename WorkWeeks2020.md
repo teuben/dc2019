@@ -23,7 +23,7 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
 
 *Zoom connection information in Slack channel #manuscript-leads*
 
-#### WEEK 0 (Jul 29-31), *Work Week #1*:
+#### WEEK 0 (Jul 29-31), *Work Week #1*: Minutes/notes [here](https://docs.google.com/document/d/1E_PnQzwuBf5Fm1itBsQCfwFL0j3hWvCP9NvD3hRsvD4/edit?usp=sharing)
 
 * 29/07 Wednesday 11-12 UT: 
     * General opening discussion
