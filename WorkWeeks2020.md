@@ -23,7 +23,7 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
 
 *Zoom connection information in Slack channel #manuscript-leads*
 
-#### WEEK 0 (Jul 29-31):
+#### WEEK 0 (Jul 29-31), *Work Week #1*:
 
 * 29/07 Wednesday 11-12 UT: 
     * General opening discussion
@@ -45,8 +45,8 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
 
 #### WEEK 1 (Aug 3-7):
 
-- [ ]  Make the "sky model" with a few point sources.  Notify the group when it's ready. [[AI: Peter/Dirk ]]
-- [ ]  Determine common observing setup for the TP/7m/12m simulated observations, and send feedback to Toshi about the simulated data setup. [[AI: Devaky]]
+- [x]  Make the "sky model" with a few point sources.  Notify the group when it's ready. [[AI: Peter/Dirk ]]
+- [x]  Determine common observing setup for the TP/7m/12m simulated observations, and send feedback to Toshi about the simulated data setup. [[AI: Devaky]]
 - [ ]  Generate the simulated observations of the skymodel (from Peter/Dirk) [[AI: Toshi/Yusuke]]
 - [ ]  Wednesday: Suggest colormap possibilities to vote. [[AI: All]]
 - [ ]  Friday: Vote on colormap for observational images.  [[AI: All]]
@@ -66,9 +66,9 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
 - [ ]  Run combination methods on observational datasets [[AI: Dataset teams]]
 - [ ]  Weekly meeting on Thursday @ UTC 11-13.
 
-#### WEEK 4 (Aug 24-28):
+#### WEEK 4 (Aug 24-28), *Work Week #2*:
 
-- [ ]  Work week #2: Daily meetings @ UTC 11-13.
+- [ ] Daily meetings @ UTC 11-13.
 
 
 ### Preferred communication: 
