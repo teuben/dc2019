@@ -1,0 +1,72 @@
+#! /usr/bin/env python
+#
+#  add point sources to a fits file
+#
+#      fits_addpts in.fits out.fits x y F  x y F   x y F ....
+#
+#  History:
+#    31-jul-2020    hacked for dc2019        Peter Teuben
+#
+
+
+import sys
+import numpy as np
+import numpy.ma as ma
+import matplotlib.pyplot as plt
+try:
+    from astropy.io import fits
+except:
+    import pyfits as fits
+
+
+def fits_add(image1, image2, x, y, f, msg=None):
+
+    """    
+    image1, image2: input and output fits image (must be 2D)
+
+    x     list of X integers (0...nx-1)
+    y     list of Y integers (0...ny-1)
+    f     list of fluxes to add
+   
+    """
+    print(msg)
+    hdu = fits.open(image1)
+    d1 = hdu[0].data.squeeze()
+    h1 = hdu[0].header
+    
+    ndim = len(d1.shape)
+    if ndim != 2:
+        print("not 2dim")
+        print(d1.shape)
+
+    for (ix,iy,flux) in zip(x,y,f):
+        d1[iy][ix] += flux
+
+    if msg != None:
+        h1['comment'] = msg
+    hdu.writeto(image2)
+    
+    
+    
+fitsfile1 = sys.argv[1]
+fitsfile2 = sys.argv[2]
+
+npts = (len(sys.argv)-3 ) // 3
+print("Found %d point sources to be added" % npts)
+if npts == 0:
+    sys.exit(0)
+x = []
+y = []
+f = []
+
+comment = "PTS:"
+
+for i in range(npts):
+    x.append(int(sys.argv[3+i*3]))
+    y.append(int(sys.argv[4+i*3]))
+    f.append(int(sys.argv[5+i*3]))
+    comment = comment + " " + sys.argv[3+i*3]
+    comment = comment + " " + sys.argv[4+i*3]
+    comment = comment + " " + sys.argv[5+i*3]
+
+fits_add(fitsfile1,fitsfile2,x,y,f,comment)
