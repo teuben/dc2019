@@ -1,5 +1,14 @@
 #
 
+"""
+  This is a discussion document about how the DC2019DATA should be
+  circulated, and easily match a CASA task API for the different
+  combination techniques discussed in the paper
+
+
+"""
+
+
 def data_combine(method, data, prefix=None, **kwargs):
     """
     For a given 'method' and dataset (directory) 'data'
@@ -14,6 +23,7 @@ def data_combine(method, data, prefix=None, **kwargs):
     and produce files in
 
     data/method/
+
     """
     
 

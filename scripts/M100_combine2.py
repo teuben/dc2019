@@ -1,4 +1,4 @@
-#  Use the new CASA5 QAC bench data to run the M100 combination
+#  Use the new CASA5 QAC smaller bench data to run the M100 combination
 #  Takes about 18-20' to run. Fills about 3.3GB but needs quite a bit more scratch space to run.
 #
 #  curl http://admit.astro.umd.edu/~teuben/QAC/qac_bench5.tar.gz | tar zxf -
@@ -12,11 +12,17 @@ ms1 = '../M100_aver_12.ms'
 ms2 = '../M100_aver_7.ms'
 tp1 = '../M100_TP_CO_cube.bl.image'
 
+if False:
+    pdir = 'M100qac_43'
+    ms1 = '../data43/M100_aver_12.ms'
+    ms2 = '../data43/M100_aver_7.ms'
+    tp1 = '../data43/M100_TP_CO_cube.bl.image'
+
 # some testing, to confirm that M100_combine2 in QAC mode gives the same results as without
 
 # use qac_mom() instead
 qac1 = True
-# with 1745 as first channel
+# with 1745 as first channel (bl.image)
 qac2 = True
 
 # a better box size so all figures are the same .... (see M100_combine1.py how we got this)
