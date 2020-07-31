@@ -45,8 +45,8 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
 
 #### WEEK 1 (Aug 3-7):
 
-- [x]  Make the "sky model" with a few point sources.  Notify the group when it's ready. [[AI: Peter/Dirk ]]
-- [x]  Determine common observing setup for the TP/7m/12m simulated observations, and send feedback to Toshi about the simulated data setup. [[AI: Devaky]]
+- [ ]  Make the "sky model" with a few point sources.  Notify the group when it's ready. [[AI: Peter/Dirk ]]
+- [ ]  Determine common observing setup for the TP/7m/12m simulated observations, and send feedback to Toshi about the simulated data setup. [[AI: Devaky]]
 - [ ]  Generate the simulated observations of the skymodel (from Peter/Dirk) [[AI: Toshi/Yusuke]]
 - [ ]  Wednesday: Suggest colormap possibilities to vote. [[AI: All]]
 - [ ]  Friday: Vote on colormap for observational images.  [[AI: All]]
