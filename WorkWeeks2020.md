@@ -17,30 +17,58 @@ Specific goals are (to be discussed with team):
 
 ## FORMAT
 
-We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  
-We will tentatively plan on MEETING (virtually) at UTC 11-13.  These are mornings in the US (~7:00-9:00 EDT; 5:00 MT); afternoon in Europe (13:00-15:00); and night in Japan (20:00-22:00) and in Australia (21:00-23:00).  Outside of these hours, we dedicate some time each day to make progress on the agreed upon tasks.
+We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In between, we will meet every Thursday (06/08/20, 13/08/20, 20/08/20).
+*Our Zoom meetings will be held at UTC 11-13.*  These are mornings in the US (~7:00-9:00 EDT; 5:00 MT); afternoon in Europe (13:00-15:00); and night in Japan (20:00-22:00) and in Australia (21:00-23:00).  Outside of these hours, we dedicate some time each day to make progress on the agreed upon tasks.
 I apologize that the hours are not convenient for Japan and Australia (and rather early in US). In case the times are a problem for anyone, we can send updates by email or/and Slack messages each day.
 
-### Draft schedule:
+#### WEEK 0 (Jul 29-31):
 *Wednesday-Friday Zoom connection information in Slack channel #manuscript-leads*
 
-* Wednesday 11-12 UT: 
+* 29/07 Wednesday 11-12 UT: 
     * General opening discussion
     * Discuss methods; Each sub-team makes a 5 minute presentation (informal)
-* Wednesday 12:10-13 UT: 
+* 29/07 Wednesday 12:10-13 UT: 
     * Discuss datasets; Each sub-team makes a 5 minute presentation (informal)
     * Make a 3-day plan with action-items
-* Thursday 11-12 UT: 
+* 30/07 Thursday 11-12 UT: 
     * Assessment methods (Alvaro)
-* Thursday 12:10-13 UT: 
+* 30/07 Thursday 12:10-13 UT: 
     * Discussion on consistent imaging (TCLEAN/sdintimaging) techniques
     * Short updates from any team
-* Friday 11-12 UT: 
+* 31/07 Friday 11-12 UT: 
     * Select a color map for plots
     * Make a list of important output plots for manuscript
-* Friday 12:10-13 UT: 
+* 31/07 Friday 12:10-13 UT: 
     * Manuscript outline
     * Plan for August
+
+#### WEEK 1 (Aug 3-7):
+
+- [ ]  Make the "sky model" with a few point sources.  Notify the group when it's ready. [[AI: Peter/Dirk ]]
+- [ ]  Determine common observing setup for the TP/7m/12m simulated observations, and send feedback to Toshi about the simulated data setup. [[AI: Devaky]]
+- [ ]  Generate the simulated observations of the skymodel (from Peter/Dirk) [[AI: Toshi/Yusuke]]
+- [ ]  Wednesday: Suggest colormap possibilities to vote. [[AI: All]]
+- [ ]  Friday: Vote on colormap for observational images.  [[AI: All]]
+- [ ]  Weekly meeting on Thursday @ UTC 11-13.
+
+#### WEEK 2 (Aug 10-14):
+
+- [ ]  First half of week: Define the details of the TCLEAN method [[AI: Dirk]]
+- [ ]  Run combinations on simulated observations [[AI: Methods teams]]
+- [ ]  Provide scripts for combination methods.  [[AI: Methods teams]]
+- [ ]  Weekly meeting on Thursday @ UTC 11-13.
+
+#### WEEK 3 (Aug 17-21):
+
+- [ ]  Assessment [[AI: Alvaro]]
+- [ ]  Select a colormap for assessment plots [[AI: Alvaro]]
+- [ ]  Run combination methods on observational datasets [[AI: Dataset teams]]
+- [ ]  Weekly meeting on Thursday @ UTC 11-13.
+
+#### WEEK 4 (Aug 24-28):
+
+- [ ]  Work week #2: Daily meetings @ UTC 11-13.
+
 
 ### Preferred communication: 
 Via Slack, datacomb2019.slack.com
@@ -67,18 +95,18 @@ All leaders of the sub-teams, and active members who are testing methods and dev
 
 ## TECHNIQUES
 
-   * [feather](https://casa.nrao.edu/casadocs/casa-5.4.1/image-combination/feather) Team: Kunneriath, Hoffman
-   * [tp2vis](https://github.com/tp2vis/distribute) Team: Teuben
-   * [hybrid](https://sites.google.com/site/jenskauffmann/research-notes/adding-zero-spa) Team: ??
-   * [sdint](https://github.com/urvashirau/WidebandSDINT) Team: Petry, Rau, Braun
-   * ...
+   * [feather](https://casa.nrao.edu/casadocs/casa-5.4.1/image-combination/feather) Team: Devaky, Melissa
+   * [tp2vis](https://github.com/tp2vis/distribute) Team: Peter
+   * [hybrid](https://sites.google.com/site/jenskauffmann/research-notes/adding-zero-spa) Team: Adele
+   * [sdint](https://github.com/urvashirau/WidebandSDINT) Team: Dirk, Urvashi, Tim
+   * [Faridani](https://arxiv.org/pdf/1709.09365.pdf) Team: Nick
 
 ## DATASETS
-   * M100, Team: Teuben
-   * Simulated, Team: Takagi, Miyamoto
-   * SMC, Team: Petry
-   * Lupus 3 mms outflow, Team: Plunkett
-   * HI, Team: Pingel, Hess
+   * M100, Team: Peter
+   * Simulated, Team: Toshi, Yusuke
+   * SMC, Team: Dirk
+   * Lupus 3 mms outflow, Team: Adele
+   * HI, Team: Nick, Kelley
    
 ## ASSESSMENT METHODS
-   * Led by Alvaro Hacar
+   * Led by Alvaro
