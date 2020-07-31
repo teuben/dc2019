@@ -102,12 +102,14 @@ All leaders of the sub-teams, and active members who are testing methods and dev
    * [sdint](https://github.com/urvashirau/WidebandSDINT) Team: Dirk, Urvashi, Tim
    * [Faridani](https://arxiv.org/pdf/1709.09365.pdf) Team: Nick
 
-## DATASETS
+## OBSERVATIONAL DATASETS
    * M100, Team: Peter
-   * Simulated, Team: Toshi, Yusuke
    * SMC, Team: Dirk
    * Lupus 3 mms outflow, Team: Adele
    * HI, Team: Nick, Kelley
+
+## SIMULATED DATA
+   * Led by Toshi, Yusuke
    
 ## ASSESSMENT METHODS
    * Led by Alvaro
