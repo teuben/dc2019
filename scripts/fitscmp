@@ -70,6 +70,9 @@ def qac_compare(image1, image2, channel=False, method='mse'):
         print('images do not have same shape')
         return -1
 
+    ndim = len(d1.shape)
+    print(ndim)
+
     n = 1
     for s in d1.shape:
         n = n * s
@@ -79,7 +82,12 @@ def qac_compare(image1, image2, channel=False, method='mse'):
     # MSE
     cmp1 = np.sum( (d1-d2)**2 ) / n
 
+    # NMSE
+    cmp1a = skm.normalized_root_mse(d1,d2)
+    cmp1b = skm.mean_squared_error(d1,d2)
+
     # SSIM
+<<<<<<< HEAD
     if skm != None:
         cmp2 = skm.structural_similarity(d1,d2)
         cmp1a = skm.mean_squared_error(d1,d2)
@@ -91,12 +99,32 @@ def qac_compare(image1, image2, channel=False, method='mse'):
         print(cmp1,cmp1a,cmp1b,cmp1c,cmp1d,cmp2,cmp3)
     else:
         print(cmp1)
+=======
+    if ssim != None:
+        cmp2 = ssim(d1,d2)
+        cmp2a = skm.structural_similarity(d1,d2)
+        
+    else:
+        cmp2 = -1
+            
+    return (cmp1,cmp1a,cmp1b,cmp2,cmp2a)
+>>>>>>> 69906f2fadae199072221b99c3d0c8b1496bf317
 
     #-end of qac_compare()
 
 fitsfile1 = sys.argv[1]
 fitsfile2 = sys.argv[2]
 
+<<<<<<< HEAD
 qac_compare(fitsfile1,fitsfile2)
+=======
+    
+#if len(sys.argv) > 3:   dmin  = float(sys.argv[3])
+#if len(sys.argv) > 4:   dmax  = float(sys.argv[4])
+#if len(sys.argv) > 5:   sigma = float(sys.argv[5])
+
+a = qac_compare(fitsfile1,fitsfile2)
+print(a[0],a[1],a[2],a[3])
+>>>>>>> 69906f2fadae199072221b99c3d0c8b1496bf317
     
 
