@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 #
-#  compare images
+#  compare images using various metrics from skimage, OpenCV etc.
 #
 #  History:
 #    30-jul-2020    hacked for dc2019        Peter Teuben
 #
-
+#  @todo make it ready for CASA6
 
 import sys
 import numpy as np
@@ -19,9 +19,8 @@ except:
 # pip install scikit-image
 try:
     import skimage.metrics as skm
-    from skimage.metrics import structural_similarity as ssim
 except:
-    ssim = None
+    skm = None
 
 # pip install opencv-python    
 try:
@@ -31,9 +30,7 @@ except:
     
 
 
-
 def qac_compare(image1, image2, channel=False, method='mse'):
-
     """    
     image1, image2: two images to compare
     
@@ -48,6 +45,7 @@ def qac_compare(image1, image2, channel=False, method='mse'):
 
     # grab data
     if False:
+        # if casa image
         tb.open(image1)
         d1 = tb.getcol('map').squeeze()
         tb.close()
@@ -56,63 +54,73 @@ def qac_compare(image1, image2, channel=False, method='mse'):
         d2 = tb.getcol('map').squeeze()
         tb.close()
     else:
+        # if fits file
         d1 = fits.open(image1)[0].data.squeeze()
         d2 = fits.open(image2)[0].data.squeeze()
         d1 = ma.masked_invalid(d1)
         d2 = ma.masked_invalid(d2)
-        # @todo   logically 'and' the mask
+        m1 = ma.getmask(d1)
+        m2 = ma.getmask(d2)
+        d1 = ma.masked_where(m2,d1)
+        d2 = ma.masked_where(m1,d2)
+        d1 = ma.fix_invalid(d1,fill_value=0.0)
+        d2 = ma.fix_invalid(d2,fill_value=0.0)
 
     if d1.shape != d2.shape:
         print('images do not have same shape')
         return -1
 
     ndim = len(d1.shape)
-    print(ndim)
 
     n = 1
     for s in d1.shape:
         n = n * s
-
+        
     if ndim == 3:
+        if channel==False:
+            sys.stderr.write("Warning: doing channels anyways\n")
+
         nz = d1.shape[0]
         n = d1.shape[1] * d1.shape[2]
         cmp1 = np.zeros(nz)
         for z in range(nz):
             cmp1[z] = np.sum( (d1[z]-d2[z])**2 ) / n
+
+        print("#  MSE  SSIM")            
+        if skm != None:
+            cmp2 = np.zeros(nz)
+            for z in range(nz):
+                cmp2[z] = skm.structural_similarity(d1[z],d2[z])
+                print(cmp1[z],cmp2[z])
+        else:
+            for z in range(nz):
+                print(cmp1[z],-1)
+        sys.exit(0)
     else:
         # MSE
         cmp1 = np.sum( (d1-d2)**2 ) / n
 
-    if True:
-        # NMSE
-        cmp1a = skm.normalized_root_mse(d1,d2)
-        cmp1b = skm.mean_squared_error(d1,d2)
+    # NMSE
+    cmp1a = skm.normalized_root_mse(d1,d2)
+    cmp1b = skm.mean_squared_error(d1,d2)
 
-        # SSIM
-        if ssim != None:
-            cmp2 = ssim(d1,d2)
-            cmp2a = skm.structural_similarity(d1,d2)
-        else:
-            cmp2 = -1
-            cmp2a = -1
-            
-            
-    return cmp1
+    # SSIM
+    if skm != None:
+        cmp2 = skm.structural_similarity(d1,d2)
+        cmp1a = skm.mean_squared_error(d1,d2)
+        cmp1b = skm.normalized_root_mse(d1,d2,normalization='euclidean')
+        cmp1c = skm.normalized_root_mse(d1,d2,normalization='min-max')
+        cmp1d = skm.normalized_root_mse(d1,d2,normalization='mean')
+        cmp3 = -1
+        # cmp3 = skm.peak_signal_noise_ratio(d1,d2)
+        print('ALL:',cmp1,cmp1a,cmp1b,cmp1c,cmp1d," ",cmp2," ",cmp3)
+    else:
+        print(cmp1)
 
     #-end of qac_compare()
 
-    
 fitsfile1 = sys.argv[1]
 fitsfile2 = sys.argv[2]
 
-    
-#if len(sys.argv) > 3:   dmin  = float(sys.argv[3])
-#if len(sys.argv) > 4:   dmax  = float(sys.argv[4])
-#if len(sys.argv) > 5:   sigma = float(sys.argv[5])
-
-a = qac_compare(fitsfile1,fitsfile2)
-
-for ai in a:
-    print(ai)
-    
+qac_compare(fitsfile1,fitsfile2)
 
