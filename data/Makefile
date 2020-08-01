@@ -17,7 +17,7 @@ tp2vis:
 	wget http://admit.astro.umd.edu/~teuben/QAC/skymodel.ptg
 
 qac:
-	wget http://admit.astro.umd.edu/~teuben/QAC/qac_bench.tar.gz 
+	wget http://admit.astro.umd.edu/~teuben/QAC/qac_bench5.tar.gz 
 
 
 M51:    M51ha.fits
