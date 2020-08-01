@@ -60,12 +60,17 @@ Smaller data in : ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/N346
 
 3) skymodel GMC fractal/powerspectrum (Koda)
 
-http://admit.astro.umd.edu/~teuben/QAC/skymodel.fits    
+http://admit.astro.umd.edu/~teuben/QAC/skymodel.fits
+http://admit.astro.umd.edu/~teuben/QAC/skymodel-a.fits    
 http://admit.astro.umd.edu/~teuben/QAC/skymodel.ptg     
 http://admit.astro.umd.edu/~teuben/QAC/qac_bench5.tar.gz
 
-These are from the old 4096 x 4096 models. A newer 16k x 16k model,
-and associate pre-computed MS, available here:
+These are from the old 4096 x 4096 models.  The skymodel.fits
+is the original one, we added (two) 0.1 Jy point sources (see
+header where) to check how well they are recoverable.
+
+A newer 16k x 16k model, and associate pre-computed MS, available
+here:
 
 ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/skymodel_16k.fits
 ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/tp2vis-sample2.tar.gz
