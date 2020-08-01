@@ -41,7 +41,7 @@ This totals 24GB and we will have this on a USB.
 
 We are also planning on a trimmed version of these big data to immediately jump into data combination.
 See http://admit.astro.umd.edu/~teuben/QAC/qac_bench5.tar.gz with trimmed M100 data, good for the
-QAC benchmark.
+QAC benchmark. These are the gridded to the 70 channels the TP data were available as.
 Another reason for this trimmed version is to ensure that all data have been sorted correctly, as
 some programs (certainly in the past) could not deal with sorted differently by frequency.
 
