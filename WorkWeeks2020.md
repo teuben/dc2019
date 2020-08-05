@@ -52,21 +52,21 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
 - [ ]  Generate the simulated observations of the skymodel-a (from Peter/Dirk) [[AI: Toshi/Yusuke]]
 - [ ]  Wednesday: Suggest colormap possibilities to vote. [[AI: All]]
 - [ ]  Friday: Vote on colormap for observational images.  [[AI: All]]
-- [ ]  Weekly meeting on Thursday @ UTC 11-13.
+- [ ]  Weekly meeting on Thursday @ UTC 11-12 (discussion from 12-13).
 
 #### WEEK 2 (Aug 10-14):
 
 - [ ]  First half of week: Define the details of the TCLEAN method [[AI: Dirk]]
 - [ ]  Run combinations on simulated observations [[AI: Methods teams]]
 - [ ]  Provide scripts for combination methods.  [[AI: Methods teams]]
-- [ ]  Weekly meeting on Thursday @ UTC 11-13.
+- [ ]  Weekly meeting on Thursday @ UTC 11-12 (discussion from 12-13).
 
 #### WEEK 3 (Aug 17-21):
 
 - [ ]  Assessment [[AI: Alvaro]]
 - [ ]  Select a colormap for assessment plots [[AI: Alvaro]]
 - [ ]  Run combination methods on observational datasets [[AI: Dataset teams]]
-- [ ]  Weekly meeting on Thursday @ UTC 11-13.
+- [ ]  Weekly meeting on Thursday @ UTC 11-12 (discussion from 12-13).
 
 #### WEEK 4 (Aug 24-28), *Work Week #2*:
 
