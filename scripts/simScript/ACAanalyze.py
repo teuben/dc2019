@@ -14,12 +14,11 @@ import glob
 ### Simulation settings 
 ########################
 
-cell = "0.2arcsec" 
-imsize = [512,512]
+cell = outcell
+imsize = outImgSize
 
-
-## Visibility setting
-addNoise = False
+## Noisy Visibility setting
+addNoise = noisy
 
 if addNoise == False:
     visTP = project+".aca.tp.sd.ms" 
