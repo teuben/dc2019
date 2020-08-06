@@ -63,6 +63,14 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
 - [ ]  Provide scripts for combination methods.  [[AI: Methods teams]]
 - [ ]  Weekly meeting on Thursday @ UTC 11-12 (any additional discussion from 12-13).
 
+**Datasets needed for QA by Aug. 17**
+For each DC method we need:
+* Initial Skymodel
+* TP map
+* Final combined (TP+ACA+12m) map at it highest resolution
+* Intermediate products (if created): i.e. TP+ACA only map
+*Format: either FITS or CASA images*
+
 #### WEEK 3 (Aug 17-21):
 
 - [ ]  Assessment [[AI: Alvaro]]
