@@ -50,8 +50,8 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
 *Updated minutes/notes [here](https://docs.google.com/document/d/1E_PnQzwuBf5Fm1itBsQCfwFL0j3hWvCP9NvD3hRsvD4/edit?usp=sharing)*
 
 - [x]  Make the "sky model" with a few point sources.  Notify the group when it's ready. [[AI: Peter/Dirk ]] - **See: skymodel-b.fits on Slack**
-- [x]  Determine common observing setup for the 12m/7m/TP simulated observations, and send feedback to Toshi about the simulated data setup. [[AI: Devaky]] - **Per pointing: 20min (12m); 1 hour (7m); 80 min (TP).  Total 12m observing time is ~17 hours. **
-- [ ]  Generate the simulated observations of the skymodel-b (from Peter/Dirk) [[AI: Toshi/Yusuke]]
+- [x]  Determine common observing setup for the 12m/7m/TP simulated observations, and send feedback to Toshi about the simulated data setup. [[AI: Devaky]] - **Per pointing: 20min (12m); 1 hour (7m); 80 min (TP).  Total 12m observing time is ~17 hours.**
+- [x]  Generate the simulated observations of the skymodel-b (from Peter/Dirk) [[AI: Toshi/Yusuke]] - **By email from Toshi/forwarded by Adele**
 - [x]  Wednesday: Suggest colormap possibilities to vote. [[AI: All]] - **List [here](https://datacomb2019.slack.com/archives/CP6QCUPKQ/p1596583510149600)**
 - [ ]  Friday: Vote on colormap for observational images.  [[AI: All]]
 - [x]  Weekly meeting on Thursday @ UTC 11-12 (any additional discussion from 12-13).
