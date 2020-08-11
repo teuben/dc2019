@@ -58,7 +58,7 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
 
 #### WEEK 2 (Aug 10-14):
 
-- [x]  First half of week: Define the details of the TCLEAN method [[AI: Dirk]] - **Dirk sent script , see scriptForImaging.py**
+- [x]  First half of week: Define the details of the TCLEAN method [[AI: Dirk]] - **Dirk sent script , see [scriptForImaging.py](https://github.com/teuben/dc2019/blob/master/scripts4paper/scriptForImaging.py)**
 - [ ]  Run combinations on simulated observations [[AI: Methods teams]]
 - [ ]  Provide scripts for combination methods.  [[AI: Methods teams]]
 - [ ]  Weekly meeting on Thursday @ UTC 11-12 (any additional discussion from 12-13).
