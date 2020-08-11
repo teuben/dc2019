@@ -53,12 +53,12 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
 - [x]  Determine common observing setup for the 12m/7m/TP simulated observations, and send feedback to Toshi about the simulated data setup. [[AI: Devaky]] - **Per pointing: 20min (12m); 1 hour (7m); 80 min (TP).  Total 12m observing time is ~17 hours.**
 - [x]  Generate the simulated observations of the skymodel-b (from Peter/Dirk) [[AI: Toshi/Yusuke]] - **By email from Toshi/forwarded by Adele**
 - [x]  Wednesday: Suggest colormap possibilities to vote. [[AI: All]] - **List [here](https://datacomb2019.slack.com/archives/CP6QCUPKQ/p1596583510149600)**
-- [ ]  Friday: Vote on colormap for observational images.  [[AI: All]]
+- [x]  Friday: Vote on colormap for observational images.  [[AI: All]] - **Winner is cmr.rainforest, runner-up is CMRmap.**
 - [x]  Weekly meeting on Thursday @ UTC 11-12 (any additional discussion from 12-13).
 
 #### WEEK 2 (Aug 10-14):
 
-- [ ]  First half of week: Define the details of the TCLEAN method [[AI: Dirk]]
+- [x]  First half of week: Define the details of the TCLEAN method [[AI: Dirk]] - **Dirk sent script , see scriptForImaging.py**
 - [ ]  Run combinations on simulated observations [[AI: Methods teams]]
 - [ ]  Provide scripts for combination methods.  [[AI: Methods teams]]
 - [ ]  Weekly meeting on Thursday @ UTC 11-12 (any additional discussion from 12-13).
