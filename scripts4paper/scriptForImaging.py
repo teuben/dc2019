@@ -1,5 +1,6 @@
-# ALMA Data Reduction Script
+# ALMA Data Reduction Script, D. Petry (ESO), Aug 2020
 
+## You can determine the imaging parameters with the analysisUtils method pickCellSize, e.g.,
 ## a,b,c = aU.pickCellSize('gmc_120L.alma.cycle6.1.2018-10-03.ms', spw='0', imsize=True, cellstring=True)
 
 # Imaging
@@ -63,7 +64,7 @@ if(mystep in thesteps):
          mask = '',
          gridder = 'mosaic',
          pbcor = True,
-         threshold = '1mJy',
+         threshold = '24mJy',
          interactive = True
          )
   
@@ -98,7 +99,7 @@ if(mystep in thesteps):
          mask = '',
          gridder = 'mosaic',
          pbcor = True,
-         threshold = '1mJy',
+         threshold = '3.6mJy',
          interactive = True
          )
   
@@ -132,7 +133,7 @@ if(mystep in thesteps):
          mask = '',
          gridder = 'mosaic',
          pbcor = True,
-         threshold = '1mJy',
+         threshold = '210mJy',
          interactive = True
          )
   
