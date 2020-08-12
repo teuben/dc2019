@@ -32,6 +32,7 @@ The data will be prepared in a form ready for the different methods API's:
    * HI (line)
    * N346(line)
    * skymodel (cont)
+        - Script for imaging the individual simulated datasets by Dirk Petry using the hogbom deconvolver https://github.com/teuben/dc2019/blob/master/scripts4paper/scriptForImaging.py
    * ...
 
 The final data will NOT be in github, we will use the UMD ftp server for this. Contact peter to provide
