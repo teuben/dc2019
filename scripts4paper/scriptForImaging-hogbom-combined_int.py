@@ -92,7 +92,7 @@ if(mystep in thesteps):
   
 
 # Export images to FITS format
-mystep = 1
+mystep = 2
 if(mystep in thesteps):
   casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
   print('Step ', mystep, step_title[mystep])
