@@ -6,6 +6,9 @@ is one way to get you this. Each experiment should be in a directory
 by itself, which also gives you the freedom to not mess with long
 names underneath and have shorter filenames to deal with.
 
+The description below is somewhat CASA centric, e.g. it excludes
+MIRIAD's mosmem approach, or wsclean.
+
 # Overview of Parameter Space
 
 For the skymodel we have skymodel-b.fits, in Jy/pixel.  This image has
