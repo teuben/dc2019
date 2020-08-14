@@ -49,9 +49,9 @@ We can consider the following files:
 
 - we have at least three possible startmodels[] for hybrid combinations:
 
-      None
-      tp[0]
-      tp[2]
+      a: None
+      b: tp[0]
+      c: tp[2]
 
 - setting the various parameters to tclean/tp2vis/sdintimaging/feather/ssc are left
   out of this discussion here.
@@ -59,7 +59,7 @@ We can consider the following files:
 ## Final Maps
 
 Thus we have the following maps (and for each of these up to 3 different ones, 
-depending on which startmodel can be used)
+depending on which startmodel can be used; we call them 'a', 'b' and 'c' ?)
 
 
       int1     = tclean(ms, startmodel)
@@ -71,3 +71,6 @@ depending on which startmodel can be used)
       ssc1     = ssc(tp[1], int1)
 
 This is a total of as many as 15 maps.
+
+For example, Kaufman's hybrid would be "int1b", but if you don't have a perfect model,
+you only have "int1c".
