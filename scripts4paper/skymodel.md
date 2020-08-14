@@ -15,7 +15,7 @@ For the skymodel we have skymodel-b.fits, in Jy/pixel.  This image has
 4096 x 0.05" pixels, which effectively limits which ALMA 12m configurations
 we can use for the simulations.
 
-We can consider the following files:
+We can consider the following files (numbers taken for 115GHz):
 
 ## TP images
                                                                  res    MRS
