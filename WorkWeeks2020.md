@@ -61,9 +61,9 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
 *Updated minutes/notes [here](https://docs.google.com/document/d/1E_PnQzwuBf5Fm1itBsQCfwFL0j3hWvCP9NvD3hRsvD4/edit?usp=sharing)*
 
 - [x]  First half of week: Define the details of the TCLEAN method [[AI: Dirk]] - **Dirk sent script , see [scriptForImaging.py](https://github.com/teuben/dc2019/blob/master/scripts4paper/scriptForImaging.py) and [scriptForImaging-hogbom-combined_int.py](https://github.com/teuben/dc2019/blob/master/scripts4paper/scriptForImaging-hogbom-combined_int.py)**
-- [ ]  Run combinations on simulated observations [[AI: Methods teams]]
-- [ ]  Provide scripts for combination methods.  [[AI: Methods teams]]
-- [ ]  Weekly meeting on Thursday @ UTC 11-12 (any additional discussion from 12-13).
+- [ ]  Run combinations on simulated observations [[AI: Methods teams]] - **Ongoing**
+- [ ]  Provide scripts for combination methods.  [[AI: Methods teams]] - **First drafts going in [scripts4paper](https://github.com/teuben/dc2019/blob/master/scripts4paper)**
+- [x]  Weekly meeting on Thursday @ UTC 11-12 (any additional discussion from 12-13).
 
 **Datasets needed for QA by Aug. 17.** For each DC method we need:
 * Initial Skymodel
@@ -74,14 +74,14 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
 
 #### WEEK 3 (Aug 17-21):
 
-- [ ]  Assessment [[AI: Alvaro]]
+- [ ]  Assessment [[AI: Alvaro]] 
 - [ ]  Select a colormap for assessment plots [[AI: Alvaro]]
-- [ ]  Run combination methods on observational datasets [[AI: Dataset teams]]
-- [ ]  Weekly meeting on Thursday @ UTC 11-12 (any additional discussion from 12-13).
+- [ ]  Run combination methods on M100 (running on other observational datasets will be postponed) [[AI: Dataset teams]] 
+- [x]  Weekly meeting on Thursday @ UTC 11-12 (any additional discussion from 12-13).
 
 #### WEEK 4 (Aug 24-28), *Work Week #2*:
 
-- [ ] Daily meetings @ UTC 11-13.
+- [ ] Tuesday, Wednesday, Thursday meetings @ UTC 11-13.
 
 
 ### Preferred communication: 
