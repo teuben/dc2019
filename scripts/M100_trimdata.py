@@ -35,6 +35,9 @@
 #    wget https://ned.ipac.caltech.edu/level5/March02/SONG/NGC4321.bima12m.mmom0.fits.gz
 #    wget https://ned.ipac.caltech.edu/level5/March02/SONG/NGC4321.bima12m.gmom1.fits.gz
 #    tar zcf M100_bima.tar.gz NGC4321.bima12m.mmom0.fits NGC4321.bima12m.gmom1.fits NGC4321.bima12m.cm.fits
+#
+# @todo    this version (July 2020) still does not have the spectral axes aligned properly:
+#          the first channel is blank in the combination.
 
 #   we start with this data from the 5.1 M100Band3...
 ms1 = 'M100_Band3_12m_CalibratedData.ms'     # first ch. at high vel, ch.width 
@@ -46,21 +49,13 @@ QAC.assertf(ms1)
 QAC.assertf(ms2)
 QAC.assertf(tp1)
 
-# the casaguide box based on the 800x800 map
+# the casaguide box based on the 800x800 map defined through this series of scripts
 box  = '219,148,612,579'
 
 # pick a consistent restfreq
-rf0 = 115.2712018   # this might be the more formal restfreq, but wasn't used
-                    # though this value is in the header of the TP data
+rf0 = 115.2712018   # header of the older (casa4.3) TP data
 rf0 = 115.271202    # (114.60024366825306, 114.73289732123453, 115.271202,  1744.9999999999588, 1399.9999999999975, -4.9999999999994396, 70)
-
-rf0 = 115.271204    # header of original TP
-
-#   this is the spectral axis we want, given in the LSRK frame
-#   note were are struggling with a bug in mstransform()
-#   Formerly CAS-7371, now https://open-jira.nrao.edu/browse/CASR-57
-line = {"restfreq":'%sGHz'%rf0, 'start':'1745km/s', 'width':'-5km/s','nchan':70}
-line = {"restfreq":'%sGHz'%rf0, 'start':'1400km/s', 'width':'+5km/s','nchan':70}
+rf0 = 115.271204    # header of original (casa5.x) TP
 
 #   and want these dataset names for the QAC benchmark and M100_* scripts 
 
@@ -83,6 +78,17 @@ if False:
 else:
     os.system('rm -rf %s' % tp1q)
     imtrans(tp1, tp1q, '012-3')
+    # rf0 = imhead(tp1q, mode='list')['restfreq'][0] 
+
+#   this is the spectral axis we want, given in the LSRK frame
+#   note were are struggling with a bug in mstransform()
+#   Formerly CAS-7371, now https://open-jira.nrao.edu/browse/CASR-57
+#   where you can see you cannot reverse the frequencies in an MS
+#   Use line= in tclean?
+line = {"restfreq":'%sGHz'%rf0, 'start':'1745km/s', 'width':'-5km/s','nchan':70}
+line = {"restfreq":'%sGHz'%rf0, 'start':'1400km/s', 'width':'+5km/s','nchan':70}
+
+    
 
 
 #   to add to the challenge, the TP map has the highest frequency first, the MS files are lowest frequency first
