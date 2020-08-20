@@ -125,7 +125,7 @@ if QAC.select(1,select,"Flux comparisons flum-cmp*png"):
     qac_fits('test6/M100_TP_CO_cube.bl.smo',           'M100_TP_box1.fits',      box=box, chans=chans)
     qac_fits('M100sdint_12.joint.cube.image',          'M100_sdint_box1.fits',   box=box, chans=chans)
     qac_fits('test6/clean3/int_3.image.pbcor',         'M100_int_box1.fits',     box=box, chans=chans)
-    qac_fits('test6/clean3/tpint_6.image.pbcor',       'M100_sdint_box1.fits',   box=box, chans=chans)
+    qac_fits('test6/clean3/tpint_6.image.pbcor',       'M100_tpint_box1.fits',   box=box, chans=chans)
     qac_fits('test6/clean3/tpint_6.tweak.image.pbcor', 'M100_tweak_box1.fits',   box=box, chans=chans)
     qac_fits('M100_Feather_CO.image.pbcor',            'M100_feather_box1.fits',          chans=chans)
 
