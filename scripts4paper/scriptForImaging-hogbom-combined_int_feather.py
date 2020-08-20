@@ -205,9 +205,36 @@ if(mystep in thesteps):
                fitsimage = myimagebase+'.pbcor.fits',
                overwrite = True
                )
+
+    exportfits(imagename = myimagebase+'.image',
+               fitsimage = myimagebase+'.fits',
+               overwrite = True
+               )
+ 
     exportfits(imagename = myimagebase+'.pb',
                fitsimage = myimagebase+'.pb.fits',
                overwrite = True
                )
   
+  myimages = ['gmc_120L.sd']
+  
+  for myimagebase in myimages:
+    exportfits(imagename = myimagebase+'.image',
+               fitsimage = myimagebase+'.fits',
+               overwrite = True
+               )
+
+  myimages = ['gmc_120L.Feather']
+  
+  for myimagebase in myimages:
+     exportfits(imagename = myimagebase+'.image.pbcor',
+               fitsimage = myimagebase+'.pbcor.fits',
+               overwrite = True
+               )
+
+     exportfits(imagename = myimagebase+'.image',
+               fitsimage = myimagebase+'.pbcor.fits',
+               overwrite = True
+               )
+ 
 
