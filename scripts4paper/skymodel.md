@@ -24,6 +24,9 @@ We can consider the following files (numbers taken for 115GHz):
       tp[2] = sky.map             jy/pixel    (immath rescaled)
       tp[3] = sky.*.dirtymap      jy/beam_TP  (via tclean(tpms))
 
+For these simulations we have the advantage of a Jy/pixel model, but for
+real observations only the "otf" style map will be available.
+
 ## TPMS pseudo visibilities from tp2vis()
 
       tpms[0] = tp2vis(tp[0], deconv=False)
@@ -77,3 +80,36 @@ This is a total of as many as 15 maps.
 
 For example, Kaufman's hybrid would be "int1b", but if you don't have a perfect model,
 you only have "int1c".
+
+
+## Implementation
+
+A series of scripts in dc2019/contrib/QAC/test/sky*.py implement this scheme. Currently
+the first few are for testing, but sky4.py attempts to implement these, but finetuning
+the parameters (e.g. tclean etc.) is still ongoing.
+
+
+## Imaging
+
+The following imaging parameters should make it possible to compare maps pixel by pixel
+without the need for regridding:
+
+      phasecenter  = 'J2000 180.0deg -35.0deg'
+      imsize       = 1120
+      cell         = '0.21arcsec'
+
+this is for ALMA configurations 0 (ACA), 1 and 4, where the resulting beam is about 1.2 x 1.0".
+
+For configuration (0,1,2) we use
+
+      phasecenter  = 'J2000 180.0deg -35.0deg'
+      imsize       = 256
+      cell         = '0.8arcsec'
+
+because the beam is about 3". These simulations run a lot faster.
+
+
+For detailed comparisons we use a smaller box, excluding fairly obvious edge effects. Based on
+the 1120 pixel we use a proposed
+
+      box1  = '150,150,970,970'
