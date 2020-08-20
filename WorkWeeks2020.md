@@ -47,8 +47,6 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
 
 #### WEEK 1 (Aug 3-7):  - see also:  https://github.com/teuben/dc2019/issues
 
-*Updated minutes/notes [here](https://docs.google.com/document/d/1E_PnQzwuBf5Fm1itBsQCfwFL0j3hWvCP9NvD3hRsvD4/edit?usp=sharing)*
-
 - [x]  Make the "sky model" with a few point sources.  Notify the group when it's ready. [[AI: Peter/Dirk ]] - **See: skymodel-b.fits on Slack**
 - [x]  Determine common observing setup for the 12m/7m/TP simulated observations, and send feedback to Toshi about the simulated data setup. [[AI: Devaky]] - **Per pointing: 20min (12m); 1 hour (7m); 80 min (TP).  Total 12m observing time is ~17 hours.**
 - [x]  Generate the simulated observations of the skymodel-b (from Peter/Dirk) [[AI: Toshi/Yusuke]] - **By email from Toshi/forwarded by Adele**
@@ -57,8 +55,6 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
 - [x]  Weekly meeting on Thursday @ UTC 11-12 (any additional discussion from 12-13).
 
 #### WEEK 2 (Aug 10-14):
-
-*Updated minutes/notes [here](https://docs.google.com/document/d/1E_PnQzwuBf5Fm1itBsQCfwFL0j3hWvCP9NvD3hRsvD4/edit?usp=sharing)*
 
 - [x]  First half of week: Define the details of the TCLEAN method [[AI: Dirk]] - **Dirk sent script , see [scriptForImaging.py](https://github.com/teuben/dc2019/blob/master/scripts4paper/scriptForImaging.py) and [scriptForImaging-hogbom-combined_int.py](https://github.com/teuben/dc2019/blob/master/scripts4paper/scriptForImaging-hogbom-combined_int.py)**
 - [ ]  Run combinations on simulated observations [[AI: Methods teams]] - **Ongoing**
@@ -81,11 +77,30 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
 
 #### WEEK 4 (Aug 24-28), *Work Week #2*:
 
-- [ ] Tuesday, Wednesday, Thursday meetings @ UTC 11-13.
+*Minutes/notes [here](https://docs.google.com/document/d/1E_PnQzwuBf5Fm1itBsQCfwFL0j3hWvCP9NvD3hRsvD4/edit?usp=sharing)*
+
+* 24/08 Tuesday 11-12 UT: 
+    * Presentations from each methods group
+    * 12 minutes each: TP2VIS; sdintimaging; feather; hybrid; faridani
+* 24/08 Tuesday 12:10-13 UT: 
+    * Discussion
+    * Coordinate who will run each method as a second test
+* 25/08 Wednesday 11-12 UT: 
+    * Report about each "second test"
+* 25/08 Wednesday 12:10-13 UT: 
+    * Discuss parameters
+* 26/08 Thursday 11-12 UT: 
+    * Assessment methods (Alvaro)
+* 26/08 Thursday 12:10-13 UT: 
+    * Discussion on consistent imaging (TCLEAN/sdintimaging) techniques
+    * Short updates from any team
 
 
-### Preferred communication: 
+### Preferred communication:
+
 Via Slack, datacomb2019.slack.com
+
+*Updated minutes/notes for all meetings [here](https://docs.google.com/document/d/1E_PnQzwuBf5Fm1itBsQCfwFL0j3hWvCP9NvD3hRsvD4/edit?usp=sharing)*
 
 ## PARTICIPANTS
 
