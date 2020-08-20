@@ -181,10 +181,13 @@ def genmultisps(fitsimages, save=False):
             bmin = hdu[0].header['BMIN']*3600. * u.arcsec 
         except (KeyError):
             noBeamInfo = True
-
             print('Missing beam information in header, we will apply no spatial frequency cut-off')
-
-        if not noBeamInfo:
+        try:
+	    fluxUnits = hdu[0].header['BUNIT']
+        except (KeyError):
+            print('No flux units... assuming Jy/pixel')
+            fluxUnits = 'Jy/pixel'
+	if fluxUnits == 'Jy/beam':
             print('pixSize bmaj bmin ', pixSize, bmaj, bmin)
 
             ## convert image to Jy/pixel 
