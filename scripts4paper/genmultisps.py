@@ -15,8 +15,11 @@
 import numpy as np
 from astropy.io import fits
 from scipy.optimize import curve_fit
+from scipy import stats
+from scipy import signal
+from scipy import interpolate
 import argparse
-from turbustat.statistics import PowerSpectrum
+#from turbustat.statistics import PowerSpectrum
 import astropy.units as u
 import matplotlib 
 import matplotlib.pyplot as pyplot
@@ -25,6 +28,61 @@ from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 ## define linear fitting function
 def linFunc(x, slope, b):
     return x*slope+b
+
+## define function to compute MAD
+MAD = lambda x: np.median(np.abs(x - np.median(x)))
+
+## define function to return 1D SPS
+def compute_1D_SPS(image):
+    ## mask out image NaN's
+    nan_inds = np.isnan(image)
+    image[nan_inds] = 0.
+
+    ## mask out pixels that are within 10% of the edge
+    y_mask = np.int(image.shape[0]*0.05)
+    x_mask = np.int(image.shape[1]*0.05)
+
+
+    image[0:y_mask, :] = 0
+    image[-y_mask:, :] = 0
+    image[:, 0:x_mask] = 0
+    image[:,-y_mask:] = 0
+
+    ## compute 2D power spectrum
+    modulusImage = np.abs(np.fft.fftshift(np.fft.fft2(image)))**2
+
+    ## obtain center pixel coordinates (where the DC power component is located)
+    center = np.where(modulusImage == np.nanmax(modulusImage))
+    center = [center[0][0], center[1][0]]
+
+
+    ## define pixel grid
+    y = np.arange(-center[0], modulusImage.shape[0] - center[0])
+    x = np.arange(-center[1], modulusImage.shape[1] - center[1])
+    yy, xx = np.meshgrid(y, x, indexing='ij')
+    dists = np.sqrt(yy**2 + xx**2)
+    
+    ## define spatial frequency grid
+    yfreqs = np.fft.fftshift(np.fft.fftfreq(modulusImage.shape[0]))
+    xfreqs = np.fft.fftshift(np.fft.fftfreq(modulusImage.shape[1]))
+    yy_freq, xx_freq = np.meshgrid(yfreqs, xfreqs, indexing='ij')
+    freqs_dist = np.sqrt(yy_freq**2 + xx_freq**2)
+    zero_freq_val = freqs_dist[np.nonzero(freqs_dist)].min() / 2.
+    freqs_dist[freqs_dist == 0] = zero_freq_val
+    
+    ## define bin spacing
+    max_bin = 0.5
+    min_bin = 1.0 / np.min(modulusImage.shape)
+    nbins = int(np.round(dists.max()) + 1)
+    bins = np.linspace(min_bin, max_bin, nbins + 1)
+    finite_mask = np.isfinite(modulusImage)
+    ## compute the radial profile using median values within each annulus
+    ps1D, bin_edges, cts = stats.binned_statistic(freqs_dist[finite_mask].ravel(), modulusImage[finite_mask].ravel(), bins=bins, statistic='median')
+    ## compute MAD uncertainties
+    ps1D_MADErrs, bin_edges, cts = stats.binned_statistic(freqs_dist[finite_mask].ravel(), modulusImage[finite_mask].ravel(), bins=bins, statistic=MAD)
+    bin_cents = (bin_edges[1:] + bin_edges[:-1]) / 2.
+    ## return profile & errors (in linear space) and bin centers for x-axis
+    return ps1D, ps1D_MADErrs, bin_cents*1/u.pix
 
 
 def genmultisps(fitsimages, save=False):
@@ -101,10 +159,15 @@ def genmultisps(fitsimages, save=False):
         ## set useful variables
         pixUnits = False
         noBeamInfo = False
+        fit = True
 
-        ## check for degenerate stokes axis and remove
-        if len(image.shape) > 3:
+        ## check for degenerate stokes axes and remove
+        if len(image.shape) == 4:
+            image = image[0, 0, :, :]
+        elif len(image.shape) == 3:
             image = image[0, :, :]
+        else:
+            print('No degenerate axes...')
 
         ## check for relevant header info
         try: 
@@ -118,80 +181,84 @@ def genmultisps(fitsimages, save=False):
             bmin = hdu[0].header['BMIN']*3600. * u.arcsec 
         except (KeyError):
             noBeamInfo = True
-            print('Missing beam information in header, we will continue with units of pixels')
-
-        if not noBeamInfo:
+            print('Missing beam information in header, we will apply no spatial frequency cut-off')
+        try:
+	    fluxUnits = hdu[0].header['BUNIT']
+        except (KeyError):
+            print('No flux units... assuming Jy/pixel')
+            fluxUnits = 'Jy/pixel'
+	if fluxUnits == 'Jy/beam':
             print('pixSize bmaj bmin ', pixSize, bmaj, bmin)
 
-        ## set up power spectrum object
-        pspec = PowerSpectrum(image, header = hdu[0].header)
-        ## compute power spectrum
-        if pixUnits == True and noBeamInfo == False:
-            pix_units = u.pix**-1
-            pspec.run(verbose = False, xunit = pix_units, fit_2D = False, radial_pspec_kwargs={'mean_func': np.nanmedian})
-            angularScales = pspec.freqs**(-1)
-            lowCut = pspec.low_cut**(-1)
-            highCut = pspec.high_cut**(-1)
-        elif noBeamInfo == True and pixUnits == True:
-            pix_units = u.pix**-1
-            pspec.run(verbose = False, xunit = pix_units, fit_2D = False, radial_pspec_kwargs={'mean_func': np.nanmedian})
-            angularScales = pspec.freqs**(-1)
-            lowCut = pspec.low_cut**(-1)
-            highCut = pspec.high_cut**(-1)
-        elif noBeamInfo == True and pixUnits == False:
-            pspec.run(verbose = False, xunit = u.arcsec**-1, fit_2D = False, radial_pspec_kwargs={'mean_func': np.nanmedian})
-            angularScales = pspec.freqs**(-1)*pixSize/60.*u.arcmin/u.pix ## in arcmins
-            lowCut = pspec.low_cut**(-1)*pixSize/60.0*u.arcmin/u.pix 
-            highCut = pspec.high_cut**(-1)*pixSize/60.0*u.arcmin/u.pix	
-        else: # i.e.  noBeamInfo == False and pixUnits == False
-            myhighcut = 1/bmaj
-            print('my highcut ', myhighcut)
-            pspec.run(verbose = False, xunit = u.arcsec**-1, high_cut = myhighcut, fit_2D = False, radial_pspec_kwargs={'mean_func': np.nanmedian})
-            angularScales = pspec.freqs**(-1)*pixSize/60.*u.arcmin/u.pix ## in arcmins
-            lowCut = pspec.low_cut**(-1)*pixSize/60.0*u.arcmin/u.pix 
-            highCut = pspec.high_cut**(-1)*pixSize/60.0*u.arcmin/u.pix	
+            ## convert image to Jy/pixel 
+            image*=(pixSize.value)**2/(1.1331*bmaj.value*bmin.value)
 
-        ## unpack the output
-        powerVals = pspec.ps1D
-        powerValsStd = pspec.ps1D_stddev
-        powerSpecIm = pspec.ps2D
+        ## apply apodizing kernel to mask pixels within 10% of the edge of the smallest dimension
+
+
+        ## compute power spectrum
+        SPS_1D, MADErrs, spatialFreqs = compute_1D_SPS(image)
+        
+
+        ## compute power spectrum
+        if pixUnits == True and noBeamInfo == False: ## use pixel units; however, set high spatial frequency cutoff from BMAJ
+            angularScales = spatialFreqs**(-1)*u.pix
+
+            ## determine low/high cutoffs indices (where angular scales < 0.5*map/3 & angular scales > BMAJ)
+            lowCut_idx = np.where(angularScales < angularScales[0]/3)[0][0]
+            bmaj_pix = bmaj/pixSize*u.pix/u.arcsec
+            highCut_idx = np.where(angularScales > bmaj_pix)[0][-1]
+        elif noBeamInfo == True and pixUnits == True: ## use pixel units with no cutoff from beam (i.e., simulated image)
+            angularScales = spatialFreqs**(-1)
+
+            ## determine low/high cutoffs indices (where angular scales < 0.5*map/3 & high cut is the pixel size
+            lowCut_idx = np.where(angularScales < angularScales[0]/3)[0][0]
+            highCut_idx = -1
+        elif noBeamInfo == True and pixUnits == False: ## use angular units but no cutoff from beam (i.e., simulated image)
+            angularScales = spatialFreqs**(-1) * pixSize * (1/u.pix)
+
+            ## determine low/high cutoffs indices (where angular scales < 0.5*map/3 & high cut is the pixel size
+            lowCut_idx = np.where(angularScales < angularScales[0]/3)[0][0]
+            highCut_idx = -1
+        else: # i.e.  noBeamInfo == False and pixUnits == False; use angular units and set high-freq cutoff from beam info
+            angularScales = spatialFreqs**(-1) * pixSize * (1/u.pix) ## in arcsec
+            ## determine low/high cutoffs indices (where angular scales < 0.5*map/3 & angular scales > BMAJ)
+            lowCut_idx = np.where(angularScales < angularScales[0]/3)[0][0]
+            highCut_idx = np.where(angularScales > bmaj)[0][-1]
+
+            if lowCut_idx >= highCut_idx: ## likely dealing with single-dish/tp image => DON'T FIT
+                fit = False
+
+        print('low/high spatial freq. cutoffs [arcsec]: ', angularScales[lowCut_idx].value, angularScales[highCut_idx].value)
 
         ## convert to log space
-        logErrors= powerValsStd/(powerVals*np.log(10))
-        logPwr = np.log10(powerVals)
+        logErrors= MADErrs/(SPS_1D*np.log(10))
+        logPwr = np.log10(SPS_1D)
         logAngScales= np.log10(angularScales.value)
-        logPowerSpecIm = np.log10(powerSpecIm)
 
-        if noBeamInfo == True:
-            ## fit from large-scale to brk 
-            coeffs, matcov = curve_fit(linFunc, logAngScales, logPwr, [1,1])
-            perr = np.sqrt(np.diag(matcov))
-        else:
-            beamInd = np.where(logAngScales > np.log10(bmaj/u.arcsec/60.))
-            print(beamInd)
-            print(beamInd[-1])
-            coeffs, matcov = curve_fit(linFunc, logAngScales[:beamInd[0][-1]], logPwr[:beamInd[0][-1]], [1,1])
+        if fit:
+            ## fit from large-scale to brk    
+            coeffs, matcov = curve_fit(linFunc, logAngScales[lowCut_idx:highCut_idx], logPwr[lowCut_idx:highCut_idx], [1,1])
             perr = np.sqrt(np.diag(matcov))
 
         ## finally, do the plotting
 
         ## plot full power spectra ##
-        ax.plot(logAngScales[1:], logPwr[1:], label='Data '+str(imnumber), color=tableau20[imnumber])
+        ax.plot(logAngScales, logPwr, label='Data '+str(imnumber), color=tableau20[imnumber])
 
         ## fill inbetween for errors ##
         #ax.fill_between(logAngScales, logPwr-logErrors, logPwr+logErrors, color=tableau20[1])
 
-        ## overplot fit ##
-        if noBeamInfo == False:
-            ax.plot(logAngScales[:beamInd[0][-1]], linFunc(logAngScales[:beamInd[0][-1]], coeffs[0], coeffs[1]), color='black', linestyle='--', label = 'PL: %.2f+/-%.2f' % (coeffs[0], perr[1]))
-        else:
-            ax.plot(logAngScales, linFunc(logAngScales, coeffs[0], coeffs[1]), color='black', linestyle='--', label = 'PL: %.1f+/-%.1f' % (coeffs[0], perr[0]))
+        if fit:
+            ax.plot(logAngScales[lowCut_idx:highCut_idx], linFunc(logAngScales[lowCut_idx:highCut_idx], coeffs[0], coeffs[1]), color='black', linestyle='--', label = 'PL: %.1f+/-%.1f' % (coeffs[0], perr[0]))
+        
         ## set x and y limits ##
-        ax.set_xlim(np.max(logAngScales)+0.25, np.min(logAngScales) - 0.25)
+        if imnumber == 0:
+            ax.set_xlim(np.max(logAngScales)+0.25, np.min(logAngScales) - 0.25)
 
         ## show fit limits ##
-        ax.axvline(np.log10(lowCut.value), color = tableau20[imnumber], linestyle = '-.')
-        ax.axvline(np.log10(highCut.value), color= tableau20[imnumber], linestyle = '--')
+        ax.axvline(logAngScales[lowCut_idx], color = tableau20[imnumber], linestyle = '-.')
+        ax.axvline(logAngScales[highCut_idx], color= tableau20[imnumber], linestyle = '--')
 
         imnumber += 1
 
@@ -201,10 +268,11 @@ def genmultisps(fitsimages, save=False):
     if pixUnits == True:
         ax.set_xlabel(r'$log_{10}\left(\rm 1/pix\right)$')
     else:
-        ax.set_xlabel(r'$log_{10}\left(\rm arcmin\right)$')
+        ax.set_xlabel(r'$log_{10}\left(\rm arcsec\right)$')
 
     ax.set_ylabel(r'$log_{10}\left(\rm Power\right)$')
-    pyplot.legend(loc='upper right', fontsize=6)
+    #pyplot.legend(loc='upper right', fontsize=6)
+    pyplot.legend(loc='upper right', prop={'size':8})
 
     if save == True:
         pyplot.savefig(fitsimages[0]+'_and_others.sps.pdf')
