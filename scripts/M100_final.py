@@ -18,6 +18,8 @@ box1  = '219,148,612,579'     # casaguide box in their 800x800 image; flux is 31
 box2  = '252,182,574,524'     # a better box?                   But flux only 2569
 box   = box1
 
+chans = '1~68'                # cut off the two end channels
+
 select = 0      # 0=do all
 
 
@@ -25,8 +27,6 @@ select = 0      # 0=do all
 import sys
 for arg in qac_argv(sys.argv):
     exec(arg)
-
-
 
 os.chdir(pdir)
 
@@ -120,6 +120,14 @@ if QAC.select(1,select,"Flux comparisons flum-cmp*png"):
         label.append("ALMA TP box")
         label.append("BIMA SONG")
         plot2a([f11,f10], 'Flux comparison M100 ALMA/BIMA','flux-cmp6.png', v=[v11,v10], label=label)
+
+    # write out the 394 x 432 x 68 cubes for comparison
+    qac_fits('test6/M100_TP_CO_cube.bl.smo',           'M100_TP_box1.fits',      box=box, chans=chans)
+    qac_fits('M100sdint_12.joint.cube.image',          'M100_sdint_box1.fits',   box=box, chans=chans)
+    qac_fits('test6/clean3/int_3.image.pbcor',         'M100_int_box1.fits',     box=box, chans=chans)
+    qac_fits('test6/clean3/tpint_6.image.pbcor',       'M100_sdint_box1.fits',   box=box, chans=chans)
+    qac_fits('test6/clean3/tpint_6.tweak.image.pbcor', 'M100_tweak_box1.fits',   box=box, chans=chans)
+    qac_fits('M100_Feather_CO.image.pbcor',            'M100_feather_box1.fits',          chans=chans)
 
 
 if QAC.select(2,select,"stats"):
