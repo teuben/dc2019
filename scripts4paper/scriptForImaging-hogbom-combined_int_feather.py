@@ -185,12 +185,17 @@ if(mystep in thesteps):
   # Feather together the low*pb and hi images
 
   print('Feathering...')
-  feather(imagename='Feather.image',
+  feather(imagename='gmc_120L.Feather.image',
           highres=highres,
           lowres='lowres.multiplied')
 
+  os.system('rm -rf gmc_120L.Feather.image.pbcor')
+  immath(imagename=['gmc_120L.Feather.image',
+                  'gmc_120L.alma.all_int-mfs.I.manual-weighted.pb'],
+       expr='IM0/IM1',
+       outfile='gmc_120L.Feather.image.pbcor')
 
-  
+   
 
 # Export images to FITS format
 mystep = 3
