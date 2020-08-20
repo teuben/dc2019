@@ -92,7 +92,7 @@ if(mystep in thesteps):
 ## In interactive GUI, use:
 ## maxcycleniter (Components per major cycle) = 100 (later ~10000)
 ## iterations left = 1000000 (a large number)
-## first cyclethreshold was ~1.2Jy.
+## first cyclethreshold was ~1.9Jy.
 ## Lower the cycle threshold about 30-50% each time.
 ## End when cyclethreshold=threshold.
   
