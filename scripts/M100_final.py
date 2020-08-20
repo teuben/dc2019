@@ -122,12 +122,15 @@ if QAC.select(1,select,"Flux comparisons flum-cmp*png"):
         plot2a([f11,f10], 'Flux comparison M100 ALMA/BIMA','flux-cmp6.png', v=[v11,v10], label=label)
 
     # write out the 394 x 432 x 68 cubes for comparison
-    qac_fits('test6/M100_TP_CO_cube.bl.smo',           'M100_TP_box1.fits',      box=box, chans=chans)
-    qac_fits('M100sdint_12.joint.cube.image',          'M100_sdint_box1.fits',   box=box, chans=chans)
-    qac_fits('test6/clean3/int_3.image.pbcor',         'M100_int_box1.fits',     box=box, chans=chans)
-    qac_fits('test6/clean3/tpint_6.image.pbcor',       'M100_tpint_box1.fits',   box=box, chans=chans)
-    qac_fits('test6/clean3/tpint_6.tweak.image.pbcor', 'M100_tweak_box1.fits',   box=box, chans=chans)
-    qac_fits('M100_Feather_CO.image.pbcor',            'M100_feather_box1.fits',          chans=chans)
+    if True:
+        qac_project('export')
+        channel=45
+        qac_fits('test6/M100_TP_CO_cube.bl.smo',           'export/M100_TP_box1.fits',      box=box, chans=chans, stats=True, channel=channel)
+        qac_fits('M100sdint_12.joint.cube.image',          'export/M100_sdint_box1.fits',   box=box, chans=chans, stats=True, channel=channel)
+        qac_fits('test6/clean3/int_3.image.pbcor',         'export/M100_int_box1.fits',     box=box, chans=chans, stats=True, channel=channel)
+        qac_fits('test6/clean3/tpint_6.image.pbcor',       'export/M100_tpint_box1.fits',   box=box, chans=chans, stats=True, channel=channel)
+        qac_fits('test6/clean3/tpint_6.tweak.image.pbcor', 'export/M100_tweak_box1.fits',   box=box, chans=chans, stats=True, channel=channel)
+        qac_fits('M100_Feather_CO.image.pbcor',            'export/M100_feather_box1.fits',          chans=chans, stats=True, channel=channel)
 
 
 if QAC.select(2,select,"stats"):
