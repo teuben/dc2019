@@ -79,19 +79,19 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
 
 *Minutes/notes [here](https://docs.google.com/document/d/1E_PnQzwuBf5Fm1itBsQCfwFL0j3hWvCP9NvD3hRsvD4/edit?usp=sharing)*
 
-* 24/08 Tuesday 11-12 UT: 
+* 25/08 Tuesday 11-12 UT: 
     * Presentations from each methods group.  Provide script and README.
     * 12 minutes each: TP2VIS; sdintimaging; feather; hybrid; faridani
-* 24/08 Tuesday 12:10-13 UT: 
+* 25/08 Tuesday 12:10-13 UT: 
     * Discussion
     * Coordinate who will run each method as a second test
-* 25/08 Wednesday 11-12 UT: 
+* 26/08 Wednesday 11-12 UT: 
     * Report about each "second test"
-* 25/08 Wednesday 12:10-13 UT: 
+* 26/08 Wednesday 12:10-13 UT: 
     * Discuss factors (wtfactor; sdgain; sdfactor); and any other parameters
-* 26/08 Thursday 11-12 UT: 
+* 27/08 Thursday 11-12 UT: 
     * Assessment methods (Alvaro)
-* 26/08 Thursday 12:10-13 UT: 
+* 27/08 Thursday 12:10-13 UT: 
     * Next steps
 
 
