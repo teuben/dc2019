@@ -27,7 +27,7 @@ os.chdir(WorkingDir)
 ## a,b,c = aU.pickCellSize('gmc_120L.alma.cycle6.1.2018-10-03.ms', spw='0', imsize=True, cellstring=True)
 
 # Imaging interferometry-data only
-thesteps = [10]
+thesteps = [5]
 step_title = {0: 'Concat the MSs',
               1: 'Agg. bandwidth image config 6.4, 6.1, and ACA sim',
               1.1: 'Restart: Agg. bandwidth image config 6.4, 6.1, and ACA sim (Step 1)',
@@ -35,7 +35,7 @@ step_title = {0: 'Concat the MSs',
               3: 'Agg. bandwidth image using TP as startmodel',
               3.1: 'Restart: Agg. bandwidth image (Step 3)',
               4: 'Additional steps from Kauffman',
-              5: 'Feather image from step 3',
+              5: 'Feather image from step 3 or 4',
               10: 'Export images to FITS format'}
 try:
   print('List of steps to be executed ...', mysteps)
@@ -158,7 +158,7 @@ if(mystep in thesteps):
          )
  
 ##----------------------------------------------------------
-## (2) Hybrid imaging
+## (II) Hybrid imaging
 
 # Setup total power model
 mystep = 2
@@ -188,7 +188,7 @@ if(mystep in thesteps):
                    mode='put',
                    hdkey='BUNIT',
                    hdvalue=hdval)
-
+    ### MAY NEED TO REMOVE NEGATIVE PIXELS IN SD OBS
 
 # Image with TP as startmodel
 mystep = 3
@@ -273,63 +273,57 @@ mystep = 4
 if(mystep in thesteps):
   casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
   print('Step ', mystep, step_title[mystep])
+  
+  scaled_name = TP_image.split('/')[-1]+'.Jyperpix'
 
-'''
-# get the positive interferometer-only clean components
-os.system('rm -rf deconvolved-sdinput.intmodel')
-immath(outfile='deconvolved-sdinput.intmodel',
-   imagename=['deconvolved-sdinput.model',
-              'apex_trans_regrid_scaled_unmasked_noneg.image'],
-   mode='evalexpr',
-   expr='iif((IM0-IM1) >= 0.00, IM0-IM1, 0.0)')
+  print('Regridding lowres perpix image...')
+  os.system('rm -rf  '+scaled_name+'.regrid')
+  imregrid(imagename=scaled_name,
+           template=highres,
+           axes=[0,1],
+           output=scaled_name+'.regrid')
+
+  # get the positive interferometer-only clean components
+  os.system('rm -rf gmc_120L.hybrid.intmodel')
+  immath(outfile='gmc_120L.hybrid.intmodel',
+     imagename=['gmc_120L.hybrid.model',scaled_name+'.regrid'],
+     mode='evalexpr',
+     expr='iif((IM0-IM1) >= 0.00, IM0-IM1, 0.0)')
 
 
-# remove those components if they are at the map edge
-os.system('rm -rf deconvolved-sdinput-masked.intmodel')
-immath(outfile='deconvolved-sdinput-masked.intmodel',
-   imagename=['deconvolved-sdinput.intmodel',
-              'deconvolved-sdinput.flux.pbcoverage'],
-   mode='evalexpr',
-   expr='iif((IM1) >= 0.25, IM0, 0.0)')
+  # remove those components if they are at the map edge
+  os.system('rm -rf gmc_120L.hybrid.intmodel.masked')
+  immath(outfile='gmc_120L.hybrid.intmodel.masked',
+     imagename=['gmc_120L.hybrid.intmodel', 'gmc_120L.hybrid.pb'],
+     mode='evalexpr',
+     expr='iif((IM1) >= 0.25, IM0, 0.0)')
 
-imhead('deconvolved-sdinput-masked.intmodel',
+  imhead('gmc_120L.hybrid.intmodel.masked',
        mode='put',
        hdkey='bunit', hdvalue='Jy/pixel')
 
 
-# smooth the interferometer-only components to the synthesized beam
-SynthBeamMaj = imhead('deconvolved-sdinput.image', mode='get', hdkey='bmaj')['value']
-SynthBeamMin = imhead('deconvolved-sdinput.image', mode='get', hdkey='bmin')['value']
-SynthBeamPA = imhead('deconvolved-sdinput.image', mode='get', hdkey='bpa')['value']
+  # smooth the interferometer-only components to the synthesized beam
+  SynthBeamMaj = imhead('gmc_120L.hybrid.image', mode='get', hdkey='bmaj')['value']
+  SynthBeamMin = imhead('gmc_120L.hybrid.image', mode='get', hdkey='bmin')['value'] 
+  SynthBeamPA = imhead('gmc_120L.hybrid.image', mode='get', hdkey='bpa')['value']
 
-os.system('rm -rf deconvolved-sdinput.intimage')
-imsmooth(imagename='deconvolved-sdinput-masked.intmodel',
-         outfile='deconvolved-sdinput.intimage',
+  os.system('rm -rf gmc_120L.hybrid.intimage')
+  imsmooth(imagename='gmc_120L.hybrid.intmodel.masked',
+         outfile='gmc_120L.hybrid.intimage',
          kernel='gauss',
          major=str(SynthBeamMaj)+'arcsec',
          minor=str(SynthBeamMin)+'arcsec',
          pa=str(SynthBeamPA)+'deg')
 
+  # May need a step to produce a non-negative single-dish map in Jy/beam
 
-# produce a non-negative single-dish map in Jy/beam
-os.system('rm -rf apex_trans_regrid_scaled_unmasked_noneg_perbeam.image')
-immath(outfile='apex_trans_regrid_scaled_unmasked_noneg_perbeam.image',
-   imagename=['apex_trans_regrid_scaled_unmasked_noneg.image'],
-   mode='evalexpr', expr='IM0/'+str(FactorJyperPixel))
 
-imhead('apex_trans_regrid_scaled_unmasked_noneg_perbeam.image',
-       mode='put',
-       hdkey='bunit', hdvalue='Jy/beam')
-imhead('apex_trans_regrid_scaled_unmasked_noneg_perbeam.image',
-       mode='put',
-       hdkey='bmaj', hdvalue=str(SingleDishResolutionArcsec)+'arcsec')
-imhead('apex_trans_regrid_scaled_unmasked_noneg_perbeam.image',
-       mode='put',
-       hdkey='bmin', hdvalue=str(SingleDishResolutionArcsec)+'arcsec')
-imhead('apex_trans_regrid_scaled_unmasked_noneg_perbeam.image',
-       mode='put',
-       hdkey='bpa', hdvalue='0deg')
-'''
+
+##----------------------------------------------------------
+## (III) Feather 
+## Could ultimately call directly to feather script here.
+
 # Feather 
 mystep = 5
 if(mystep in thesteps):
@@ -342,7 +336,8 @@ if(mystep in thesteps):
   # Only user inputs required are the 
   # high res, low res, and pb name 
 
-  highres = 'gmc_120L.hybrid.image'
+  #highres = 'gmc_120L.hybrid.image'
+  highres = 'gmc_120L.hybrid.intimage'
   lowres = TP_image
   pb='gmc_120L.hybrid.pb'
 
@@ -419,7 +414,10 @@ if(mystep in thesteps):
   print('Feathering...')
   feather(imagename='gmc_120L.hybrid.Feather.image',
           highres=highres,
-          lowres='lowres.multiplied')
+          lowres='lowres.multiplied',
+          lowpassfiltersd = True )
+  ## --> should we use lowpassfiltersd=True here? As in Kauffman method.
+  ## outcomes seem identical...
 
   os.system('rm -rf gmc_120L.hybrid.Feather.image.pbcor')
   immath(imagename=['gmc_120L.hybrid.Feather.image',
@@ -428,12 +426,66 @@ if(mystep in thesteps):
        outfile='gmc_120L.hybrid.Feather.image.pbcor')
 
 
+##----------------------------------------------------------
+## (IV) Second and final TCLEAN with updated model
+
+###### HERE!!!
+
+# Image with updated startmodel
+mystep = 6
+if (mystep in thesteps):
+  casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+  print('Step ', mystep, step_title[mystep])
+
+  thevis = [Int_vis] # --> Interferometer visibility file
+  mymodel = 'gmc_120L.hybrid.Feather.image'
+ 
+  os.system('rm -rf gmc_120L.hybrid*')
+  tclean(vis = thevis,
+         imagename = 'gmc_120L.hybrid',
+         startmodel = mymodel,
+         field = '0~68',
+         intent = 'OBSERVE_TARGET#ON_SOURCE',
+         phasecenter = 'J2000 12:00:00 -35.00.00.0000',
+         stokes = 'I',
+         spw = '0',
+         outframe = 'LSRK',
+         specmode = 'mfs',
+         nterms = 1,
+         imsize = [1120, 1120],
+         cell = '0.21arcsec',
+         deconvolver = 'hogbom',
+         niter = 100,
+         weighting = 'briggs',
+         robust = 0.5,
+         mask = TP_mask,
+         gridder = 'mosaic',
+         pbcor = True,
+         threshold = '0.021Jy',
+         interactive = True
+         )   
+
+## Emulate  interactive clean above.  Begin with threshold='0.021Jy'.
+## In interactive GUI, use: 
+## maxcycleniter (Components per major cycle) = 10000 (later ~200000)
+## iterations left = 1000000 (a large number)
+## Max value in dirty image is ~3.8 Jy.
+## First cyclethreshold was 0.57Jy in GUI.  Set this to 1.9Jy, or 50% of peakres.
+## Lower the cycle threshold about 30-50% each time.
+## Used: 1.9Jy; 1.3Jy; 1.0Jy; 0.5Jy; 0.3Jy; 0.2 Jy; 0.12Jy; 0.08Jy; 0.04Jy; 0.03Jy; 0.021Jy
+## Going deeper: 0.011Jy, 0.008Jy ,0.005Jy. Model flux no longer increasing for cyclethreshold<0.04Jy.
+## Adjust threshold to be 11mJy, which is <peak of dirty image>/1000.*3 (assuming dyn. range of 1000)
+## End when cyclethreshol=threshold.
+
+
 
 #################
 #################
   
+##----------------------------------------------------------
+## (V) Export images to FITS format
 
-# Export images to FITS format
+
 mystep = 10
 if(mystep in thesteps):
   casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
