@@ -82,7 +82,7 @@ if(mystep in thesteps):
          niter = 100,
          weighting = 'briggs',
          robust = 0.5,
-         mask = '',
+         mask = 'sdintimaging_gmc_120L.alma.all-sdgain5.joint.multiterm.mask',
          gridder = 'mosaic',
          pbcor = True,
          threshold = '0.021Jy',
@@ -102,7 +102,7 @@ if(mystep in thesteps):
   casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
   print('Step ', mystep, step_title[mystep])
 
-
+  # Clean this section later
   #####################################
   #             USER INPUTS           #
   #####################################
@@ -140,6 +140,8 @@ if(mystep in thesteps):
        im_axes[f]=axes
        print(' ')
 
+# Check if axes order is the same, if not run imtrans to fix, could be improved
+
   order=[]           
 
   for i in range(4):
@@ -158,7 +160,7 @@ if(mystep in thesteps):
   order = ''.join(order)
   print('order is '+order)
 
-  if order=='0,1,2,3':
+  if order=='0123':
        print('No reordering necessary')
   else:
       imtrans(imagename=lowres,outfile='lowres.ro',order=order)
@@ -170,7 +172,7 @@ if(mystep in thesteps):
   print('Regridding lowres image...')
   imregrid(imagename=lowres,
            template=highres,
-           axes=[0,1,2],
+           axes=[0,1,2,3],
            output='lowres.regrid')
 
   # Multiply the lowres image with the highres primary beam response
@@ -195,7 +197,7 @@ if(mystep in thesteps):
        expr='IM0/IM1',
        outfile='gmc_120L.Feather.image.pbcor')
 
-   
+  
 
 # Export images to FITS format
 mystep = 3
@@ -212,7 +214,7 @@ if(mystep in thesteps):
                )
 
     exportfits(imagename = myimagebase+'.image',
-               fitsimage = myimagebase+'.fits',
+               fitsimage = myimagebase+'.image.fits',
                overwrite = True
                )
  
