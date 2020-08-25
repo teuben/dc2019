@@ -83,7 +83,7 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
     * Presentations from each methods group.  Provide script and README.
     * 12 minutes each: TP2VIS; sdintimaging; feather; hybrid; faridani
 * 25/08 Tuesday 12:10-13 UT: 
-    * Discussion
+    * Assessment methods (Alvaro)
     * Coordinate who will run each method as a second test
 * 26/08 Wednesday 11-12 UT: 
     * Report about each "second test"
