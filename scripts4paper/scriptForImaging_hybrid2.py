@@ -27,7 +27,7 @@ os.chdir(WorkingDir)
 ## a,b,c = aU.pickCellSize('gmc_120L.alma.cycle6.1.2018-10-03.ms', spw='0', imsize=True, cellstring=True)
 
 # Imaging interferometry-data only
-thesteps = [5]
+thesteps = [6]
 step_title = {0: 'Concat the MSs',
               1: 'Agg. bandwidth image config 6.4, 6.1, and ACA sim',
               1.1: 'Restart: Agg. bandwidth image config 6.4, 6.1, and ACA sim (Step 1)',
@@ -36,6 +36,7 @@ step_title = {0: 'Concat the MSs',
               3.1: 'Restart: Agg. bandwidth image (Step 3)',
               4: 'Additional steps from Kauffman',
               5: 'Feather image from step 3 or 4',
+              6: 'Second and final TCLEAN (from Kauffman)',
               10: 'Export images to FITS format'}
 try:
   print('List of steps to be executed ...', mysteps)
@@ -318,6 +319,8 @@ if(mystep in thesteps):
 
   # May need a step to produce a non-negative single-dish map in Jy/beam
 
+  # Next, feather!
+
 
 
 ##----------------------------------------------------------
@@ -336,11 +339,13 @@ if(mystep in thesteps):
   # Only user inputs required are the 
   # high res, low res, and pb name 
 
-  #highres = 'gmc_120L.hybrid.image'
-  highres = 'gmc_120L.hybrid.intimage'
+  #highres = 'gmc_120L.hybrid.image' #--> Simple Hybrid
+  highres = 'gmc_120L.hybrid.intimage' #--> Kaufman Hybrid
+  #highres = 'gmc_120L.alma.all_int-mfs.I.manual-weighted.image' #--> Int only
   lowres = TP_image
   pb='gmc_120L.hybrid.pb'
-
+  featherim = 'gmc_120L.hybrid2.Feather'
+  #featherim = 'gmc_120L.Feather'
   #####################################
   #            PROCESS DATA           #
   #####################################
@@ -412,18 +417,18 @@ if(mystep in thesteps):
   # Feather together the low*pb and hi images
 
   print('Feathering...')
-  feather(imagename='gmc_120L.hybrid.Feather.image',
+  feather(imagename=featherim+'.image',
           highres=highres,
           lowres='lowres.multiplied',
           lowpassfiltersd = True )
   ## --> should we use lowpassfiltersd=True here? As in Kauffman method.
   ## outcomes seem identical...
 
-  os.system('rm -rf gmc_120L.hybrid.Feather.image.pbcor')
-  immath(imagename=['gmc_120L.hybrid.Feather.image',
+  os.system('rm -rf '+featherim+'.image.pbcor')
+  immath(imagename=[featherim+'.image',
                   'gmc_120L.alma.all_int-mfs.I.manual-weighted.pb'],
        expr='IM0/IM1',
-       outfile='gmc_120L.hybrid.Feather.image.pbcor')
+       outfile=featherim+'.image.pbcor')
 
 
 ##----------------------------------------------------------
@@ -438,11 +443,11 @@ if (mystep in thesteps):
   print('Step ', mystep, step_title[mystep])
 
   thevis = [Int_vis] # --> Interferometer visibility file
-  mymodel = 'gmc_120L.hybrid.Feather.image'
+  mymodel = 'gmc_120L.hybrid2.Feather.image'
  
-  os.system('rm -rf gmc_120L.hybrid*')
+  os.system('rm -rf gmc_120L.hybrid3*')
   tclean(vis = thevis,
-         imagename = 'gmc_120L.hybrid',
+         imagename = 'gmc_120L.hybrid3',
          startmodel = mymodel,
          field = '0~68',
          intent = 'OBSERVE_TARGET#ON_SOURCE',
@@ -530,6 +535,14 @@ if(mystep in thesteps):
                )
  
   myimages = [scaled_name]
+  
+  for myimagebase in myimages:
+     exportfits(imagename = myimagebase,
+               fitsimage = myimagebase+'.fits',
+               overwrite = True
+               )
+
+  myimages = ['gmc_120L.hybrid2.Feather.image','gmc_120L.hybrid2.Feather.image.pbcor']
   
   for myimagebase in myimages:
      exportfits(imagename = myimagebase,
