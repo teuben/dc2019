@@ -1,11 +1,11 @@
 # Script to plot the power spectra of multiple user provided general 2D FITS files
 #
-# authors: Nickolas Pingel Nickolas.Pingel@anu.edu.au"
+# authors: Nickolas Pingel Nickolas.Pingel@anu.edu.au
 #          Dirk Petry dpetry@eso.org
 #
 # 
 #  For CASA 6.1.0, the following packages need to be pip installed:
-#   turbustat
+#   astropy
 #   sklearn
 #   statsmodels
 #   radio_beam
@@ -183,11 +183,12 @@ def genmultisps(fitsimages, save=False):
             noBeamInfo = True
             print('Missing beam information in header, we will apply no spatial frequency cut-off')
         try:
-	    fluxUnits = hdu[0].header['BUNIT']
+            fluxUnits = hdu[0].header['BUNIT']
         except (KeyError):
             print('No flux units... assuming Jy/pixel')
             fluxUnits = 'Jy/pixel'
-	if fluxUnits == 'Jy/beam':
+
+        if fluxUnits == 'Jy/beam':
             print('pixSize bmaj bmin ', pixSize, bmaj, bmin)
 
             ## convert image to Jy/pixel 
