@@ -84,20 +84,20 @@ We will dedicate two ''work weeks'' on July 29-31; and again August 24-28.  In b
     * 12 minutes each: 
       * [TP2VIS (Peter)](https://drive.google.com/file/d/147JQbm9DbN1lcZidh_D3F-QqJj-EuukZ/view?usp=sharing)
       * sdintimaging
-      * feather
+      * [feather (Melissa)](https://drive.google.com/file/d/1chKbi9Fn4ufJnKqJjs1zx1tYTzSCDtSl/view?usp=sharing)
       * [hybrid (Adele)](https://drive.google.com/file/d/1KJedOmZXe8UY86FKg85fBI4ds8P2IpTS/view?usp=sharing)
-      * faridani
+      * [faridani (Nick)](https://drive.google.com/file/d/1PmQnt0wrVKqfOpjUiwSDX5-Ofr9ftxUz/view?usp=sharing)
 * 25/08 Tuesday 12:10-13 UT: 
     * Assessment methods (Alvaro)
     * Coordinate who will run each method as a second test
 * 26/08 Wednesday 11-12 UT: 
-    * Report about each "second test"
-* 26/08 Wednesday 12:10-13 UT: 
     * Discuss factors (wtfactor; sdgain; sdfactor); and any other parameters
+* 26/08 Wednesday 12:10-13 UT: 
+    * Report about each "second test"
 * 27/08 Thursday 11-12 UT: 
     * Assessment methods (Alvaro)
 * 27/08 Thursday 12:10-13 UT: 
-    * Next steps
+    * Planning next steps
 
 
 ### Preferred communication:
