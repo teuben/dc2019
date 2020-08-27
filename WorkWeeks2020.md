@@ -13,7 +13,7 @@ Specific goals are (to be discussed with team):
 * Share data/scripts, and test methods, **July 31-August 24**
 * Develop publicly sharable code, **before August 24**
 * Final hack-a-thon, **August 24-28**
-* Robust manuscript draft, **end of August**
+* Robust manuscript draft, **end of Oct??**
 
 ## FORMAT
 
