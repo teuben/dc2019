@@ -8,6 +8,9 @@
 # Brian Mason (NRAO)  
 #  v1 - Sept 2019
 #     - Jan 2020 - add peak finding, aperture flux comparison
+#  v2 - Aug 2020 - improve and fix aperture flux routine
+#               (circular regions; add an outer annulus option;
+#                fix bug causing the master image to be overwritten at times)
 #
 # NOTE: do not do this:
 # import combo_utils as cu
@@ -27,6 +30,7 @@ from feather_cli import feather_cli as feather
 # Python stuff-
 import analysisUtils as au
 import numpy as np
+import pylab as pl
 from scipy.ndimage.filters import maximum_filter
 
 def fix_image_calib(sd_image,sd_img_fixed,cal_factor=1.0,beam_factor=1.0):
@@ -45,6 +49,44 @@ def fix_image_calib(sd_image,sd_img_fixed,cal_factor=1.0,beam_factor=1.0):
     imhead(sd_img_fixed,mode='put',hdkey='BMAJ',hdvalue=bmaj_str)
 
     return sd_img_fixed
+
+def convert_angle(angle,to_unit='arcsec'):
+
+    from_unit = angle['unit']
+
+    # special case: no conversion
+    if (from_unit == to_unit):
+        new_angle = {'unit': angle['unit'], 'value': angle['value']}
+        return new_angle
+
+    # create variable from_angle which will be in radians
+    #  if we can (or raise exception)
+    if (from_unit == 'rad'):
+        from_angle = angle['value']
+    elif (from_unit == 'deg'):
+        from_angle = angle['value'] / np.degrees(1)
+    elif (from_unit == 'arcmin'):
+        from_angle = angle['value'] / (np.degrees(1)*60.0)
+    elif (from_unit == 'arcsec'):
+        from_angle = angle['value'] / (np.degrees(1) * 3600.0)
+    else:
+        print " *** ERROR: Unrecognized unit in convert_angle "+angle['unit']
+        raise Exception("Unknown unit.")
+    if (to_unit == 'rad'):
+        to_angle = from_angle
+    elif (to_unit == 'deg'):
+        to_angle = from_angle * np.degrees(1)
+    elif (to_unit == 'arcsec'):
+        to_angle = from_angle * np.degrees(1) * 3600.0
+    elif (to_unit == 'arcmin'): 
+        to_angle = from_angle * np.degrees(1) * 60.0
+    else:
+        print " *** ERROR: Unrecognized unit in convert_angle "+ to_unit
+        raise Exception("Unknown unit.")
+
+    new_angle = {'unit': to_unit, 'value': to_angle}
+        
+    return new_angle
 
 def feather_one(sd_map,int_map,int_pb,tag=''):
     """ 
@@ -358,11 +400,15 @@ def jyBm2jyPix(in_image,out_image):
 
     return 0
 
-
 def sum_region_fluxes(imvals,peak_indices,radius=4.0):
+    """
+    sum pixels in regions around peak_indices
+    regions are specified with a radius in pixels
+    """
     fluxes = np.zeros(peak_indices.shape[0])
     x_flux = np.zeros(peak_indices.shape[0])
     y_flux = np.zeros(peak_indices.shape[0])
+    pixcount = np.zeros(peak_indices.shape[0])
     # radius to extract in pixels - 
     rr = radius
     for k in range(fluxes.size):
@@ -380,19 +426,29 @@ def sum_region_fluxes(imvals,peak_indices,radius=4.0):
             j_low = 0
         if j_high >= imvals.shape[1]:
             j_high = imvals.shape[1]-1
-        subimage = imvals[i_low:i_high,j_low:j_high]
+        # bsm aug2020 - important bug fix ... declare this->
+        subimage = np.array(imvals[i_low:i_high,j_low:j_high])
+        ii = np.arange(0,i_high-i_low)
+        jj = np.arange(0,j_high-j_low)
+        ii.size
+        jj.size
+        subimage.size
+        mask = ((ii[:,np.newaxis] - rr+1)**2 + (jj[np.newaxis,:] - rr+1)**2) > rr**2
+        mask.size
+        subimage[mask] = 0.0
         fluxes[k] = subimage.sum()
+        pixcount[k] = np.sum(mask)
         #print k,fluxes[k]
     
-    return fluxes,x_flux,y_flux
+    return fluxes,x_flux,y_flux,pixcount
 
-def compare_fluxes(img1="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.autoDev2.image",img2="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.skymodel.flat",mask1="",mask2="",search_size = 2.0, thresh = 4.5,search_img=1):
+def compare_fluxes(img1="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.autoDev2.image",img2="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.skymodel.flat",mask1="",mask2="",search_size = 2.0, thresh = 4.5, search_img=1,maxrad=50.0,minrad=1.0,radstep=1.0,doAnnuli=False,flipMask=False,dumbTest=False):
     """
     img1,img2: casa images to compare
     search_size: width of search region in beams (beam is takem from chosen search image)
     thresh: threshold for peak detection (robust sigma above median, default = 4.5)
-    search_img: which image (1 or 2) to search for peaks    
-    rstart, rstop, rdelta: start, stop, and delta radii for flux sums (in beams, again taken from search image)
+    search_img: which image (1 or 2) to search for peaks (must have a beam)
+    minrad,maxrad,radstep: start, stop, and delta radii for flux sums (in beams, again taken from search image)
     
     images are presumed to be on the same grid to start with (shape, pixel size) -- use imgregrid task
     and presumed to be in Jy/pixel (or otherwise same brightness unit per pixel) -- use combut.jyBm2jyPix()
@@ -404,7 +460,7 @@ def compare_fluxes(img1="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.autoDev2.imag
 
     """
 
-    print "THRESH ", thresh
+    #print "THRESH ", thresh
     if (search_img == 1):
         main_img = img1
         aux_img = img2
@@ -429,11 +485,19 @@ def compare_fluxes(img1="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.autoDev2.imag
     ia.close()
     # get beam info
     hdr = imhead(imagename=main_img,mode='summary')
+    cd1 = imhead(imagename=main_img,mode='get',hdkey='cdelt1')
+    cd1 = convert_angle(cd1,'arcsec')
+    cd2 = imhead(imagename=main_img,mode='get',hdkey='cdelt2')
+    cd2 = convert_angle(cd2,'arcsec')
+    mean_cell = (np.abs(cd1['value']*cd2['value']))**0.5
     bmaj_str = str(hdr['restoringbeam']['major']['value'] )+hdr['restoringbeam']['major']['unit']
     bmin_str = str(hdr['restoringbeam']['minor']['value'] )+hdr['restoringbeam']['minor']['unit']
     bpa_str =  str(hdr['restoringbeam']['positionangle']['value'])+hdr['restoringbeam']['positionangle']['unit']
-    beam_fwhm = ( hdr['restoringbeam']['major']['value'] * hdr['restoringbeam']['minor']['value'] )**0.5
-    print beam_fwhm
+    bmaj =  convert_angle(hdr['restoringbeam']['major'],'arcsec')
+    bmin =  convert_angle(hdr['restoringbeam']['minor'],'arcsec')
+    beam_fwhm = ( bmaj['value'] * bmin['value'] )**0.5
+    print "beam: "+ str(beam_fwhm) + " " + bmaj['unit']
+    print "mean pix: "+ str(mean_cell) + " " + cd1['unit']
 
     # secondary image characteristics
     ia.open(aux_img)
@@ -457,34 +521,51 @@ def compare_fluxes(img1="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.autoDev2.imag
     # create joint mask and zero out fluxes in either
     #  that are not in the joint mask
     totmask = immask & auxmask
+    if flipMask:
+        totmask = ~totmask
     imvals[~totmask] = 0.0
     auxvals[~totmask]=0.0
 
-    # set this correctly - 
-    pix_search_size = search_size * 8.0
+    if dumbTest:
+        return imvals, auxvals, immask, auxmask
+
+    # size of peak search region in pixels - 
+    pix_search_size = search_size * (beam_fwhm / mean_cell)
+    print "PIX SEARCH SIZE"
+    print pix_search_size
     peak_indices = find_peaks(inimg=main_img,search_size = pix_search_size, thresh = thresh)    
-    # hard wire radii - geez dude! ---
-    radii = np.arange(500)*2.0 + 2.0
+    print "PIX INDICES"
+    print peak_indices
+    # radii in pixels
+    radii = np.arange(minrad,maxrad,radstep)*beam_fwhm / mean_cell
     flux_vs_rad = np.array([])
     rms_vs_rad = np.array([])
     for i in radii:
         # these return an array of fluxes of individual regions
-        main_flux,xx,yy = sum_region_fluxes(imvals,peak_indices,radius=i)
-        aux_flux, dumx,dumy = sum_region_fluxes(auxvals,peak_indices,radius=i)
+        mainInner,xx,yy,main_inner_count = sum_region_fluxes(imvals,peak_indices,radius=i)
+        auxInner, dumx,dumy,aux_inner_count = sum_region_fluxes(auxvals,peak_indices,radius=i)
+        if (doAnnuli):
+            mainOuter,xx,yy,main_outer_count = sum_region_fluxes(imvals,peak_indices,radius= i+np.round(beam_fwhm/mean_cell))
+            auxOuter, dumx,dumy,aux_outer_count = sum_region_fluxes(auxvals,peak_indices,radius=i+np.round(beam_fwhm/mean_cell))
+            main_flux = 2.0* mainInner - mainOuter * main_inner_count / (2*main_inner_count - main_outer_count)
+            aux_flux = 2.0* auxInner - auxOuter * aux_inner_count / (2*aux_inner_count - aux_outer_count)
+        else:
+            main_flux = mainInner
+            aux_flux = auxInner
         # take the median and MAD of these
         flux_vs_rad = np.append(flux_vs_rad,np.median(main_flux/aux_flux))
         rms_vs_rad = np.append(rms_vs_rad,au.MAD(main_flux/aux_flux))
 
-    return radii,flux_vs_rad,rms_vs_rad
+    return radii * mean_cell,flux_vs_rad,rms_vs_rad,xx,yy,imvals
 
 def find_peaks(inimg="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.skymodel.flat",search_size = 55, thresh = 4.5):
-"""
+  """
 
    Find peaks in a CASA image. respects image mask. Heuristic: do a local max filter over a
    neighborhood of size search_size, and select those which are > 4.5 sigma (with sigma estimated
    as MAD of the image as a whole)
 
-"""
+  """
   print "THRESH ", thresh
   ia=iatool()
   ia.open(inimg)
@@ -505,7 +586,7 @@ def find_peaks(inimg="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.skymodel.flat",s
   #  a gaussian is 1.0
   pix_mad = au.MAD(imvals2)
 
-  neighborhood = np.ones([search_size,search_size],dtype=np.bool)
+  neighborhood = np.ones([np.round(search_size),np.round(search_size)],dtype=np.bool)
   print neighborhood.shape
 
   print "MAX Filter"
@@ -524,6 +605,105 @@ def find_peaks(inimg="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.skymodel.flat",s
 
   return peak_indices
 
+
+def random_line(npoints = 100.0, slopeVarFrac = 0.5):
+    """
+    return a line with a random mean and slope, each normally distributed.
+    the mean square of the lines is one ("unit variance" if you fix the mean at zero)
+    variance by default is equally apportioned between the mean and the slope terms;
+    tweak slopeVarFrac to change this. (the variance fraction actually goes as the square of that
+    variable sorry)
+    the mean of the lines is zero.
+    """
+
+    ivals = np.arange(npoints)
+    this_traj = ( np.random.normal()*np.ones(npoints) + (2.0*slopeVarFrac) * 3**0.5 * np.random.normal() * (ivals - 0.5*(npoints-1.0)) / (0.5*(npoints-1.0)) ) / (1.0 + 4.0*slopeVarFrac**2)**0.5
+    return this_traj
+
+def corrupt_sd_ptg(inms,outms,rmsx=1.0,rmsy=1.0):
+    """
+    Randomly corrupt pointing data in MS
+     corruptions are random normal in each dimension and
+     uncorrelated between pointing locations. RMS is in arcseconds.
+
+    This works on simulated total power data. not tested on other data.
+    """
+
+    tb.open(inms,nomodify=True)
+    tb.copy(outms)
+    tb.close()
+    tb.done()
+
+    tb.open(outms+'/POINTING',nomodify=False)
+    direction = tb.getcol("DIRECTION")
+    d0=direction[0,0,:]
+    d1=direction[1,0,:]
+    dd0 = np.random.normal(size=d0.shape)/206264.8*rmsx
+    dd1 = np.random.normal(size=d0.shape)/206264.8*rmsy
+    direction[0,0,:] = d0 + dd0
+    direction[1,0,:] = d1 + dd1
+    tb.putcol("DIRECTION",direction)
+    tb.close()
+    tb.done()
+
+    return 0
+
+def plotOneScan(myms,rms=5.6):
+    """
+    Select scans one by one and corrupt their pointing.
+
+    works for simulated TP data. not tested for other types of data.
+    
+    RMS is in arcseconds
+    """
+    tb.open(myms+'/POINTING')
+    direction = tb.getcol("DIRECTION")
+    d0=direction[0,0,:] 
+    d1=direction[1,0,:]
+    dd0 = d0 - np.roll(d0,1)
+    dd1 = d1 - np.roll(d1,1)
+    tb.close()
+    tb.done()
+    xstep = np.abs(np.median(d0-np.roll(d0,1)))
+    ystep = np.abs(np.median(d1-np.roll(d1,1)))
+    if xstep > ystep:
+        scans_in_x = True
+        scan_bound_ind = np.argwhere(np.abs(dd0) > 4.0 * np.median(np.abs(dd0)))
+    else:
+        scans_in_x = False
+        scan_bound_ind = np.argwhere(np.abs(dd1) > 4.0 * np.median(np.abs(dd1)))    
+    # we're missing the end element -- 
+    highind = d0.size-1
+    if scan_bound_ind[-1] != highind:
+        scan_bound_ind = np.append(scan_bound_ind,d0.size-1)
+    if scan_bound_ind[0] != 0:
+        scan_bound_ind = np.append([0],scan_bound_ind)
+    for i in range(scan_bound_ind.size - 1):
+        gi = np.arange(scan_bound_ind[i+1]-scan_bound_ind[i])+scan_bound_ind[i]
+        npts = gi.size
+        delta0 = random_line(npts)*rms/206264.8
+        delta1 = random_line(npts)*rms/206265.8
+        pl.plot(d0[gi]+delta0,d1[gi]+delta1)
+
+    #pl.plot(d0*57.2958,d1*57.2958,'.')
+
+    return d0,d1
+
+
+def plotPointing(myms):
+    """
+    Plot pointing locations in MS
+     plot is in degrees. return values are radians like the table.
+    """
+    tb.open(myms+'/POINTING')
+    direction = tb.getcol("DIRECTION")
+    tb.close()
+    d0=direction[0,0,:] 
+    d1=direction[1,0,:]
+    pl.plot(d0*57.2958,d1*57.2958,'.')
+    tb.close()
+    tb.done()
+    return d0,d1
 
 # run as
 #  casa -c comb_utils.py 
