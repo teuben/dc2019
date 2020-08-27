@@ -76,3 +76,13 @@ carma-miriad:
 SoFIA:
 	git clone https://github.com/SoFiA-Admin/SoFiA
 	(cd SoFIA; python setup.py build --no-gui=True )
+
+# Arras et al. bayesian code   https://arxiv.org/abs/2008.11435
+resolve:
+	git clone https://gitlab.mpcdf.mpg.de/ift/resolve
+	git clone https://gitlab.mpcdf.mpg.de/mtr/ducc
+	pip3 install git+https://gitlab.mpcdf.mpg.de/ift/nifty.git@NIFTy_7
+	pip3 install h5py
+	pip3 install python-casacore
+	(cd ducc ; pip install -e . )
+	(cd resolve ; pip install -e . )
