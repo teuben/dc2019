@@ -1,11 +1,21 @@
-There are many ways to collaborate using git or in our case github
-(skip to the last one, #3, if you don't care about the others)
+There are many different ways to collaborate using git or in our case
+github, for dc2019 we use shared access to a single repo. This is
+somewhat dangerous, but the fastest way to do it. If you have heard of
+forking, branching and pull requests from a branch, I do mention it in
+#3 below, but we're not using it in dc2019.
 
-In the text below, "f1" refers to a file and "b1" refers to a branch and "u1" to a username
-For "edit" you will need to pick your favorite editor (vi, emacs, gedit, pico, ....)
+
+In the text below, "f1" refers to a file and "b1" refers to a branch
+and "u1" to a username For "edit" you will need to pick your favorite
+editor (vi, emacs, gedit, nano, pico, ....)
+
+I only cover the command line git method. There are wondeful integrated
+environments, but harder to explain perhaps.
 
 0) You will normally need a github.com account, so have this name ready.
+
    There will be a global ~/.gitconfig file that contains a few useful settings
+   used for all your git commands.
    If you don't have it, you can create a few settings via the command line, e.g.
 
    git config --global user.name "Peter Teuben"
@@ -14,20 +24,26 @@ For "edit" you will need to pick your favorite editor (vi, emacs, gedit, pico, .
    git config --global core.editor "nano"
 
    Over time you will learn to add useful aliases. You can find mine here:
-   https://github.com/teuben/teunix/blob/master/Env/dotgitconfig   
+   https://github.com/teuben/teunix/blob/master/Env/dotgitconfig
+
+1) One common git repo:
    
-1) direct 'git clone' the master and 'git push' back into it.
+   Direct 'git clone' the master and 'git push' back into it.
    This is dangerous, needs special permission from the owner, but
    this is what we use for dc2019.
 
 	git clone https://github.com/teuben/dc2019
 	cd dc2019
 	edit f1
+	git pull
+	git add f1
         git commit f1
         git push
 
    This is the typical workflow if you work on your own repo, or in a team
    with shared access.
+   The 'pull' and 'add' commands are kind of optional, but added for safety
+   here so you have less conflicts if others are adding to the repo.
 
 2) A variation on this theme is using a branch, so they could be more safely
    merged into the master. This will be a clean approach.
@@ -48,8 +64,14 @@ For "edit" you will need to pick your favorite editor (vi, emacs, gedit, pico, .
 	git merge b1               # merge in the b1 changes, watch for conflicts
 	git push                   # push this new master back to github
 
+   This is the preferred way when you make a lot of changes, while others
+   are editing the main branch. Of course merging could expose serious issues,
+   and human communication is needed to limit the damage.
 
-3) First in words: fork a master that's not yours in your own GITHUB workspace,
+3) This workflow we don't use in dc2019, so you can skip it. But some groups use
+   it, and might be useful for you to get an idea how it works.
+   
+   First in words: fork a master that's not yours in your own GITHUB workspace,
    then clone from that to your laptop, work on a branch, and do a pull
    request on GITHUB from that branch, viz.
    (below your name on GITHUB is "u1")
