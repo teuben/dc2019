@@ -4,19 +4,30 @@ There are many ways to collaborate using git or in our case github
 In the text below, "f1" refers to a file and "b1" refers to a branch and "u1" to a username
 For "edit" you will need to pick your favorite editor (vi, emacs, gedit, pico, ....)
 
-1) direct 'git clone' the master (currently peter's) and 'git push' back into
-   it.  This is dangerous, needs special permission from the owner anyways.
-   but it would be very simple (don't worry, if you're not peter,
-   he won't give you permission to push into his repo). This is how CVS
-   and SVN work, there is only one repo.
+0) You will normally need a github.com account, so have this name ready.
+   There will be a global ~/.gitconfig file that contains a few useful settings
+   If you don't have it, you can create a few settings via the command line, e.g.
 
-	git clone https://github.com/teuben/pyASC
-	cd pyASC
+   git config --global user.name "Peter Teuben"
+   git config --global user.email "teuben@gmail.com"
+   git config --global credential.helper "cache --timeout 100000"
+   git config --global core.editor "nano"
+
+   Over time you will learn to add useful aliases. You can find mine here:
+   https://github.com/teuben/teunix/blob/master/Env/dotgitconfig   
+   
+1) direct 'git clone' the master and 'git push' back into it.
+   This is dangerous, needs special permission from the owner, but
+   this is what we use for dc2019.
+
+	git clone https://github.com/teuben/dc2019
+	cd dc2019
 	edit f1
         git commit f1
         git push
 
-   This is the typical workflow if you work on your own repo.
+   This is the typical workflow if you work on your own repo, or in a team
+   with shared access.
 
 2) A variation on this theme is using a branch, so they could be more safely
    merged into the master. This will be a clean approach.
@@ -46,14 +57,14 @@ For "edit" you will need to pick your favorite editor (vi, emacs, gedit, pico, .
    	1) go on GITHUB and fork my repo to your space
 	   (see the fork button top right)
 	   
-	   https://github.com/teuben/pyASC
+	   https://github.com/teuben/dc2019
 
 
 	2) now on your laptop get your own version (as "u1") where you edit
 	   on the branch
 
-	   git clone https://github.com/u1/pyASC
-	   cd pyASC
+	   git clone https://github.com/u1/dc2019
+	   cd dc2019
 	   git branch b1
 	   git checkout b1 
 	   git branch               # shows you all branch names
@@ -73,7 +84,7 @@ For "edit" you will need to pick your favorite editor (vi, emacs, gedit, pico, .
 	   but you can call it anything, it's just a convenient label
 
 	   git remote                                                # see which ones you have
-	   git remote add upstream https://github.com/teuben/pyASC   # add this one-time
+	   git remote add upstream https://github.com/teuben/dc2019  # add this one-time
 
 	   git checkout master                                       # ensure on your master
 	   git fetch upstream                                        # fetch the upstream
@@ -93,11 +104,11 @@ For "edit" you will need to pick your favorite editor (vi, emacs, gedit, pico, .
 	    their (github) branch. It can also be used to shotcut between two developers
 	    co-developing before a merge on the upstream.
 
-	   git remote add benji https://github.com/BenjiCooper/pyASC # one-time only
-	   git checkout -b benji-dev                                 # on your local branch
-	   git pull benji BenjiC1                                    # pull in his branch
+	   git remote add benji https://github.com/BenjiCooper/dc2019 # one-time only
+	   git checkout -b benji-dev                                  # on your local branch
+	   git pull benji BenjiC1                                     # pull in his branch
 
-	   git remote add bsosis https://github.com/bsosis/pyASC 
+	   git remote add bsosis https://github.com/bsosis/dc2019
 	   git checkout -b baram-dev
 	   git pull bsosis BaramS1
 
