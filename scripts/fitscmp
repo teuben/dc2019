@@ -53,6 +53,8 @@ def qac_compare(image1, image2, channel=False, method='mse'):
         tb.open(image2)
         d2 = tb.getcol('map').squeeze()
         tb.close()
+        n1 = 0
+        n2 = 0
     else:
         # if fits file
         d1 = fits.open(image1)[0].data.squeeze()
@@ -65,6 +67,8 @@ def qac_compare(image1, image2, channel=False, method='mse'):
         d2 = ma.masked_where(m1,d2)
         d1 = ma.fix_invalid(d1,fill_value=0.0)
         d2 = ma.fix_invalid(d2,fill_value=0.0)
+        n1 = d1.count()
+        n2 = d2.count()
 
     if d1.shape != d2.shape:
         print('images do not have same shape')
@@ -113,7 +117,8 @@ def qac_compare(image1, image2, channel=False, method='mse'):
         cmp1d = skm.normalized_root_mse(d1,d2,normalization='mean')
         cmp3 = -1
         # cmp3 = skm.peak_signal_noise_ratio(d1,d2)
-        print('ALL:',cmp1,cmp1a,cmp1b,cmp1c,cmp1d," ",cmp2," ",cmp3)
+        print('#    MSE    MSE   EUCL MIN-MAX MEAN    SSIM     n/a')
+        print('ALL:',cmp1,cmp1a,cmp1b,cmp1c,cmp1d," ",cmp2," ",cmp3," ",n,n1,n2)
     else:
         print(cmp1)
 
