@@ -113,3 +113,7 @@ For detailed comparisons we use a smaller box, excluding fairly obvious edge eff
 the 1120 pixel we use a proposed
 
       box1  = '150,150,970,970'
+
+Maps that are compared on a pixel by pixel basis, also need to be smoothed to the same beam.
+The assessment methods team uses a 2" beam, and a certain physical area (maybe not quite box1).
+To be confirmed.
