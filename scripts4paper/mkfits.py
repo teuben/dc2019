@@ -2,7 +2,7 @@ import glob
 
 imname = 'pointSrcGauss' # 
 
-fluxPt = 1. 
+fluxPt = 1.0 
 fluxGauss = 100.
 gaussFWHM = '10arcsec'
 
