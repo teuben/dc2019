@@ -17,3 +17,16 @@ high.  There are several ways to try and combat this:
 4. use a more interactive clean
 
 Under full disclosure, I have not tried all but the first option
+
+## CASA bugs
+
+Yes, sometimes we do run into CASA bugs as well. This is 
+of course a moving target, and we'll try and list a few here.
+
+1. If you want to bring the TP and INT data into the same spectral
+frame, mstransform() is useful for the INT data, but it cannot reverse
+the spectral axis.  In particular the M100 example exposed this is
+others ways, for example a first or last channel that was blanked in one
+or more of the data to be combined, perhaps related to ephemeris and a
+correct RESTFREQ.  It was thus important not to use a commonbeam. 
+
