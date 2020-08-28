@@ -89,6 +89,22 @@ the first few are for testing, but sky4.py attempts to implement these, but fine
 the parameters (e.g. tclean etc.) is still ongoing.
 
 
+## Added Pointsources
+
+We added two pointsource in skymodel-a.fits at (2048,1048) [0 based pixels], which is in
+the south where the background is 0. The other source was placed on the "western" part of
+the circular "SNR" type structure in the east part of the image, at (802,2205), again 0
+based pixels.
+                                                         peak             peak
+ source 0-based pixel         RA              DEC        skymodel-a       skymodel-b
+      A     2048 1048    12 00 00.0000    -35 00 50.000  0.1              0.00765315
+      B      802 2205    12 00 05.0703    -34 59 52.140  0.130665         0.01
+
+When convolved to a 2" beam, the flux is about
+
+      A     ~1.6 Jy
+      B     +6 Jy      (which includes a background)
+
 ## Imaging
 
 The following imaging parameters should make it possible to compare maps pixel by pixel
