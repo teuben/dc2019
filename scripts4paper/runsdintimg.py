@@ -165,6 +165,7 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
                  specmode=specmode,
                  gridder=mygridder,
                  pblimit=0.2, 
+                 pbcor=True,
                  interpolation='linear',
                  wprojplanes=1,
                  deconvolver=mydeconvolver,
