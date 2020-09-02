@@ -7,14 +7,16 @@
 import os
 
 def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf='', 
-                sdgain=5, imsize=[], cell='', phasecenter='', dishdia=12.0):
-
+                sdgain=5, imsize=[], cell='', phasecenter='', dishdia=12.0,
+                start=0, width=1, nchan=-1, restfreq=None):
     """
     runsdintimg
     a wrapper around sdintimaging, D. Petry (ESO)
     
     vis - the MS containing the interferometric data
-    sdimage - the Single Dish image
+    sdimage - the Single Dish image/cube
+             Note that in case you are creating a cube, this image must be a cube
+             with the same spectral grid as the one you are trying to create.
     jointname - the imagename of the output images
     spw - the standard selection parameter spw of tclean
            default: '' i.e. all SPWs
@@ -41,6 +43,14 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
            default: '' - determine from the input MS with aU.pickCellSize
     dishdia - in metres, (optional) used if no sdpsf is provided
            default: 12.0
+    start - the standard tclean start parameter
+             default: 0
+    width - the standard tclean width parameter
+             default: 1
+    nchan - the standard tclean nchan parameter
+             default: -1
+    restfreq - the restfrequency to write to the image for velocity calculations
+             default: None, example: '115.271GHz'
 
     Example: runsdintimg('gmc_120L.alma.all_int-weighted.ms','gmc_120L.sd.image', 
                 'gmc_120L.joint-sdgain2.5', phasecenter='J2000 12:00:00 -35.00.00.0000', 
@@ -72,16 +82,18 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
         print('specmode \"'+specmode+'\" is not supported.')
         return False
 
+    myia = iatool()
+
     myhead = imhead(mysdimage)
     myaxes = list(myhead['axisnames'])
     numchan = myhead['shape'][myaxes.index('Frequency')] 
             
     print('Testing whether the sd image has per channel beams ...')
-    ia.open(mysdimage)
+    myia.open(mysdimage)
     try:
-        mybeam = ia.restoringbeam()
+        mybeam = myia.restoringbeam()
     except:
-        ia.close()
+        myia.close()
         casalog.post('ERROR: sdimage does not contain beam information.', 'SEVERE', 
                      origin='runsdintimg')
         return False
@@ -92,7 +104,7 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
         casalog.post("The sdimage has a per channel beam.", 'INFO', 
                      origin='runsdintimg')
 
-    ia.close()
+    myia.close()
 
 
     if not haspcb:
@@ -100,22 +112,22 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
         os.system('cp -R '+mysdimage+' copy_of_'+mysdimage)
         if numchan == 1:
             # image has only one channel; need workaround for per-channel-beam problem
-            ia.open('copy_of_'+mysdimage)
-            mycoords = ia.coordsys().torecord()
+            myia.open('copy_of_'+mysdimage)
+            mycoords = myia.coordsys().torecord()
             mycoords['spectral2']['wcs']['crval'] += mycoords['spectral2']['wcs']['cdelt']
-            ia.setcoordsys(mycoords)
-            ia.close()
-            tmpia = ia.imageconcat(outfile='mod_'+mysdimage, infiles=[mysdimage, 'copy_of_'+mysdimage], 
+            myia.setcoordsys(mycoords)
+            myia.close()
+            tmpia = myia.imageconcat(outfile='mod_'+mysdimage, infiles=[mysdimage, 'copy_of_'+mysdimage], 
                                    axis=3, overwrite=True)
             tmpia.close()
             mysdimage = 'mod_'+mysdimage
             numchan = 2
 
-        ia.open(mysdimage)
-        ia.setrestoringbeam(remove=True)
+        myia.open(mysdimage)
+        myia.setrestoringbeam(remove=True)
         for i in range(numchan):
-            ia.setrestoringbeam(beam=mybeam, log=True, channel=i, polarization=0) 
-        ia.close()
+            myia.setrestoringbeam(beam=mybeam, log=True, channel=i, polarization=0) 
+        myia.close()
 
         casalog.post('Needed to give the sdimage a per-channel beam. Modifed image is in '+mysdimage, 'WARN', 
                      origin='runsdintimg')
@@ -125,6 +137,7 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
         mydeconvolver = 'mtmfs'
     elif specmode == 'cube':
         mydeconvolver = 'hogbom'
+        numchan = nchan
 
     scales = [0]
 
@@ -147,6 +160,11 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
 
     mythresh='1mJy' # dummy value
     mask=''
+
+    if restfreq==None:
+        therf = []
+    else:
+        therf = [restfreq]
 
     os.system('rm -rf '+jointname+'.*')
 
@@ -174,14 +192,22 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
                  pbmask=0.2,
                  niter=10000000,
                  spw=spw,
+                 start=start,
+                 width=width,
                  nchan = numchan, 
                  field = field,
                  cycleniter=100,
                  threshold=mythresh,
+                 restfreq=therf,
                  perchanweightdensity=False,
                  interactive=True,
                  mask=mask)
 
-    return True
+    print('Exporting final pbcor image to FITS ...')
+    if mydeconvolver=='mtmfs':
+        exportfits(jointname+'.joint.multiterm.image.tt0.pbcor', jointname+'.joint.multiterm.image.tt0.pbcor.fits')
+    elif mydeconvolver=='hogbom':
+        exportfits(jointname+'.joint.cube.pbcor', jointname+'.joint.cube.pbcor.fits')
 
+    return True
 
