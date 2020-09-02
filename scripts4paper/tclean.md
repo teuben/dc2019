@@ -5,7 +5,7 @@ simulated mosaic map.
 
 ## Imaging script
 
-The script is found here: scriptForImaging_tcleanTest.py
+The script is found here: [scriptForImaging_tcleanTest.py](https://github.com/teuben/dc2019/blob/master/scripts4paper/scriptForImaging_tcleanTest.py)
 
 Three TCLEAN variations in the script are:
 
