@@ -57,21 +57,21 @@ Files:
 
 
 Files in testtcleanfits.tgz:
-inter_auto_thresh11mJy/gmc_120L.inter.auto.image.fits
-inter_auto_thresh11mJy/gmc_120L.inter.auto.pbcor.fits
-inter_auto_thresh11mJy/gmc_120L.inter.auto.pb.fits
-inter_auto_thresh38mJy/gmc_120L.inter.auto.image.fits
-inter_auto_thresh38mJy/gmc_120L.inter.auto.pbcor.fits
-inter_auto_thresh38mJy/gmc_120L.inter.auto.pb.fits
-inter_interact_thresh11mJy/gmc_120L.inter.interactive.image.fits
-inter_interact_thresh11mJy/gmc_120L.inter.interactive.pbcor.fits
-inter_interact_thresh11mJy/gmc_120L.inter.interactive.pb.fits
-inter_interact_thresh38mJy/gmc_120L.inter.interactive.image.fits
-inter_interact_thresh38mJy/gmc_120L.inter.interactive.pbcor.fits
-inter_interact_thresh38mJy/gmc_120L.inter.interactive.pb.fits
-inter_simple_thresh11mJy/gmc_120L.inter.simple.image.fits
-inter_simple_thresh11mJy/gmc_120L.inter.simple.pbcor.fits
-inter_simple_thresh11mJy/gmc_120L.inter.simple.pb.fits
-inter_simple_thresh38mJy/gmc_120L.inter.simple.image.fits
-inter_simple_thresh38mJy/gmc_120L.inter.simple.pbcor.fits
-inter_simple_thresh38mJy/gmc_120L.inter.simple.pb.fits
+- inter_auto_thresh11mJy/gmc_120L.inter.auto.image.fits
+- inter_auto_thresh11mJy/gmc_120L.inter.auto.pbcor.fits
+- inter_auto_thresh11mJy/gmc_120L.inter.auto.pb.fits
+- inter_auto_thresh38mJy/gmc_120L.inter.auto.image.fits
+- inter_auto_thresh38mJy/gmc_120L.inter.auto.pbcor.fits
+- inter_auto_thresh38mJy/gmc_120L.inter.auto.pb.fits
+- inter_interact_thresh11mJy/gmc_120L.inter.interactive.image.fits
+- inter_interact_thresh11mJy/gmc_120L.inter.interactive.pbcor.fits
+- inter_interact_thresh11mJy/gmc_120L.inter.interactive.pb.fits
+- inter_interact_thresh38mJy/gmc_120L.inter.interactive.image.fits
+- inter_interact_thresh38mJy/gmc_120L.inter.interactive.pbcor.fits
+- inter_interact_thresh38mJy/gmc_120L.inter.interactive.pb.fits
+- inter_simple_thresh11mJy/gmc_120L.inter.simple.image.fits
+- inter_simple_thresh11mJy/gmc_120L.inter.simple.pbcor.fits
+- inter_simple_thresh11mJy/gmc_120L.inter.simple.pb.fits
+- inter_simple_thresh38mJy/gmc_120L.inter.simple.image.fits
+- inter_simple_thresh38mJy/gmc_120L.inter.simple.pbcor.fits
+- inter_simple_thresh38mJy/gmc_120L.inter.simple.pb.fits
