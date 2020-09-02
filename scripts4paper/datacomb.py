@@ -1,20 +1,36 @@
-# runsdintimg.py
-# D. Petry (ESO), Aug 2020
-# - a wrapper around sdintimaging
-# - run with CASA 5.7/6.1 or later
+"""The datacomb module
 
+Tools for different methods of interferometric/single-dish 
+data combination with CASA.
+
+Based on the work at the Workshop
+"Improving Image Fidelity on Astronomical Data", 
+Lorentz Center, Leiden, August 2019, 
+and subsequent follow-up work. 
+
+Run under CASA 6.
+
+"""
 
 import os
+from casatasks import casalog
+from casatasks import exportfits
+from casatasks import imhead
+from casatasks import sdintimaging
+
+from casatools import image as iatool
+
+##########################################
 
 def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf='', 
                 sdgain=5, imsize=[], cell='', phasecenter='', dishdia=12.0,
                 start=0, width=1, nchan=-1, restfreq=None):
     """
-    runsdintimg
-    a wrapper around sdintimaging, D. Petry (ESO)
-    
+    runsdintimg (D. Petry, ESO)
+    a wrapper around the CASA task "sdintimaging"
+
     vis - the MS containing the interferometric data
-    sdimage - the Single Dish image/cube
+    sdimage - the Single Dish image
              Note that in case you are creating a cube, this image must be a cube
              with the same spectral grid as the one you are trying to create.
     jointname - the imagename of the output images
@@ -210,4 +226,8 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
         exportfits(jointname+'.joint.cube.pbcor', jointname+'.joint.cube.pbcor.fits')
 
     return True
+
+##########################################
+
+
 
