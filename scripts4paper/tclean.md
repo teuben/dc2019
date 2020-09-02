@@ -7,7 +7,7 @@ simulated mosaic map.
 
 The script is found here: scriptForImaging_tcleanTest.py
 
-Three variations are:
+Three TCLEAN variations in the script are:
 
 (1) ``Simple'', where no interaction is needed, and mask is drawn
 based on a pb level of 0.3.
@@ -60,7 +60,9 @@ Files:
 - inter_auto_thresh38mJy/gmc_120L.inter.auto.*
 
 
-# Files
+## Files
+
+Images are uploaded [here](https://drive.google.com/file/d/1hh5yNOr5-UUdzCh4ygwdacohI5VYYx-I/view?usp=sharing)
 
 Files in testtcleanfits.tgz:
 - inter_auto_thresh11mJy/gmc_120L.inter.auto.image.fits
