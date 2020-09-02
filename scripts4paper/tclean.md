@@ -12,6 +12,8 @@ Three variations are:
 (1) ``Simple'', where no interaction is needed, and mask is drawn
 based on a pb level of 0.3.
 
+TCLEAN parameters:
+
       threshold = '38mJy' or '11mJy'
       niter = 1000000, cycleniter = 100000, cyclefactor=2.0,
       usemask = 'pb', pbmask=0.3
@@ -26,6 +28,8 @@ interactively lowers the cyclethreshold until meeting the threshold.
 I used (interactively) cyclethreshold = [1.9Jy, 1.0Jy, 0.6Jy, 0.4Jy, 0.2Jy, 0.1Jy,
 0.06Jy, 0.04Jy, 0.02Jy, 0.011Jy].]
 
+TCLEAN parameters:
+
       threshold = '38mJy' or '11mJy'
       niter = 1000000, cycleniter = 100000
       usemask = 'pb', pbmask=0.3
@@ -38,6 +42,8 @@ Files:
 (3) ``Automasking,'' following
 https://casaguides.nrao.edu/index.php/Automasking_Guide.  Our maximum
 baseline was <300m, so I used the following suggested parameters:
+
+TCLEAN parameters:
 
       threshold = '38mJy' or '11mJy'
       niter = 1000000, cycleniter = 100000, cyclefactor=2.0,
@@ -54,7 +60,7 @@ Files:
 - inter_auto_thresh38mJy/gmc_120L.inter.auto.*
 
 
-
+# Files
 
 Files in testtcleanfits.tgz:
 - inter_auto_thresh11mJy/gmc_120L.inter.auto.image.fits
