@@ -9,8 +9,9 @@ The script is found here: scriptForImaging_tcleanTest.py
 
 Three TCLEAN variations in the script are:
 
-### (1) ``Simple'', where no interaction is needed, and mask is drawn
-based on a pb level of 0.3.
+### (1) ``Simple''
+
+No interaction is needed, and mask is drawn based on a pb level of 0.3.
 
 TCLEAN parameters:
 
@@ -26,8 +27,9 @@ Files:
 ![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.simple.thresh11mJy.pbcor.png)
 ![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.simple.thresh38mJy.pbcor.png)
 
-### (2) ``Interactive'', following Dirk's description, in which one
-interactively lowers the cyclethreshold until meeting the threshold.
+### (2) ``Interactive'', 
+
+Following Dirk's description, in which one interactively lowers the cyclethreshold until meeting the threshold.
 I used (interactively) cyclethreshold = [1.9Jy, 1.0Jy, 0.6Jy, 0.4Jy, 0.2Jy, 0.1Jy,
 0.06Jy, 0.04Jy, 0.02Jy, 0.011Jy].
 
@@ -42,11 +44,13 @@ Files:
 - inter_interact_thresh11mJy/gmc_120L.inter.interactive.*
 - inter_interact_thresh38mJy/gmc_120L.inter.interactive.*
 
-![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.interactive.thresh11mJy.pbcor.png)
-![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.interactive.thresh38mJy.pbcor.png)
+threshold=11mJy | threshold=38mJy
+:---------------------:|:---------------------:
+![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.interactive.thresh11mJy.pbcor.png)| ![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.interactive.thresh38mJy.pbcor.png)
 
-### (3) ``Automasking,'' following
-https://casaguides.nrao.edu/index.php/Automasking_Guide.  Our maximum
+### (3) ``Automasking,'' 
+
+Following the [CASA Guide for Auto-masking](https://casaguides.nrao.edu/index.php/Automasking_Guide).  Our maximum
 baseline was <300m, so I used the following suggested parameters:
 
 TCLEAN parameters:
