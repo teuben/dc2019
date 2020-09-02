@@ -9,7 +9,7 @@ The script is found here: scriptForImaging_tcleanTest.py
 
 Three TCLEAN variations in the script are:
 
-(1) ``Simple'', where no interaction is needed, and mask is drawn
+### (1) ``Simple'', where no interaction is needed, and mask is drawn
 based on a pb level of 0.3.
 
 TCLEAN parameters:
@@ -23,10 +23,10 @@ Files:
 - inter_simple_thresh11mJy/gmc_120L.inter.simple.*
 - inter_simple_thresh38mJy/gmc_120L.inter.simple.*
 
-(2) ``Interactive'', following Dirk's description, in which one
+### (2) ``Interactive'', following Dirk's description, in which one
 interactively lowers the cyclethreshold until meeting the threshold.
 I used (interactively) cyclethreshold = [1.9Jy, 1.0Jy, 0.6Jy, 0.4Jy, 0.2Jy, 0.1Jy,
-0.06Jy, 0.04Jy, 0.02Jy, 0.011Jy].]
+0.06Jy, 0.04Jy, 0.02Jy, 0.011Jy].
 
 TCLEAN parameters:
 
@@ -39,7 +39,7 @@ Files:
 - inter_interact_thresh11mJy/gmc_120L.inter.interactive.*
 - inter_interact_thresh38mJy/gmc_120L.inter.interactive.*
 
-(3) ``Automasking,'' following
+### (3) ``Automasking,'' following
 https://casaguides.nrao.edu/index.php/Automasking_Guide.  Our maximum
 baseline was <300m, so I used the following suggested parameters:
 
@@ -59,6 +59,7 @@ Files:
 - inter_auto_thresh11mJy/gmc_120L.inter.auto.*
 - inter_auto_thresh38mJy/gmc_120L.inter.auto.*
 
+![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.auto.thresh11mJy.pbcor.fits.cmr.rainforest.png)
 
 ## Files
 
