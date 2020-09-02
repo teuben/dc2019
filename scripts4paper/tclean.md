@@ -23,6 +23,9 @@ Files:
 - inter_simple_thresh11mJy/gmc_120L.inter.simple.*
 - inter_simple_thresh38mJy/gmc_120L.inter.simple.*
 
+![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.simple.thresh11mJy.pbcor.png)
+![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.simple.thresh38mJy.pbcor.png)
+
 ### (2) ``Interactive'', following Dirk's description, in which one
 interactively lowers the cyclethreshold until meeting the threshold.
 I used (interactively) cyclethreshold = [1.9Jy, 1.0Jy, 0.6Jy, 0.4Jy, 0.2Jy, 0.1Jy,
@@ -38,6 +41,9 @@ TCLEAN parameters:
 Files:
 - inter_interact_thresh11mJy/gmc_120L.inter.interactive.*
 - inter_interact_thresh38mJy/gmc_120L.inter.interactive.*
+
+![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.interactive.thresh11mJy.pbcor.png)
+![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.interactive.thresh38mJy.pbcor.png)
 
 ### (3) ``Automasking,'' following
 https://casaguides.nrao.edu/index.php/Automasking_Guide.  Our maximum
@@ -59,7 +65,8 @@ Files:
 - inter_auto_thresh11mJy/gmc_120L.inter.auto.*
 - inter_auto_thresh38mJy/gmc_120L.inter.auto.*
 
-![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.auto.thresh11mJy.pbcor.fits.cmr.rainforest.png)
+![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.auto.thresh11mJy.pbcor.png)
+![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.auto.thresh38mJy.pbcor.png)
 
 ## Files
 
