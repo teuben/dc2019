@@ -18,6 +18,14 @@ high.  There are several ways to try and combat this:
 
 Under full disclosure, I have not tried all but the first option
 
+## Primary Beam
+
+When and where should the primary beam correction be applied? Users
+will normally get a  *noise-flat* **.image** and *flux-flat*
+**.image.pbcor**
+file, but especially in cases like feather and ssc, one has to be careful
+when and where the PB is applied. 
+
 ## CASA bugs
 
 Yes, sometimes we do run into CASA bugs as well. This is 
