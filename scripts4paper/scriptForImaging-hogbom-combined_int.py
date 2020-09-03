@@ -85,6 +85,8 @@ if(mystep in thesteps):
          pbcor = True,
          threshold = '0.021Jy',
          interactive = True
+         usemask='pb',
+         pbmask=0.3
          )
   
   
