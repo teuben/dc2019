@@ -73,10 +73,10 @@ TCLEAN parameters:
       negativethreshold=0.0,
 
 Files:
-- inter_auto_thresh11mJy/gmc_120L.inter.auto.*
-- inter_auto_thresh38mJy/gmc_120L.inter.auto.*
 - gmc_120L.inter.auto.image11mJy.feather*.fits
 - gmc_120L.inter.auto.image38mJy.feather*.fits
+- inter_auto_thresh11mJy/gmc_120L.inter.auto.*
+- inter_auto_thresh38mJy/gmc_120L.inter.auto.*
 
 threshold=11mJy | threshold=38mJy
 :---------------------:|:---------------------:
@@ -84,7 +84,7 @@ threshold=11mJy | threshold=38mJy
 ![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.auto.thresh11mJy.pbcor.png)|![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.auto.thresh38mJy.pbcor.png)
 
 ## Files
-Feathered images are uploaded
+### Feathered images are uploaded
 [here](https://drive.google.com/file/d/1ALiCJk_UgTaAyaApiBohUnVvl6K4c2OL/view?usp=sharing)
 
 Files in testtclean_featherfits.tgz:
@@ -102,7 +102,7 @@ Files in testtclean_featherfits.tgz:
 - gmc_120L.inter.simple.image38mJy.feather.pbcor.fits
 
 
-Interferometry only images are uploaded [here](https://drive.google.com/file/d/1hh5yNOr5-UUdzCh4ygwdacohI5VYYx-I/view?usp=sharing)
+### Interferometry only images are uploaded [here](https://drive.google.com/file/d/1hh5yNOr5-UUdzCh4ygwdacohI5VYYx-I/view?usp=sharing)
 
 Files in testtcleanfits.tgz:
 - inter_auto_thresh11mJy/gmc_120L.inter.auto.image.fits
