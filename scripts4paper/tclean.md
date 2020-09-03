@@ -21,11 +21,14 @@ TCLEAN parameters:
       interactive = False
 
 Files: 
+- gmc_120L.inter.simple.image11mJy.feather*.fits
+- gmc_120L.inter.simple.image38mJy.feather*.fits
 - inter_simple_thresh11mJy/gmc_120L.inter.simple.*
 - inter_simple_thresh38mJy/gmc_120L.inter.simple.*
 
 threshold=11mJy | threshold=38mJy
 :---------------------:|:---------------------:
+![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean_feather/gmc_120L.inter.simple.image11mJy.feather.pbcor.fits.cmr.rainforest.png)|![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean_feather/gmc_120L.inter.simple.image38mJy.feather.pbcor.fits.cmr.rainforest.png)
 ![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.simple.thresh11mJy.pbcor.png)|![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.simple.thresh38mJy.pbcor.png)
 
 ### (2) ``Interactive''
@@ -42,17 +45,20 @@ TCLEAN parameters:
       interactive = False      
 
 Files:
+- gmc_120L.inter.interactive.image11mJy.feather*.fits
+- gmc_120L.inter.interactive.image38mJy.feather*.fits
 - inter_interact_thresh11mJy/gmc_120L.inter.interactive.*
 - inter_interact_thresh38mJy/gmc_120L.inter.interactive.*
 
 threshold=11mJy | threshold=38mJy
 :---------------------:|:---------------------:
+![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean_feather/gmc_120L.inter.interactive.image11mJy.feather.pbcor.fits.cmr.rainforest.png)| ![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean_feather/gmc_120L.inter.interactive.image38mJy.feather.pbcor.fits.cmr.rainforest.png)
 ![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.interactive.thresh11mJy.pbcor.png)| ![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.interactive.thresh38mJy.pbcor.png)
 
 ### (3) ``Automasking'' 
 
 Following the [CASA Automasking Guide](https://casaguides.nrao.edu/index.php/Automasking_Guide).  Our maximum
-baseline was <300m, so I used the following suggested parameters:
+baseline was <300m, so I used the following suggested parameters.
 
 TCLEAN parameters:
 
@@ -69,14 +75,34 @@ TCLEAN parameters:
 Files:
 - inter_auto_thresh11mJy/gmc_120L.inter.auto.*
 - inter_auto_thresh38mJy/gmc_120L.inter.auto.*
+- gmc_120L.inter.auto.image11mJy.feather*.fits
+- gmc_120L.inter.auto.image38mJy.feather*.fits
 
 threshold=11mJy | threshold=38mJy
 :---------------------:|:---------------------:
+![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean_feather/gmc_120L.inter.auto.image11mJy.feather.pbcor.fits.cmr.rainforest.png)|![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean_feather/gmc_120L.inter.auto.image38mJy.feather.pbcor.fits.cmr.rainforest.png)
 ![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.auto.thresh11mJy.pbcor.png)|![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.auto.thresh38mJy.pbcor.png)
 
 ## Files
+Feathered images are uploaded
+[here](https://drive.google.com/file/d/1ALiCJk_UgTaAyaApiBohUnVvl6K4c2OL/view?usp=sharing)
 
-Images are uploaded [here](https://drive.google.com/file/d/1hh5yNOr5-UUdzCh4ygwdacohI5VYYx-I/view?usp=sharing)
+Files in testtclean_featherfits.tgz:
+- gmc_120L.inter.auto.image11mJy.feather.fits
+- gmc_120L.inter.auto.image11mJy.feather.pbcor.fits
+- gmc_120L.inter.auto.image38mJy.feather.fits
+- gmc_120L.inter.auto.image38mJy.feather.pbcor.fits
+- gmc_120L.inter.interactive.image11mJy.feather.fits
+- gmc_120L.inter.interactive.image11mJy.feather.pbcor.fits
+- gmc_120L.inter.interactive.image38mJy.feather.fits
+- gmc_120L.inter.interactive.image38mJy.feather.pbcor.fits
+- gmc_120L.inter.simple.image11mJy.feather.fits
+- gmc_120L.inter.simple.image11mJy.feather.pbcor.fits
+- gmc_120L.inter.simple.image38mJy.feather.fits
+- gmc_120L.inter.simple.image38mJy.feather.pbcor.fits
+
+
+Interferometry only images are uploaded [here](https://drive.google.com/file/d/1hh5yNOr5-UUdzCh4ygwdacohI5VYYx-I/view?usp=sharing)
 
 Files in testtcleanfits.tgz:
 - inter_auto_thresh11mJy/gmc_120L.inter.auto.image.fits
