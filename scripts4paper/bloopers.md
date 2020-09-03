@@ -4,6 +4,29 @@ In preparation and parallel to an appendix we list here
 some mistakes we (and you could) make and hopefully
 help you identifying a wrong path.
 
+## meta code
+
+Perhaps it is useful to write functional forms of the CASA procedures. First
+define a few names for the data objects we use:
+
+      vis   = the visibilities
+      sd    = single dish
+      tpms  = pseudo visibilities representing the single dish (tp2vis)
+
+      im    = CASA's (noise-flat) .image file
+      pb    = CASA's PB (im/pb is CASA's .image.pbcor file)
+      psf   = CASA's PSF
+      model = CASA's clean components
+
+with these, we can write out data combination procedures as follows:
+
+      (im,pb,psf,model) = clean(vis)
+      f1 = feather(im, sd*pb) / pb     # feather the right way
+      f2 = feather(im/pb, sd)          # feather the wrong way
+      tpms = tp2vis(sd)
+      (im,pb,psf,model) = clean(vis+tpms)
+
+
 
 ## polka dot pattern
 
