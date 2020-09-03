@@ -84,8 +84,7 @@ threshold=11mJy | threshold=38mJy
 ![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.auto.thresh11mJy.pbcor.png)|![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.auto.thresh38mJy.pbcor.png)
 
 ## Files
-### Feathered images are uploaded
-[here](https://drive.google.com/file/d/1ALiCJk_UgTaAyaApiBohUnVvl6K4c2OL/view?usp=sharing)
+### Feathered images are uploaded [here](https://drive.google.com/file/d/1ALiCJk_UgTaAyaApiBohUnVvl6K4c2OL/view?usp=sharing)
 
 Files in testtclean_featherfits.tgz:
 - gmc_120L.inter.auto.image11mJy.feather.fits
