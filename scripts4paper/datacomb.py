@@ -175,7 +175,6 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
         phasecenter = npnt
 
     mythresh='1mJy' # dummy value
-    mask=''
 
     if restfreq==None:
         therf = []
@@ -205,7 +204,7 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
                  deconvolver=mydeconvolver,
                  scales=scales,
                  nterms=1,
-                 pbmask=0.2,
+                 pbmask=0.3,
                  niter=10000000,
                  spw=spw,
                  start=start,
@@ -217,7 +216,7 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
                  restfreq=therf,
                  perchanweightdensity=False,
                  interactive=True,
-                 mask=mask)
+                 usemask='pb')
 
     print('Exporting final pbcor image to FITS ...')
     if mydeconvolver=='mtmfs':
