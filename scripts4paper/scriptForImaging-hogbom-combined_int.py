@@ -86,7 +86,7 @@ if(mystep in thesteps):
          threshold = '0.021Jy',
          interactive = True
          usemask='pb',
-         pblimit=0.2
+         pbmask=0.3
          )
   
   
