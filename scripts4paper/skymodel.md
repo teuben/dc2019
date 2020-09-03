@@ -23,6 +23,7 @@ We can consider the following files (numbers taken for 115GHz):
       tp[1] = sky.otf             jy/beam_TP  (via imsmooth)    50.6
       tp[2] = sky.map             jy/pixel    (immath rescaled)
       tp[3] = sky.*.dirtymap      jy/beam_TP  (via tclean(tpms))
+      tp[4] = sky.*.sd            jy/beam_TP  (via simanalyze)
 
 For these simulations we have the advantage of a Jy/pixel model, but for
 real observations only the "otf" style map will be available.
@@ -33,13 +34,14 @@ real observations only the "otf" style map will be available.
       tpms[1] = tp2vis(tp[1], deconv=True)
 
 ## MS from simobserve()
-                                                                 res    MRS
-      ms[0] = sky.aca.cycle6.ms   (via simobserve())            10.9"   58.0"
-      ms[1] = sky.alma.6.1.ms     (via simobserve())             2.93   24.8
-      ms[2] = sky.alma.6.2.ms     (via simobserve())             2.00   19.7
-      ms[3] = sky.alma.6.3.ms     (via simobserve())             1.23   14.1
-      ms[4] = sky.alma.6.4.ms     (via simobserve())             0.798   9.74
-      ms[5] = sky.alma.6.5.ms     (via simobserve())             0.474   5.83
+                                                                 res    MRS    Lmax
+      ms[0] = sky.aca.cycle6.ms   (via simobserve())            10.9"   58.0"    45
+      ms[1] = sky.alma.6.1.ms     (via simobserve())             2.93   24.8    161
+      ms[2] = sky.alma.6.2.ms     (via simobserve())             2.00   19.7    312
+      ms[3] = sky.alma.6.3.ms     (via simobserve())             1.23   14.1    500
+      ms[4] = sky.alma.6.4.ms     (via simobserve())             0.798   9.74   784
+      ms[5] = sky.alma.6.5.ms     (via simobserve())             0.474   5.83  1398
+      ms[6] = sky.alma.6.6.ms     (via simobserve())             0.267   3.57  2516
 
   Of course it needs to be discussed which of this ms[] are to be used for
   the combination. Toshi was using [0,1,4] which have a nice staggering range
@@ -105,6 +107,16 @@ When convolved to a 2" beam, the flux is about
       A     ~1.6 Jy
       B     +6 Jy      (which includes a background)
 
+## Flux
+                                    whole map            region1
+      Original skymodel.fits:      113100.527020  Jy
+      Scaled +2pt skymodel-b.fits:   8659.028656  Jy        6644
+      skymodel.otf                   7518                   6402
+      gmc_120L.sd.image              7191                   6035
+      gmc_2L.sd.image0.scaled        7879
+
+There is an issue discussion this flux scaling issue of the SD vs. OTF:  https://github.com/teuben/dc2019/issues/14
+
 ## Imaging
 
 The following imaging parameters should make it possible to compare maps pixel by pixel
@@ -128,7 +140,9 @@ because the beam is about 3". These simulations run a lot faster.
 For detailed comparisons we use a smaller box, excluding fairly obvious edge effects. Based on
 the 1120 pixel we use a proposed
 
-      box1  = '150,150,970,970'
+      box1     = '150,150,970,970'
+      region1  = 'box[[12h00m07.009s,-35d01m26.082s],[11h59m52.990s,-34d58m33.946s]],coord=J2000'
+
 
 Maps that are compared on a pixel by pixel basis, also need to be smoothed to the same beam.
 The assessment methods team uses a 2" beam, and a certain physical area (maybe not quite box1).
