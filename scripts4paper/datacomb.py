@@ -22,9 +22,9 @@ from casatools import image as iatool
 
 ##########################################
 
-def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf='', 
-                sdgain=5, imsize=[], cell='', phasecenter='', dishdia=12.0,
-                start=0, width=1, nchan=-1, restfreq=None):
+def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf='',
+                threshold=None, sdgain=5, imsize=[], cell='', phasecenter='', dishdia=12.0,
+                start=0, width=1, nchan=-1, restfreq=None, interactive=True):
     """
     runsdintimg (D. Petry, ESO)
     a wrapper around the CASA task "sdintimaging"
@@ -43,6 +43,7 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
     sdpsf - (optional) the SD PSF, must have the same coords as sdimage
            if omitted or set to '' (empty string), a PSF will be derived
            from the beam information in sdimage
+    threshold - the tclean threshold 
     sdgain - the weight of the SD data relative to the interferometric data
            default: 5 
              'auto' - determine the scale automatically (experimental)
@@ -68,9 +69,28 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
     restfreq - the restfrequency to write to the image for velocity calculations
              default: None, example: '115.271GHz'
 
-    Example: runsdintimg('gmc_120L.alma.all_int-weighted.ms','gmc_120L.sd.image', 
+
+    Examples: runsdintimg('gmc_120L.alma.all_int-weighted.ms','gmc_120L.sd.image', 
                 'gmc_120L.joint-sdgain2.5', phasecenter='J2000 12:00:00 -35.00.00.0000', 
                  sdgain=2.5, spw='0', field='0~68', imsize=[1120,1120], cell='0.21arcsec')
+
+              ... will do an interactive clean for an agg. bw. image. 
+                  A pbmask at level 0.4 will be suggested as a start.
+
+              runsdintimg('gmc_120L.alma.all_int-weighted.ms','gmc_120L.sd.reimported.image', 
+                 'deepclean-automask-sdgain1.25', phasecenter='J2000 12:00:00 -35.00.00.0000', 
+                  sdgain=1.25, spw='0',field='0~68', imsize=[1120,1120], cell='0.21arcsec', 
+                  threshold='0.012Jy', interactive=False) 
+
+              ... will run a non-interactive clean for an agg. bw. image using automasking.
+
+              runsdintimg('ngc253.ms','ngc253-b6-tp-cube-200chan.image', 
+                          'ngc253-sdgain5', spw='0', specmode='cube', field='NGC_253',
+                          imsize=[500, 500], cell='1.2arcsec', phasecenter=3, nchan = 200, 
+                          start=150, width=1, restfreq='230.538GHz')
+
+              ... will run an interactive clean on a cube.
+                          
 
     """
 
@@ -97,6 +117,14 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
     if specmode not in ['mfs', 'cube']:
         print('specmode \"'+specmode+'\" is not supported.')
         return False
+
+    if not type(threshold) == str or 'Jy' not in threshold:
+        if not interactive:
+            print("You must provide a valid threshold, example '1mJy'")
+            return False
+        else:
+            print("You have not set a valid threshold. Please do so in the graphical user interface!")
+            threshold = '1mJy'
 
     myia = iatool()
 
@@ -174,8 +202,6 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
     if phasecenter=='':
         phasecenter = npnt
 
-    mythresh='1mJy' # dummy value
-
     if restfreq==None:
         therf = []
     else:
@@ -183,40 +209,87 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
 
     os.system('rm -rf '+jointname+'.*')
 
-    sdintimaging(vis=myvis,
-                 sdimage=mysdimage,
-                 sdpsf=mysdpsf,
-                 dishdia=dishdia,
-                 sdgain=sdgain,
-                 usedata='sdint',
-                 imagename=jointname,
-                 imsize=imsize,
-                 cell=cell,
-                 phasecenter=phasecenter,
-                 weighting='briggs',
-                 robust = 0.5,
-                 specmode=specmode,
-                 gridder=mygridder,
-                 pblimit=0.2, 
-                 pbcor=True,
-                 interpolation='linear',
-                 wprojplanes=1,
-                 deconvolver=mydeconvolver,
-                 scales=scales,
-                 nterms=1,
-                 pbmask=0.3,
-                 niter=10000000,
-                 spw=spw,
-                 start=start,
-                 width=width,
-                 nchan = numchan, 
-                 field = field,
-                 cycleniter=100,
-                 threshold=mythresh,
-                 restfreq=therf,
-                 perchanweightdensity=False,
-                 interactive=True,
-                 usemask='pb')
+    if interactive:
+
+        sdintimaging(vis=myvis,
+                     sdimage=mysdimage,
+                     sdpsf=mysdpsf,
+                     dishdia=dishdia,
+                     sdgain=sdgain,
+                     usedata='sdint',
+                     imagename=jointname,
+                     imsize=imsize,
+                     cell=cell,
+                     phasecenter=phasecenter,
+                     weighting='briggs',
+                     robust = 0.5,
+                     specmode=specmode,
+                     gridder=mygridder,
+                     pblimit=0.2, 
+                     pbcor=True,
+                     interpolation='linear',
+                     wprojplanes=1,
+                     deconvolver=mydeconvolver,
+                     scales=scales,
+                     nterms=1,
+                     niter=10000000,
+                     spw=spw,
+                     start=start,
+                     width=width,
+                     nchan = numchan, 
+                     field = field,
+                     cycleniter=100,
+                     threshold=threshold,
+                     restfreq=therf,
+                     perchanweightdensity=False,
+                     interactive=True,
+                     usemask='pb',
+                     pbmask=0.4,
+                 )
+        
+    else: # non-interactive, use automasking
+
+        sdintimaging(vis=myvis,
+                     sdimage=mysdimage,
+                     sdpsf=mysdpsf,
+                     dishdia=dishdia,
+                     sdgain=sdgain,
+                     usedata='sdint',
+                     imagename=jointname,
+                     imsize=imsize,
+                     cell=cell,
+                     phasecenter=phasecenter,
+                     weighting='briggs',
+                     robust = 0.5,
+                     specmode=specmode,
+                     gridder=mygridder,
+                     pblimit=0.2, 
+                     pbcor=True,
+                     interpolation='linear',
+                     wprojplanes=1,
+                     deconvolver=mydeconvolver,
+                     scales=scales,
+                     nterms=1,
+                     niter=10000000,
+                     spw=spw,
+                     start=start,
+                     width=width,
+                     nchan = numchan, 
+                     field = field,
+                     threshold=threshold,
+                     restfreq=therf,
+                     perchanweightdensity=False,
+                     interactive=False,
+                     cycleniter = 100000, 
+                     cyclefactor=2.0,
+                     usemask='auto-multithresh',
+                     sidelobethreshold=2.0,
+                     noisethreshold=4.25,
+                     lownoisethreshold=1.5, 
+                     minbeamfrac=0.3,
+                     growiterations=75,
+                     negativethreshold=0.0
+                 )
 
     print('Exporting final pbcor image to FITS ...')
     if mydeconvolver=='mtmfs':
