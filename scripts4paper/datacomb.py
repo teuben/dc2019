@@ -295,7 +295,7 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
     if mydeconvolver=='mtmfs':
         exportfits(jointname+'.joint.multiterm.image.tt0.pbcor', jointname+'.joint.multiterm.image.tt0.pbcor.fits')
     elif mydeconvolver=='hogbom':
-        exportfits(jointname+'.joint.cube.pbcor', jointname+'.joint.cube.pbcor.fits')
+        exportfits(jointname+'.joint.cube.image.pbcor', jointname+'.joint.cube.image.pbcor.fits')
 
     return True
 
