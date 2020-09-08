@@ -18,6 +18,9 @@ be in the **dc2019/contrib/QAC** directory:
       cd dc2010/contrib
       make QAC
 
+will grab the latest version, but very likely will need a regular
+"git pull" to get recent updates.
+
 ## Running QAC
 
 If you have installed QAC, the **dc2019/contrib/QAC/test** directory
@@ -47,7 +50,10 @@ Here is an example
         sky4.py                              copy of the script used
         sky4a.log                            log file via Makefile
         export/                              export fits file for QA team
-               int.box1.fits
+               sky_int_box1.fits
+               sky_mac1_box1.fits
+               sky_mac3_box1.fits
+               ...
         clean0/                              mapping just the TPMS
                dirtymap.image
                dirtymap.image.pbcor
@@ -57,12 +63,18 @@ Here is an example
                dirtymap.residual
                dirtymap.sumwt
                dirtymap.weight
-        clean3/                              mapping TPMS + INT
+        clean3/                              mapping TPMS + INT in various ways
 	       int.image
 	       tpint.image
+	       sdint.image
 	       feather.image
 	       ssc.image
 	       macint.image
+	       ...
+
+There are a number of cleanN variations possible, depending on how the combinations
+are initialized (e.g. an OTF Jy/beam vs. Jy/pixel map for the TP). The **export/**
+directory will contain agreed upon maps for the QA team.
 
 ## Some examples
 
