@@ -47,7 +47,11 @@ When and where should the primary beam correction be applied? Users
 will normally get a  *noise-flat* **.image** and *flux-flat*
 **.image.pbcor**
 file, but especially in cases like feather and ssc, one has to be careful
-when and where the PB is applied. 
+when and where the PB is applied.
+
+## too many open files
+
+Can happen if you have large mosaics (e.g. our LMC)
 
 ## CASA bugs
 
