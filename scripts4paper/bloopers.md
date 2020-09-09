@@ -53,6 +53,10 @@ when and where the PB is applied.
 
 Can happen if you have large mosaics (e.g. our LMC)
 
+## region= and  box=
+
+Due to curves wcs .... not exactly same flux....
+
 ## CASA bugs
 
 Yes, sometimes we do run into CASA bugs as well. This is 
