@@ -68,6 +68,10 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
              default: -1
     restfreq - the restfrequency to write to the image for velocity calculations
              default: None, example: '115.271GHz'
+    interactive - if True (default) use interactive cleaning with initial mask
+                  set using pbmask=0.4
+                  if False use non-interactive clean with automasking (you will
+                  need to provide the threshold parameter)
 
 
     Examples: runsdintimg('gmc_120L.alma.all_int-weighted.ms','gmc_120L.sd.image', 

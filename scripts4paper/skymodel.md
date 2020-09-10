@@ -141,9 +141,24 @@ For detailed comparisons we use a smaller box, excluding fairly obvious edge eff
 the 1120 pixel we use a proposed
 
       box1     = '150,150,970,970'
+                  (150,150,970,970)  674041   6657.3
+               = '12:00:07.009, -35.01.26.087' to '11:59:52.995, -34.58.33.887'
       region1  = 'box[[12h00m07.009s,-35d01m26.082s],[11h59m52.990s,-34d58m33.946s]],coord=J2000'
+                  (150,151,970,969)  672340   6648.2
+      region2  = 'box[[12h00m07.009s,-35d01m26.090s],[11h59m52.990s,-34d58m33.850s]],coord=J2000'
+                  (150,150,970,970)  673981   6656.5
 
+      box10     = '500,500,3500,3500'
+      region10  = 'box[[500pix,500pix],[3500pix,3500pix]]'
+                  (500,500,3500,3500) 9006001 5590.1
+      box11     = '326,326,3770,3770'
+      		  11868025 6647.1
+		 
+
+But note in **imstat** this identical **box=** and **region=** do not give the same flux and pixel
+count, presumably due to the curvature of the WCS.
 
 Maps that are compared on a pixel by pixel basis, also need to be smoothed to the same beam.
 The assessment methods team uses a 2" beam, and a certain physical area (maybe not quite box1).
 To be confirmed.
+
