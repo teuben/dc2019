@@ -50,7 +50,7 @@ if(mystep in thesteps):
             'gmc_120L.aca.cycle6.2018-10-23.ms']
 
   weightscale = [1., 1., 1., 1., 1., 1., 1., 1.,
-                 0.193, 0.193, 0.193, 0.193]
+                 0.116, 0.116, 0.116, 0.116]
 
   concat(vis=thevis, 
          concatvis='gmc_120L.alma.all_int-weighted.ms',
@@ -84,9 +84,22 @@ if(mystep in thesteps):
          gridder = 'mosaic',
          pbcor = True,
          threshold = '0.021Jy',
-         interactive = True
-         usemask='pb',
-         pbmask=0.3
+         # use the following parameters for non-interactive cleaning
+         interactive=False,
+         niter = 1000000, 
+         cycleniter = 100000, 
+         cyclefactor=2.0,
+         usemask='auto-multithresh',
+         sidelobethreshold=2.0,
+         noisethreshold=4.25,
+         lownoisethreshold=1.5, 
+         minbeamfrac=0.3,
+         growiterations=75,
+         negativethreshold=0.0,
+         # use the following parameters for interactive cleaning and comment out the above  
+         #interactive = True
+         #usemask='pb', 
+         #pbmask=0.4
          )
   
   

@@ -42,7 +42,7 @@ if(mystep in thesteps):
             'point05_2L.alma.cycle6.4.2018-10-03.ms',
             'point05_2L.aca.cycle6.2018-10-06.ms']
 
-  weightscale = [1., 1., 1., 1., 0.193]
+  weightscale = [1., 1., 1., 1., 0.116]
 
   concat(vis=thevis, 
          concatvis='point05_2L.alma.all_int-weighted.ms',
