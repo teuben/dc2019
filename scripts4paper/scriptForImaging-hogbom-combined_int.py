@@ -53,7 +53,7 @@ if(mystep in thesteps):
                  0.116, 0.116, 0.116, 0.116]
 
   concat(vis=thevis, 
-         concatvis='gmc_120L.alma.all_int-weighted.ms',
+         concatvis='gmc_120L.alma.all_int-weighted2.ms',
          visweightscale = weightscale)
 
 mystep = 1
@@ -61,11 +61,11 @@ if(mystep in thesteps):
   casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
   print('Step ', mystep, step_title[mystep])
 
-  thevis = 'gmc_120L.alma.all_int-weighted.ms'
+  thevis = 'gmc_120L.alma.all_int-weighted2.ms'
   
-  os.system('rm -rf gmc_120L.alma.all_int-mfs.I.manual-weighted*')
+  os.system('rm -rf gmc_120L.alma.all_int-mfs.I.manual-weighted2*')
   tclean(vis = thevis,
-         imagename = 'gmc_120L.alma.all_int-mfs.I.manual-weighted',
+         imagename = 'gmc_120L.alma.all_int-mfs.I.manual-weighted2',
          field = '0~68',
          intent = 'OBSERVE_TARGET#ON_SOURCE',
          phasecenter = 'J2000 12:00:00 -35.00.00.0000',
@@ -112,7 +112,7 @@ if(mystep in thesteps):
   casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
   print('Step ', mystep, step_title[mystep])
 
-  myimages = ['gmc_120L.alma.all_int-mfs.I.manual-weighted']
+  myimages = ['gmc_120L.alma.all_int-mfs.I.manual-weighted2']
   
   for myimagebase in myimages:
     exportfits(imagename = myimagebase+'.image.pbcor',
