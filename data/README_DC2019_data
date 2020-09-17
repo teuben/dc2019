@@ -62,12 +62,18 @@ Smaller data in : ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/N346
 
 http://admit.astro.umd.edu/~teuben/QAC/skymodel.fits
 http://admit.astro.umd.edu/~teuben/QAC/skymodel-a.fits    
+http://admit.astro.umd.edu/~teuben/QAC/skymodel-b.fits    
+http://admit.astro.umd.edu/~teuben/QAC/skymodel-c.fits    
 http://admit.astro.umd.edu/~teuben/QAC/skymodel.ptg     
 http://admit.astro.umd.edu/~teuben/QAC/qac_bench5.tar.gz
 
 These are from the old 4096 x 4096 models.  The skymodel.fits
 is the original one, we added (two) 0.1 Jy point sources (see
 header where) to check how well they are recoverable.
+
+We use:
+    skymodel-b.fits       original skymodel plus two fuzzy "point" sources
+    skymodel-c.fits       skymodel with a different random seed, same powerlaw
 
 A newer 16k x 16k model, and associate pre-computed MS, available
 here:

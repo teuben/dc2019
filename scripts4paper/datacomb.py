@@ -47,14 +47,12 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
     sdgain - the weight of the SD data relative to the interferometric data
            default: 5 
              'auto' - determine the scale automatically (experimental)
-    imsize - (optional) the standard tclean imsize parameter 
+    imsize - the standard tclean imsize parameter 
             should correspond to the imagesize for the most extended
             interferometer config.
-           default: determine from the input MS with aU.pickCellSize
-    cell - (optional) the standard tclean cell parameter
+    cell - the standard tclean cell parameter
             should correspond to the cell size for the most extended
             interferometer config, i.e. smallest beam / 5.
-           default: determine from the input MS with aU.pickCellSize
     phasecenter - the standard tclean phasecenter parameter
            e.g. 'J2000 12:00:00 -35.00.00.0000'
            default: '' - determine from the input MS with aU.pickCellSize
@@ -68,6 +66,10 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
              default: -1
     restfreq - the restfrequency to write to the image for velocity calculations
              default: None, example: '115.271GHz'
+    interactive - if True (default) use interactive cleaning with initial mask
+                  set using pbmask=0.4
+                  if False use non-interactive clean with automasking (you will
+                  need to provide the threshold parameter)
 
 
     Examples: runsdintimg('gmc_120L.alma.all_int-weighted.ms','gmc_120L.sd.image', 
@@ -190,14 +192,8 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
     # image and cell size
     npnt = 0
     if imsize==[] or cell=='':
-        try:
-            import analysisUtils as aU
-        except:
-            casalog.post('Cannot import the analysisUtils. Set up your sys.path or provide imsize and cell.', 'SEVERE', 
-                     origin='runsdintimg')
-            return False
-
-        cell, imsize, npnt = aU.pickCellSize(myvis, spw=spw, imsize=True, cellstring=True) 
+        casalog.post('You need to provide values for the parameters imsize and cell.', 'SEVERE', origin='runsdintimg')
+        return False
 
     if phasecenter=='':
         phasecenter = npnt

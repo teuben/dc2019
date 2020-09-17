@@ -135,6 +135,8 @@ environments, but harder to explain perhaps.
 	   git pull bsosis BaramS1
 
 Also some articles on workflows:
+github:
+    https://help.github.com/categories/collaborating/
 astropy:
     http://docs.astropy.org/en/stable/development/workflow/development_workflow.html
 atlassion tutorials:

@@ -18,7 +18,7 @@ except:
 ########################################
 # Set this! ->
 # truth/reference file: **should be in Jy/pix**
-modelfile = 'skymodel-scaled.fits'
+modelfile = 'skymodel-b.fits'
 # scripts also requires fluxbox.reg in the current working directory
 
 # derive me instead but for now -
