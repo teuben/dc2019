@@ -90,18 +90,23 @@ startmodel='singledish.jyPerPix', and then feathering.  The TCLEAN
 apparently over-estimates the flux, and then FEATHER brings the flux
 back down.
 
+In the following table, I show the flux in a large region of the map
+(box='300,300,820,820'), and around the point source in the south (box
+= '552,315,568,330').  While the auto-masking version seems to ``lose'' flux in
+the feather step, more flux is still recovered compared with the
+pbmask method in the larger region.  Less flux is recovered around the
+point source. 
+
 |  | flux | min | max |
-:---------------------:|:---------------------:|:---------------------:|:--------------------:
+:---------------------|:---------------------:|:---------------------:|:--------------------:
 Larger region: | | | |
 pbmask, TCLEAN | 3730.39 | -0.0036 | 3.26
 pbmask, Feather | 3759.05 | -0.0092 | 3.31
-Point source: | | | |
-pbmask, TCLEAN | 2.71  | 0.12 | 1.36 
-pbmask, Feather | 2.15  | 0.050  | 1.29
-Larger region: | | | |
 auto-mask, TCLEAN | 4690.32|  -0.0030 | 3.46
 auto-mask, Feather | 3894.03 | -0.089 | 3.36
 Point source: | | | |
+pbmask, TCLEAN | 2.71  | 0.12 | 1.36 
+pbmask, Feather | 2.15  | 0.050  | 1.29
 auto-mask, TCLEAN | 3.04 |0.16 | 1.41
 auto-mask, Feather | 2.07| 0.043| 1.28
 
@@ -150,3 +155,15 @@ Files in testtcleanfits.tgz:
 - inter_simple_thresh38mJy/gmc_120L.inter.simple.image.fits
 - inter_simple_thresh38mJy/gmc_120L.inter.simple.pbcor.fits
 - inter_simple_thresh38mJy/gmc_120L.inter.simple.pb.fits
+
+### Images to test the start model with auto-masking versus pbmask are uploaded [here](https://drive.google.com/file/d/1DhYLYWlQMJQ3hilCFkfrmLdEvBXjCYAL/view?usp=sharing)
+
+Files in startmodel_testmasks.tgz:
+- pbthresh39mJy/gmc_120L.WSM.pb.combined.image.pbcor.fits (--> pbmask,
+feather image)
+- pbthresh39mJy/gmc_120L.WSM.pb.TCLEAN.pbcor.fits (--> pbmask,
+tclean image)
+- autothresh39mJy/gmc_120L.WSM.auto.combined.image.pbcor.fits (--> automask,
+feather image)
+- autothresh39mJy/gmc_120L.WSM.auto.TCLEAN.pbcor.fits (--> automask,
+tclean image)
