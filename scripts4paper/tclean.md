@@ -83,6 +83,19 @@ threshold=11mJy | threshold=38mJy
 ![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean_feather/gmc_120L.inter.auto.image11mJy.feather.pbcor.fits.cmr.rainforest.png)|![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean_feather/gmc_120L.inter.auto.image38mJy.feather.pbcor.fits.cmr.rainforest.png)
 ![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.auto.thresh11mJy.pbcor.png)|![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.auto.thresh38mJy.pbcor.png)
 
+### (3) Simple (pbmask) versus ``Automasking'' when using startmodel
+
+Something interesting happens when using TCLEAN with
+startmodel='singledish.jyPerPix', and then feathering.  The TCLEAN
+apparently over-estimates the flux, and then FEATHER brings the flux
+back down.
+
+pbmask  | auto-mask
+:---------------------:|:---------------------:
+![TCLEAN with startmodel](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.pb.TCLEAN.pbcor.fits.cmr.rainforest.png)|![FEATHER](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.pb.combined.image.pbcor.fits.cmr.rainforest.png)
+![TCLEAN with startmodel](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.pb.TCLEAN.auto.fits.cmr.rainforest.png)|![FEATHER](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.auto.combined.image.pbcor.fits.cmr.rainforest.png)
+
+
 ## Files
 ### Feathered images are uploaded [here](https://drive.google.com/file/d/1ALiCJk_UgTaAyaApiBohUnVvl6K4c2OL/view?usp=sharing)
 
