@@ -83,7 +83,7 @@ threshold=11mJy | threshold=38mJy
 ![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean_feather/gmc_120L.inter.auto.image11mJy.feather.pbcor.fits.cmr.rainforest.png)|![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean_feather/gmc_120L.inter.auto.image38mJy.feather.pbcor.fits.cmr.rainforest.png)
 ![threshold=11mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.auto.thresh11mJy.pbcor.png)|![threshold=38mJy](https://github.com/adeleplunkett/myimages/blob/master/tclean/gmc_120L.inter.auto.thresh38mJy.pbcor.png)
 
-### (3) Simple (pbmask) versus ``Automasking'' when using startmodel
+### (4) Simple (pbmask) versus ``Automasking'' when using startmodel
 
 Something interesting happens when using TCLEAN with
 startmodel='singledish.jyPerPix', and then feathering.  The TCLEAN
@@ -92,10 +92,10 @@ back down.
 
 In the following table, I show the flux in a large region of the map
 (box='300,300,820,820'), and around the point source in the south (box
-= '552,315,568,330').  While the auto-masking version seems to ``lose'' flux in
+= '552,315,568,330').  While the auto-masking version seems to 'lose' flux in
 the feather step, more flux is still recovered compared with the
 pbmask method in the larger region.  Less flux is recovered around the
-point source.  (Note: needs to be compared with ``True'' flux.)
+point source.  (Note: needs to be compared with 'True' flux.)
 
 |  | flux | min | max |
 :---------------------|:---------------------:|:---------------------:|:--------------------:
