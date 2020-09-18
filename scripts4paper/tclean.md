@@ -90,10 +90,25 @@ startmodel='singledish.jyPerPix', and then feathering.  The TCLEAN
 apparently over-estimates the flux, and then FEATHER brings the flux
 back down.
 
+  | flux | min | max
+:---------------------:|:---------------------:|:---------------------:|:--------------------:
+Larger region: | | | 
+pbmask, TCLEAN | 3730.39 | -0.0036 | 3.26
+pbmask, Feather | 3759.05 | -0.0092 | 3.31
+Point source: | | | 
+pbmask, TCLEAN | 2.71  | 0.12 | 1.36 
+pbmask, Feather | 2.15  | 0.050  | 1.29
+Larger region: | | | 
+auto-mask, TCLEAN | 4690.32|  -0.0030 | 3.46
+auto-mask, Feather | 3894.03 | -0.089 | 3.36
+Point source: | | | 
+auto-mask, TCLEAN | 3.04 |0.16 | 1.41
+auto-mask, Feather | 2.07| 0.043| 1.28
+
 pbmask  | auto-mask
 :---------------------:|:---------------------:
 ![TCLEAN with startmodel](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.pb.TCLEAN.pbcor.fits.cmr.rainforest.png)|![FEATHER](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.pb.combined.image.pbcor.fits.cmr.rainforest.png)
-![TCLEAN with startmodel](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.pb.TCLEAN.auto.fits.cmr.rainforest.png)|![FEATHER](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.auto.combined.image.pbcor.fits.cmr.rainforest.png)
+![TCLEAN with startmodel](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.auto.TCLEAN.pbcor.fits.cmr.rainforest.png)|![FEATHER](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.auto.combined.image.pbcor.fits.cmr.rainforest.png)
 
 
 ## Files
