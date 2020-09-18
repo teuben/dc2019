@@ -90,18 +90,18 @@ startmodel='singledish.jyPerPix', and then feathering.  The TCLEAN
 apparently over-estimates the flux, and then FEATHER brings the flux
 back down.
 
-  | flux | min | max
+|  | flux | min | max |
 :---------------------:|:---------------------:|:---------------------:|:--------------------:
-Larger region: | | | 
+Larger region: | | | |
 pbmask, TCLEAN | 3730.39 | -0.0036 | 3.26
 pbmask, Feather | 3759.05 | -0.0092 | 3.31
-Point source: | | | 
+Point source: | | | |
 pbmask, TCLEAN | 2.71  | 0.12 | 1.36 
 pbmask, Feather | 2.15  | 0.050  | 1.29
-Larger region: | | | 
+Larger region: | | | |
 auto-mask, TCLEAN | 4690.32|  -0.0030 | 3.46
 auto-mask, Feather | 3894.03 | -0.089 | 3.36
-Point source: | | | 
+Point source: | | | |
 auto-mask, TCLEAN | 3.04 |0.16 | 1.41
 auto-mask, Feather | 2.07| 0.043| 1.28
 
