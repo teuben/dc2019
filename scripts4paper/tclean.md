@@ -156,7 +156,7 @@ Files in testtcleanfits.tgz:
 - inter_simple_thresh38mJy/gmc_120L.inter.simple.pbcor.fits
 - inter_simple_thresh38mJy/gmc_120L.inter.simple.pb.fits
 
-### Images to test the start model with auto-masking versus pbmask are uploaded [here](https://drive.google.com/file/d/1DhYLYWlQMJQ3hilCFkfrmLdEvBXjCYAL/view?usp=sharing)
+### Images to test the startmodel with auto-masking versus pbmask are uploaded [here](https://drive.google.com/file/d/1DhYLYWlQMJQ3hilCFkfrmLdEvBXjCYAL/view?usp=sharing)
 
 Files in startmodel_testmasks.tgz:
 - pbthresh39mJy/gmc_120L.WSM.pb.combined.image.pbcor.fits (--> pbmask,
