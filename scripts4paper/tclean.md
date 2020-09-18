@@ -95,7 +95,7 @@ In the following table, I show the flux in a large region of the map
 = '552,315,568,330').  While the auto-masking version seems to ``lose'' flux in
 the feather step, more flux is still recovered compared with the
 pbmask method in the larger region.  Less flux is recovered around the
-point source. 
+point source.  (Note: needs to be compared with ``True'' flux.)
 
 |  | flux | min | max |
 :---------------------|:---------------------:|:---------------------:|:--------------------:
