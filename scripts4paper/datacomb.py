@@ -309,11 +309,12 @@ def runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs',
                 start=0, width=1, nchan=-1, restfreq=None,
                 threshold='',niter=0,usemask='auto-multithresh' ,
                 sidelobethreshold=2.0,noisethreshold=4.25,lownoisethreshold=1.5, 
-                minbeamfrac=0.3,growiterations=75,negativethreshold=0.0):
+                minbeamfrac=0.3,growiterations=75,negativethreshold=0.0,
+                mask='', pbmask=0.4,interactive=True):
     """
     runWSM (A. Plunkett, NRAO)
     a wrapper around the CASA tasks "TCLEAN" and "FEATHER"
-    in order to run TCLEAN with a single dish start model, thenc ombine with FEATHER
+    in order to run TCLEAN with a single dish start model, then combine with FEATHER
 
     vis - the MS containing the interferometric data
     sdimage - the Single Dish image
@@ -349,13 +350,24 @@ def runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs',
              default: None, example: '12mJy'
     niter - the standard tclean niter parameter
              default: 0, example: niter=1000000
-    usemask - the standard tclean mask parameter.  If usemask='auto-multithresh', specify:
+    usemask - the standard tclean mask parameter.  If usemask='auto-multithresh', can specify:
              sidelobethreshold, noisethreshold, lownoisethreshold, minbeamfrac, growiterations - 
+             if usemask='user', must specify mask='maskname.mask' 
+             if usemask='pb', can specify pbmask=0.4, or some level.
              default: 'auto-multithresh'
+    interactive - the standard tclean interactive option
+             default: True
+    
+    Example: runtclean('gmc_120L.alma.all_int-weighted.ms', 
+                'gmc_120L', phasecenter='J2000 12:00:00 -35.00.00.0000', 
+                spw='0', field='0~68', imsize=[1120,1120], cell='0.21arcsec',
+                threshold='12mJy',niter=100000,
+                usemask='auto-multithresh')
     
     Example: runWSM('gmc_120L.alma.all_int-weighted.ms','gmc_120L.sd.image', 
                 'gmc_120L.WSM', phasecenter='J2000 12:00:00 -35.00.00.0000', 
-                spw='0', field='0~68', imsize=[1120,1120], cell='0.21arcsec',threshold='12mJy',
+                spw='0', field='0~68', imsize=[1120,1120], cell='0.21arcsec',
+                threshold='12mJy',niter=100000,
                 usemask='auto-multithresh')
 
     """
@@ -402,7 +414,8 @@ def runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs',
     runtclean(myvis,imname, startmodel=scaled_name,
                 phasecenter=phasecenter, 
                 spw='0', field=field, imsize=imsize, cell=cell,threshold=threshold,
-                niter=niter,usemask=usemask,)
+                niter=niter,usemask=usemask,pbmask=pbmask,mask=mask,
+                interactive=interactive)
 
     ## then FEATHER METHOD 
     highres = imname+'.TCLEAN.image'
@@ -547,7 +560,7 @@ def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs',
                 threshold='',niter=0,usemask='auto-multithresh' ,
                 sidelobethreshold=2.0,noisethreshold=4.25,lownoisethreshold=1.5, 
                 minbeamfrac=0.3,growiterations=75,negativethreshold=0.0,
-                maskname='', pbmask=0.2):
+                mask='', pbmask=0.4,interactive=True):
     """
     runtclean (A. Plunkett, NRAO)
     a wrapper around the CASA task "TCLEAN,"
@@ -585,11 +598,13 @@ def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs',
              default: None, example: '12mJy'
     niter - the standard tclean niter parameter
              default: 0, example: niter=1000000
-    usemask - the standard tclean mask parameter.  If usemask='auto-multithresh', specify:
+    usemask - the standard tclean mask parameter.  If usemask='auto-multithresh', can specify:
              sidelobethreshold, noisethreshold, lownoisethreshold, minbeamfrac, growiterations - 
-             if usemask='user', specify mask='maskname.mask' 
-             if usemask='pb', specify pbmask=0.3, or some level.
+             if usemask='user', must specify mask='maskname.mask' 
+             if usemask='pb', can specify pbmask=0.4, or some level.
              default: 'auto-multithresh'
+    interactive - the standard tclean interactive option
+             default: True
     
     Example: runtclean('gmc_120L.alma.all_int-weighted.ms', 
                 'gmc_120L', phasecenter='J2000 12:00:00 -35.00.00.0000', 
@@ -606,15 +621,19 @@ def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs',
         print(vis+' does not exist')
         return False
 
+    mymaskname = ''
     if usemask == 'auto-multithresh':
         mymask = usemask
+        print('Run with {0} mask'.format(mymask))
     elif usemask =='pb':
         mymask = usemask
         pbmask = pbmask
+        print('Run with {0} mask {1}'.format(mymask,pbmask))
     elif usemask == 'user':
         if os.path.exists(maskname):
            mymask = usemask
-           mask = maskname
+           mymaskname = mask
+           print('Run with {0} mask {1} '.format(mymask,maskname))
         else:
            print('mask '+maskname+' does not exist, or not specified')
            return False
@@ -645,8 +664,8 @@ def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs',
          gridder = 'mosaic',
          pbcor = True,
          threshold = threshold,
-         interactive = True,
-         # Automasking Parameters below this line 
+         interactive = interactive,
+         # Masking Parameters below this line 
          # --> Should be updated depending on dataset
          usemask=mymask,
          sidelobethreshold=sidelobethreshold,
@@ -655,6 +674,7 @@ def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs',
          minbeamfrac=minbeamfrac,
          growiterations=growiterations,
          negativethreshold=negativethreshold,
+         mask=mask,pbmask=pbmask,
          verbose=True)
 
     print('Exporting final pbcor image to FITS ...')
