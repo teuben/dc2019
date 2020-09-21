@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 # ALMA Data Reduction Script, D. Petry (ESO), Aug 2020
 # modified to include feathering step, M. Hoffman Aug 2020
 
@@ -52,7 +53,7 @@ if(mystep in thesteps):
             'gmc_120L.aca.cycle6.2018-10-23.ms']
 
   weightscale = [1., 1., 1., 1., 1., 1., 1., 1.,
-                 0.193, 0.193, 0.193, 0.193]
+                 0.116, 0.116, 0.116, 0.116]
 
   concat(vis=thevis, 
          concatvis='gmc_120L.alma.all_int-weighted.ms',
@@ -64,6 +65,7 @@ if(mystep in thesteps):
   print('Step ', mystep, step_title[mystep])
 
   thevis = 'gmc_120L.alma.all_int-weighted.ms'
+  threshold = '0.011Jy' ## peak / 1000*3
   
   os.system('rm -rf gmc_120L.alma.all_int-mfs.I.manual-weighted*')
   tclean(vis = thevis,
@@ -85,7 +87,7 @@ if(mystep in thesteps):
          mask = 'sdintimaging_gmc_120L.alma.all-sdgain5.joint.multiterm.mask',
          gridder = 'mosaic',
          pbcor = True,
-         threshold = '0.021Jy',
+         threshold = threshold,
          interactive = True
          )
 ## This is an interactive clean.  Begin with threshold=‘0.021Jy’.
@@ -240,7 +242,7 @@ if(mystep in thesteps):
                )
 
      exportfits(imagename = myimagebase+'.image',
-               fitsimage = myimagebase+'.pbcor.fits',
+               fitsimage = myimagebase+'.image.fits',
                overwrite = True
                )
  
