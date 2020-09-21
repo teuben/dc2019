@@ -63,6 +63,22 @@ will normally get a  *noise-flat* **.image** and *flux-flat*
 file, but especially in cases like feather and ssc, one has to be careful
 when and where the PB is applied.
 
+## Total Power (Single Dish) Map
+
+A TP map can be made in two ways
+
+1. An OTF style map, based on smoothing the skymodel with the
+appropriate beam (57" or whatever), but of course the question is ,
+what is this beam?
+
+2. Use the simobserve() and friends. In **simalma** it was found that 
+it introduced an extra factor of 0.96 to the real TP beam apart from the
+flux scaling (kernel beam/real beam) - this factor is not included in
+the **simanalyze** code.  The comments in **simalma** say that the simulated
+beam deviates from the real (diffraction) beam so that it needs this
+correction.
+
+
 ## Too many open files
 
 Can happen if you have large mosaics (e.g. our LMC).  I had this in sky4f, using cfg=[0,1,2,3,4,5]
