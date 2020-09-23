@@ -4,6 +4,8 @@ In preparation and parallel to an appendix we list here
 some mistakes we (and you could) make and hopefully
 help you identifying a wrong path.
 
+Some of the issues we ran into you can find on https://github.com/teuben/dc2019/issues
+
 ## Notation
 
 Perhaps it is useful to write functional forms of the CASA procedures. First
