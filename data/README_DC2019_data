@@ -64,6 +64,7 @@ http://admit.astro.umd.edu/~teuben/QAC/skymodel.fits
 http://admit.astro.umd.edu/~teuben/QAC/skymodel-a.fits    
 http://admit.astro.umd.edu/~teuben/QAC/skymodel-b.fits    
 http://admit.astro.umd.edu/~teuben/QAC/skymodel-c.fits    
+http://admit.astro.umd.edu/~teuben/QAC/skymodel-d.fits    
 http://admit.astro.umd.edu/~teuben/QAC/skymodel.ptg     
 http://admit.astro.umd.edu/~teuben/QAC/qac_bench5.tar.gz
 
@@ -73,7 +74,9 @@ header where) to check how well they are recoverable.
 
 We use:
     skymodel-b.fits       original skymodel plus two fuzzy "point" sources
-    skymodel-c.fits       skymodel with a different random seed, same powerlaw
+    skymodel-c.fits       skymodel with a different random seed, same powerlaw as 'b'
+    skymodel-d.fits       skymodel with a different random seed, same powerlaw as 'b'
+    skymodel-e.fits       skymodel with different powerlaw, same seed as 'c'
 
 A newer 16k x 16k model, and associate pre-computed MS, available
 here:
