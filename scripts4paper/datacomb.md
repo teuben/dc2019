@@ -9,7 +9,8 @@ with
 
 From the first example Dirk presented, I'd like to take one
 step up to try and simplify its usage. I try to explain this
-below.
+below, but basically want to take some good experiences from
+QAC.
 
 ## Input files:  VIS and SD
 
@@ -125,3 +126,41 @@ Here 6. is Kauffmann's Model Assistent Clean, of which there can be
 a few variations.    The **dc.mac()** method should probably
 have descriptive options how to run it. Method 1. is needed to
 create files (e.g. psf, beam) needed for other methods.
+
+
+## QAC  (Quick Array Combinations)
+
+Some of the good experiences from QAC are taken here.
+The less optimal choices in QAC are that it did not
+separate generating models from the DC methods.
+So scripts had to re-generate the MS files again.
+
+
+## Example
+
+Here is some non-working code, showing how to set up a simulation
+
+      import datacomb as dc
+
+      sd1 = 'skymodel-b.fits'       # RDFS cube in fits format
+      sd2 = 'skymodel-b.otf'        # RDSF cube in casa format
+      ms0 = 'sky1/sky.aca.ms'       # 7m array
+      ms1 = 'sky1/sky.alma.6.1.ms'  # 12m arrays
+      ms2 = 'sky1/sky.alma.6.4.ms'
+      ms3 = 'sly1/sky.alma.6.6.ms'
+
+      # define:   model,phasecenter,
+      execfile('dc2019_skymodel.py')
+      
+
+      pdir = 'exp1'
+      sd.arg(pdir, niter=[0,1000], imsize=1120, pixels='0.21arcsec')
+      sd.arg(pdir, sdgain=1.2, tp2viswt=0.01)
+      sd.arg(pdir, vis=[ms0,ms1,ms2])
+      sd.arg(pdir, sd=sd1)
+      
+
+      t1 = sd.tp2vis(pdir,'tp2vis1',sd1,  nvgrp=16)     #   t1['tpms'] = 'exp1/tp2vis1/tp.ms'
+      t2 = sd.tp2vis(pdir,'tp2vis2',sd2,  nvgrp=16)     #   t2['tpms'] = 'exp1/tp2vis2/tp.ms'
+      i1 = sd.tclean(pdir,vis)     # e.g. i1['image'] = 'exp1/int.image'   i1.keys():  image, pbcor, residual, model, psf pb
+      f1 = sd.feather(pdir, 
