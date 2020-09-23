@@ -466,56 +466,58 @@ def runfeather(intimage,intpb, sdimage, featherim='featherim'):
         print(intpb+' does not exist')
         return False
 
-    #####################################
-    #            PROCESS DATA           #
-    #####################################
-    # Reorder the axes of the low to match high/pb 
+    # TO DO: Improve this bit, because it's messy
+    #
+    # #####################################
+    # #            PROCESS DATA           #
+    # #####################################
+    # # Reorder the axes of the low to match high/pb 
 
-    myfiles=[myintimage,mysdimage]
-    mykeys=['cdelt1','cdelt2','cdelt3','cdelt4']
+    # myfiles=[myintimage,mysdimage]
+    # mykeys=['cdelt1','cdelt2','cdelt3','cdelt4']
 
-    os.system('rm -rf lowres.* ')
+    # os.system('rm -rf lowres.* ')
   
 
-    im_axes={}
-    print('Making dictionary of axes information for high and lowres images')
-    for f in myfiles:
-       print(f)
-       print('------------')
-       axes = {}
-       i=0
-       for key in mykeys:
-           q = imhead(f,mode='get',hdkey=key)
-           axes[i]=q
-           i=i+1
-           print(str(key)+' : '+str(q))
-       im_axes[f]=axes
-       print(' ')
+    # im_axes={}
+    # print('Making dictionary of axes information for high and lowres images')
+    # for f in myfiles:
+    #    print(f)
+    #    print('------------')
+    #    axes = {}
+    #    i=0
+    #    for key in mykeys:
+    #        q = imhead(f,mode='get',hdkey=key)
+    #        axes[i]=q
+    #        i=i+1
+    #        print(str(key)+' : '+str(q))
+    #    im_axes[f]=axes
+    #    print(' ')
 
-    order=[]           
+    # order=[]           
 
-    for i in range(4):
-       hi_ax = im_axes[myintimage][i]['unit']
-       lo_ax = im_axes[myintimage][i]['unit']
-       if hi_ax == lo_ax:
-           order.append(str(i))
-       else:
-           lo_m1 = im_axes[mysdimage][i-1]['unit']
-           if hi_ax == lo_m1:
-               order.append(str(i-1))
-           else:
-               lo_p1 = im_axes[mysdimage][i+1]['unit']
-               if hi_ax == lo_p1:
-                   order.append(str(i+1))
-    order = ''.join(order)
-    print('order is '+order)
+    # for i in range(4):
+    #    hi_ax = im_axes[myintimage][i]['unit']
+    #    lo_ax = im_axes[myintimage][i]['unit']
+    #    if hi_ax == lo_ax:
+    #        order.append(str(i))
+    #    else:
+    #        lo_m1 = im_axes[mysdimage][i-1]['unit']
+    #        if hi_ax == lo_m1:
+    #            order.append(str(i-1))
+    #        else:
+    #            lo_p1 = im_axes[mysdimage][i+1]['unit']
+    #            if hi_ax == lo_p1:
+    #                order.append(str(i+1))
+    # order = ''.join(order)
+    # print('order is '+order)
 
-    if order=='0,1,2,3':
-       print('No reordering necessary')
-    else:
-      imtrans(imagename=mysdimage,outfile='lowres.ro',order=order)
-      lowres='lowres.ro'
-      print('Had to reorder!')
+    # if order=='0,1,2,3':
+    #    print('No reordering necessary')
+    # else:
+    #   imtrans(imagename=mysdimage,outfile='lowres.ro',order=order)
+    #   lowres='lowres.ro'
+    #   print('Had to reorder!')
 
     # Regrid low res Image to match high res image
 
