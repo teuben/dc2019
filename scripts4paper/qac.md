@@ -31,7 +31,6 @@ also used in DC2019. Make sure you copies or symlinks to the datafiles
       cd dc2019/contrib/QAC/test
       ln -s ../../../data/skymodel-b.fits
       make sky4
-      
 
 ## QAC filename conventions
 
@@ -151,10 +150,13 @@ many variables, this is the essence of the workflow:
       # niter needs to be a list in QAC, the first needs to be 0
       niter = [0, 10000]
 
-      # create a pointing file based on the skymodel
+      # create a pointing file covering the skymodel
       qac_im_ptg(phasecenter,imsize_m,pixel_m,grid,rect=True,outfile=ptg)
 
-      # loop over some configurations to make a list of INTMS via simobserve (simalma)
+      # create the TPMS
+      tpms = qac_tp_vis(pdir,model,ptg,phasecenter=phasecenter,deconv=False,maxuv=maxuv,nvgrp=nvgrp,fix=0)
+
+      # loop over some ALMA configurations to make a list of INTMS via simobserve (simalma)
       #           0:7m  1,2,3....:12m
       ms1={}
       for c in [0,1,4]:
@@ -162,10 +164,7 @@ many variables, this is the essence of the workflow:
       startmodel = ms1[cfg[0]].replace('.ms','.skymodel')	   
       intms = list(ms1.values())
 
-      # create the TPMS
-      tpms = qac_tp_vis(pdir,model,ptg,phasecenter=phasecenter,deconv=False,maxuv=maxuv,nvgrp=nvgrp,fix=0)
-
-      # map the TPMS, if not to get the PSF for an input to sdintimager()
+      # map the combination of TPMS and INTMS, if not to get the PSF for an input to sdintimager()
       qac_clean1(pdir+'/clean0', tpms, imsize_s, pixel_s, phasecenter=phasecenter,
                  **tclean_args)
 
@@ -205,3 +204,8 @@ many variables, this is the essence of the workflow:
       qac_fits('clean4/ssc.image',                'export/sky_cheat4_box1.fits',  box=box1, stats=True, smooth=2.0)
       qac_fits('clean7/int1.image.pbcor',         'export/sky_mac1_box1.fits',    box=box1, stats=True, smooth=2.0)
       qac_fits('clean7/macint.image.pbcor',       'export/sky_mac3_box1.fits',    box=box1, stats=True, smooth=2.0)
+
+
+If you want to try this out, the **make sky4** (see earlier) command will create a directory **sky4/export** with
+these example fits files. This whole run takes about an hour on my pretty decent laptop. 8GB memory will be sufficient,
+and it will use just under 2GB disk space.
