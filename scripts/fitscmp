@@ -132,6 +132,9 @@ def qac_compare(image1, image2, channel=False, ds9=False, method='mse'):
         hdu2 = fits.open(image2)
         image3 = 'tmp_diff.fits'
         data = hdu1[0].data - hdu2[0].data
+        beam1 = hdu1[0].header['BMAJ']
+        beam2 = hdu2[0].header['BMAJ']
+        print("Beams: %g %g arcsec" % (beam1*3600,beam2*3600))
         hdu = fits.PrimaryHDU(data)
         hdu.header = hdu1[0].header
         hdul = fits.HDUList([hdu])
