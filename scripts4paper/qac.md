@@ -7,11 +7,14 @@ Here is a reminder for users of QAC, a CASA wrapper.
 This is detailed within QAC, and note currently CASA6 is not yet supported. But here
 is a quick summary:
 
-Your **~/.casa/init.py** file will typically contain a line
+Your **~/.casa/init.py** file (for CASA5) or
+     **~/.casa/startup.py** file (for CASA6) or
+will typically contain a line
 
-      execfile(os.environ['HOME'] + '/.casa/QAC/casa.init.py')
+      import os
+      execfile(os.environ['HOME'] + '/.casa/QAC/casa.init.py', globals())
 
-and you will need a symlink of **~/casa/QAC** pointing to where QAC is
+and you will need a symlink of **~/.casa/QAC** pointing to where QAC is
 really located (the recommended procedure). For dc2019 this would
 be in the **dc2019/contrib/QAC** directory:
 
@@ -119,9 +122,9 @@ insode the QAC code tree.  This places the code "in the right place", and there 
 advanced steps like virtualenv if you need more flexibility.
 
 
-
+Note: the ipython **%run** command is not so useful, this is effectively the same as **"casa -c script.py"**
+and starts up a new casa session.
     
-
 
 
 ## Some examples
@@ -151,16 +154,17 @@ many variables, this is the essence of the workflow:
       niter = [0, 10000]
 
       # create a pointing file covering the skymodel
+      (phasecenter,imsize_m,pixel_m) = qac_image_desc(model)
       qac_im_ptg(phasecenter,imsize_m,pixel_m,grid,rect=True,outfile=ptg)
 
       # create the TPMS
-      tpms = qac_tp_vis(pdir,model,ptg,phasecenter=phasecenter,deconv=False,maxuv=maxuv,nvgrp=nvgrp,fix=0)
+      tpms = qac_tp_vis(pdir,model,ptg, maxuv=maxuv,nvgrp=nvgrp,fix=0)
 
       # loop over some ALMA configurations to make a list of INTMS via simobserve (simalma)
       #           0:7m  1,2,3....:12m
       ms1={}
       for c in [0,1,4]:
-           ms1[c] = qac_alma(pdir,model,imsize_m,pixel_m,cycle=7,cfg=c,ptg=ptg, phasecenter=phasecenter, times=times)
+           ms1[c] = qac_alma(pdir,model,cycle=7,cfg=c,ptg=ptg, times=times)
       startmodel = ms1[cfg[0]].replace('.ms','.skymodel')	   
       intms = list(ms1.values())
 
@@ -207,5 +211,25 @@ many variables, this is the essence of the workflow:
 
 
 If you want to try this out, the **make sky4** (see earlier) command will create a directory **sky4/export** with
-these example fits files. This whole run takes about an hour on my pretty decent laptop. 8GB memory will be sufficient,
-and it will use just under 2GB disk space.
+these example fits files. This whole run takes about an hour on my pretty decent laptop. 8GB memory will be sufficient
+if not much else is running, and it will use just under 2GB disk space.
+
+## Statistics
+
+Here is the latest QAC_STATS output (see also **sky4/qac_stats.log**), which we normally use as a regression test:
+
+                                             mean     rms       min      max         flux     sratio     MMIS     
+    QAC_STATS: export/sky_model_box1.fits   0.877345 1.332527 -0.000000 7.757001 6657.305895 1.000000   1.00000
+    QAC_STATS: export/sky_int_box1.fits     0.099852 1.006158 -2.063028 6.371232  761.737509 0.129948   0.07259
+    QAC_STATS: export/sky_tpint_box1.fits   1.251600 1.795189 -0.757912 8.376714 9497.157764 0.954541   0.56419
+    QAC_STATS: export/sky_tweak_box1.fits   0.855257 1.335149 -0.431050 7.741113 6489.699216 0.961874   0.65661
+    QAC_STATS: export/sky_feather_box1.fits 0.819862 1.394363 -1.147774 7.665894 6254.461499 0.872121   0.42671 (*)
+    QAC_STATS: export/sky_ssc_box1.fits     0.816345 1.391199 -1.149358 7.660246 6227.630835 0.870667   0.42594 (*)
+    QAC_STATS: export/sky_cheat1_box1.fits  0.872734 1.333483 -0.110546 7.928074 6657.808758 0.997119   0.91829
+    QAC_STATS: export/sky_cheat2_box1.fits  0.884755 1.351602 -0.111942 7.998563 6713.529863 0.997389   0.92132
+    QAC_STATS: export/sky_cheat3_box1.fits  0.877054 1.335772 -0.101346 7.933400 6690.762391 0.997358   0.92073
+    QAC_STATS: export/sky_cheat4_box1.fits  0.879413 1.335666 -0.096256 7.927946 6708.755831 0.997668   0.92239
+    QAC_STATS: export/sky_mac1_box1.fits    0.919618 1.488555 -0.958277 8.243704 7015.470680 0.905199   0.47010 (**)
+    QAC_STATS: export/sky_mac3_box1.fits    0.799512 1.310058 -0.832429 7.739665 6099.223716 0.912736   0.49794 (**)
+
+
