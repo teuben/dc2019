@@ -9,6 +9,8 @@ The script is found here: [scriptForImaging_tcleanTest.py](https://github.com/te
 
 Three TCLEAN variations in the script are:
 
+## Note: Should we also test multi-scale?
+
 ### (1) ``Simple''
 
 No interaction is needed, and mask is drawn based on a pb level of 0.3.
