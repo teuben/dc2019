@@ -13,6 +13,7 @@ Run under CASA 6.
 """
 
 import os
+import math
 from casatasks import casalog
 from casatasks import exportfits
 from casatasks import imhead
@@ -24,12 +25,14 @@ from casatasks import feather
 
 
 from casatools import image as iatool
+from casatools import quanta as qatool
 
 ##########################################
 
 def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf='',
                 threshold=None, sdgain=5, imsize=[], cell='', phasecenter='', dishdia=12.0,
-                start=0, width=1, nchan=-1, restfreq=None, interactive=True):
+                start=0, width=1, nchan=-1, restfreq=None, interactive=True, 
+                multiscale=False, maxscale=0.):
     """
     runsdintimg (D. Petry, ESO)
     a wrapper around the CASA task "sdintimaging"
@@ -76,6 +79,11 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
                   if False use non-interactive clean with automasking (you will
                   need to provide the threshold parameter)
 
+    multiscale - if False (default) use hogbom cleaning, otherwise multiscale
+       
+    maxscale - for multiscale cleaning, use scales up to this value (arcsec)
+             Recommended value: half the max. primary beam
+             default: 0.
 
     Examples: runsdintimg('gmc_120L.alma.all_int-weighted.ms','gmc_120L.sd.image', 
                 'gmc_120L.joint-sdgain2.5', phasecenter='J2000 12:00:00 -35.00.00.0000', 
@@ -134,6 +142,7 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
             threshold = '1mJy'
 
     myia = iatool()
+    myqa = qatool()
 
     myhead = imhead(mysdimage)
     myaxes = list(myhead['axisnames'])
@@ -184,13 +193,25 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
                      origin='runsdintimg')
 
     # specmode and deconvolver
-    if specmode == 'mfs':
-        mydeconvolver = 'mtmfs'
-    elif specmode == 'cube':
-        mydeconvolver = 'hogbom'
-        numchan = nchan
+    if multiscale:
+        if specmode == 'mfs':
+            mydeconvolver = 'mtmfs'
+        elif specmode == 'cube':
+            mydeconvolver = 'multiscale'
+            numchan = nchan
+        mycell = myqa.convert(myqa.quantity(cell),'arcsec')['value']
+        myscales = [0]
+        for i in range(1, int(math.log(maxscale/mycell/5.,2))+1):
+            myscales.append(2**i*mycell*5)
+        print("My scales: "+str(myscales))
+    else:    
+        myscales = [0]
+        if specmode == 'mfs':
+            mydeconvolver = 'mtmfs'
+        elif specmode == 'cube':
+            mydeconvolver = 'hogbom'
+            numchan = nchan
 
-    scales = [0]
 
     mygridder='mosaic'
 
@@ -231,7 +252,7 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
                      interpolation='linear',
                      wprojplanes=1,
                      deconvolver=mydeconvolver,
-                     scales=scales,
+                     scales=myscales,
                      nterms=1,
                      niter=10000000,
                      spw=spw,
@@ -269,7 +290,7 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
                      interpolation='linear',
                      wprojplanes=1,
                      deconvolver=mydeconvolver,
-                     scales=scales,
+                     scales=myscales,
                      nterms=1,
                      niter=10000000,
                      spw=spw,
