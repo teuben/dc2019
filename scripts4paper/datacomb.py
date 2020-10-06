@@ -201,9 +201,9 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
             numchan = nchan
         mycell = myqa.convert(myqa.quantity(cell),'arcsec')['value']
         myscales = [0]
-        for i in range(1, int(math.log(maxscale/mycell/5.,2))+1):
-            myscales.append(2**i*mycell*5)
-        print("My scales: "+str(myscales))
+        for i in range(1, int(math.log(maxscale/mycell/3.,2))+1):
+            myscales.append(2**i*3.)
+        print("My scales (units of pixels): "+str(myscales))
     else:    
         myscales = [0]
         if specmode == 'mfs':
