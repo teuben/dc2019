@@ -77,7 +77,6 @@ if(mystep in thesteps):
          imsize = [1120, 1120],
          cell = '0.21arcsec',
          deconvolver = 'hogbom',
-         niter = 100,
          weighting = 'briggs',
          robust = 0.5,
          mask = '',
@@ -97,6 +96,7 @@ if(mystep in thesteps):
          growiterations=75,
          negativethreshold=0.0,
          # use the following parameters for interactive cleaning and comment out the above  
+         #niter = 100,
          #interactive = True
          #usemask='pb', 
          #pbmask=0.4
