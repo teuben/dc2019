@@ -14,63 +14,163 @@ Run under CASA 6.
 
 
 
+import sys 
+sys.path.append('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/')
+
+import datacomb as dc
+
+
+
+pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/gmcSkymodel_120L/gmc_120L/'   # path to the folder with the files to be concatenated
+
+pathtoimage = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/DC_Ly_tests/'   # path to the folder where to put the combination and image results
+
+concatms  = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
+
+
+TPimage      = pathtoconcat + 'gmc_120L.sd.image'
+
+imname = pathtoimage + 'skymodel-b_120L'                                   # image base name
 
 
 
 
 
+# general clean parameters:
+
+tclean_param = dict(infiles=[tpmstoimage], overwrite=overwrite,
+                                  phasecenter=model_refdir, mode='channel',
+                                  nchan=model_nchan, start=0, width=1)
+tclean_param['gridfunction'] = 'SF'
+runtclean(**tclean_param)                    
+                                                      
+# feather parameters:
+
+
+# Faridani parameters:
+
+
+# Hybrid feather paramteters:
+
+
+# SDINT parameters:
 
 
 
 
 
+# methods for combining agg. bandwidth image with TP image - cube not yet tested/provided
 
 
-pathtoconcat =                                 # path to the folder with the files to be concatenated
 
-pathtoimage =                                  # path to the folder where to put the combination and image results
 
-concatms  = pathtoimage + 'skymodel-a_120L.alma.all_int-weighted.ms'  # path and name of concatenated file
 
-imname = pathtoimage +                                      # image base name
 
 
 
 thesteps = []
+step_title = {0: 'Concat',
+              1: 'Clean for Feather/Faridani'
+              1: 'Feather', 
+              2: 'Faridani',
+              3: 'Hybrid (startmodel clean + Feather)',
+              4: 'SDINT',
+              5: 'TP2VIS'}
+
 
 mystep = 0
 if(mystep in thesteps):
-  casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
-  print('Step ', mystep, step_title[mystep])
-
-  thevis = [pathtoconcat + 'skymodel-b_120L.alma.cycle6.4.2018-10-02.ms',
-            pathtoconcat + 'skymodel-b_120L.alma.cycle6.1.2018-10-02.ms',
-            pathtoconcat + 'skymodel-b_120L.alma.cycle6.4.2018-10-03.ms',
-            pathtoconcat + 'skymodel-b_120L.alma.cycle6.1.2018-10-03.ms',
-            pathtoconcat + 'skymodel-b_120L.alma.cycle6.4.2018-10-04.ms',
-            pathtoconcat + 'skymodel-b_120L.alma.cycle6.1.2018-10-04.ms',
-            pathtoconcat + 'skymodel-b_120L.alma.cycle6.4.2018-10-05.ms',
-            pathtoconcat + 'skymodel-b_120L.alma.cycle6.1.2018-10-05.ms',
-            pathtoconcat + 'skymodel-b_120L.aca.cycle6.2018-10-20.ms',
-            pathtoconcat + 'skymodel-b_120L.aca.cycle6.2018-10-21.ms',
-            pathtoconcat + 'skymodel-b_120L.aca.cycle6.2018-10-22.ms',
-            pathtoconcat + 'skymodel-b_120L.aca.cycle6.2018-10-23.ms']
-
-  weightscale = [1., 1., 1., 1., 1., 1., 1., 1.,
-                 0.116, 0.116, 0.116, 0.116]
-
-  concat(vis = thevis, 
-         concatvis = concatms,
-         visweightscale = weightscale)
-
-
+    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    print('Step ', mystep, step_title[mystep])
+    
+    thevis = [pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms',
+              pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-02.ms',
+              pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-03.ms',
+              pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-03.ms',
+              pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-04.ms',
+              pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-04.ms',
+              pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-05.ms',
+              pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-05.ms',
+              pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-20.ms',
+              pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-21.ms',
+              pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-22.ms',
+              pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-23.ms']
+    
+    weightscale = [1., 1., 1., 1., 1., 1., 1., 1.,
+                   0.116, 0.116, 0.116, 0.116]
+    
+    concat(vis = thevis, 
+           concatvis = concatms,
+           visweightscale = weightscale)
 
 
 
 
 
+mystep = 1
+if(mystep in thesteps):
+    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    print('Step ', mystep, step_title[mystep])
+
+    runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs', 
+                imsize=[], cell='', phasecenter='',
+                start=0, width=1, nchan=-1, restfreq=None,
+                threshold='', niter=0, usemask='auto-multithresh' ,
+                sidelobethreshold=2.0, noisethreshold=4.25, lownoisethreshold=1.5, 
+                minbeamfrac=0.3, growiterations=75, negativethreshold=0.0,
+                mask='', pbmask=0.4, interactive=True, 
+                multiscale=False, maxscale=0.)
 
 
+
+
+mystep = 2
+if(mystep in thesteps):
+    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    print('Step ', mystep, step_title[mystep])
+
+
+
+    runfeather(intimage,intpb, sdimage, featherim='featherim'):
+
+
+
+
+#mystep = 3
+#if(mystep in thesteps):
+#    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+#    print('Step ', mystep, step_title[mystep])
+#
+
+
+
+mystep = 4
+if(mystep in thesteps):
+    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    print('Step ', mystep, step_title[mystep])
+
+    runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs', 
+                imsize=[], cell='', phasecenter='',
+                start=0, width=1, nchan=-1, restfreq=None,
+                threshold='',niter=0,usemask='auto-multithresh' ,
+                sidelobethreshold=2.0,noisethreshold=4.25,lownoisethreshold=1.5, 
+                minbeamfrac=0.3,growiterations=75,negativethreshold=0.0,
+                mask='', pbmask=0.4,interactive=True, 
+                multiscale=False, maxscale=0.)
+
+mystep = 5
+if(mystep in thesteps):
+    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    print('Step ', mystep, step_title[mystep])
+
+    runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf='',
+                threshold=None, sdgain=5, imsize=[], cell='', phasecenter='', dishdia=12.0,
+                start=0, width=1, nchan=-1, restfreq=None, interactive=True, 
+                multiscale=False, maxscale=0.)
+#mystep = 5
+#if(mystep in thesteps):
+#    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+#    print('Step ', mystep, step_title[mystep])
 
 
 
@@ -260,41 +360,44 @@ maxscale=0.)
 
 
 
-    tclean(vis = myvis,
-         *#imagename = imname+'.TCLEAN',
-         #startmodel = startmodel,
-         field = field,
+    tclean(°vis = myvis,
+         °*#imagename = imname+'.TCLEAN',
+         °#startmodel = startmodel,
+         °field = field,
          #intent = 'OBSERVE_TARGET#ON_SOURCE',
-         phasecenter = phasecenter,
+         °phasecenter = phasecenter,
          #stokes = 'I',
          spw = spw,
          #outframe = 'LSRK',             # DEFAULT
-         specmode = specmode,
+         °specmode = specmode,
          nterms = 1,
-         imsize = imsize,
-         cell = cell,
-         *#deconvolver = 'hogbom',
-         *#niter = niter,
+         °imsize = imsize,
+         °cell = cell,
+         deconvolver = mydeconvolver,
+         scales = myscales,
+         °*#niter = niter,
          *#cycleniter = niter,
-         cyclefactor=2.0,
+         *#cyclefactor=2.0,
          weighting = 'briggs',
          robust = 0.5,
          *#gridder = 'mosaic',
          pbcor = True,
-         threshold = threshold,
-         *#interactive = interactive,
+         °threshold = threshold,
+         °*#interactive = interactive,
          ++++# Masking Parameters below this line 
          ++++# --> Should be updated depending on dataset
-         *#usemask=mymask,
+         °*#usemask=mymask,
          *#sidelobethreshold=sidelobethreshold,
          *#noisethreshold=noisethreshold,
          *#lownoisethreshold=lownoisethreshold, 
          *#minbeamfrac=minbeamfrac,
          *#growiterations=growiterations,
          *#negativethreshold=negativethreshold,
-         mask=mask,
-         *#pbmask=pbmask,
+         °mask=mask,
+         °*#pbmask=pbmask,
          verbose=True
          )
+                °start=0, width=1, nchan=-1, restfreq=None,
+                °multiscale=False, maxscale=0.):
 
 
