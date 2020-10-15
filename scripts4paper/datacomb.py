@@ -82,7 +82,7 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
     multiscale - if False (default) use hogbom cleaning, otherwise multiscale
        
     maxscale - for multiscale cleaning, use scales up to this value (arcsec)
-             Recommended value: half the max. primary beam
+             Recommended value: 10 arcsec
              default: 0.
 
     Examples: runsdintimg('gmc_120L.alma.all_int-weighted.ms','gmc_120L.sd.image', 
@@ -205,6 +205,7 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
             myscales.append(3**i*5)
 
         print("My scales (units of pixels): "+str(myscales))
+
     else:    
         myscales = [0]
         if specmode == 'mfs':
@@ -332,7 +333,8 @@ def runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs',
                 threshold='',niter=0,usemask='auto-multithresh' ,
                 sidelobethreshold=2.0,noisethreshold=4.25,lownoisethreshold=1.5, 
                 minbeamfrac=0.3,growiterations=75,negativethreshold=0.0,
-                mask='', pbmask=0.4,interactive=True):
+                mask='', pbmask=0.4,interactive=True, 
+                multiscale=False, maxscale=0.):
     """
     runWSM (A. Plunkett, NRAO)
     a wrapper around the CASA tasks "TCLEAN" and "FEATHER"
@@ -380,6 +382,13 @@ def runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs',
     interactive - the standard tclean interactive option
              default: True
     
+    multiscale - if False (default) use hogbom cleaning, otherwise multiscale
+       
+    maxscale - for multiscale cleaning, use scales up to this value (arcsec)
+             Recommended value: 10 arcsec
+             default: 0.
+
+
     Example: runtclean('gmc_120L.alma.all_int-weighted.ms', 
                 'gmc_120L', phasecenter='J2000 12:00:00 -35.00.00.0000', 
                 spw='0', field='0~68', imsize=[1120,1120], cell='0.21arcsec',
@@ -435,9 +444,9 @@ def runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs',
     ## TCLEAN METHOD WITH START MODEL
     runtclean(myvis,imname, startmodel=scaled_name,
                 phasecenter=phasecenter, 
-                spw='0', field=field, imsize=imsize, cell=cell,threshold=threshold,
+                spw=spw, field=field, imsize=imsize, cell=cell,threshold=threshold,
                 niter=niter,usemask=usemask,pbmask=pbmask,mask=mask,
-                interactive=interactive)
+                interactive=interactive,multiscale=multiscale,maxscale=maxscale)
 
     ## then FEATHER METHOD 
     highres = imname+'.TCLEAN.image'
@@ -577,16 +586,20 @@ def runfeather(intimage,intpb, sdimage, featherim='featherim'):
 
     return True
 
+
+
 ######################################
+
 def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs', 
                 imsize=[], cell='', phasecenter='',
                 start=0, width=1, nchan=-1, restfreq=None,
-                threshold='',niter=0,usemask='auto-multithresh' ,
-                sidelobethreshold=2.0,noisethreshold=4.25,lownoisethreshold=1.5, 
-                minbeamfrac=0.3,growiterations=75,negativethreshold=0.0,
-                mask='', pbmask=0.4,interactive=True):
+                threshold='', niter=0, usemask='auto-multithresh' ,
+                sidelobethreshold=2.0, noisethreshold=4.25, lownoisethreshold=1.5, 
+                minbeamfrac=0.3, growiterations=75, negativethreshold=0.0,
+                mask='', pbmask=0.4, interactive=True, 
+                multiscale=False, maxscale=0.):
     """
-    runtclean (A. Plunkett, NRAO)
+    runtclean (A. Plunkett, NRAO, D. Petry, ESO)
     a wrapper around the CASA task "TCLEAN,"
 
     vis - the MS containing the interferometric data
@@ -630,6 +643,13 @@ def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs',
     interactive - the standard tclean interactive option
              default: True
     
+    multiscale - if False (default) use hogbom cleaning, otherwise multiscale
+       
+    maxscale - for multiscale cleaning, use scales up to this value (arcsec)
+             Recommended value: 10 arcsec
+             default: 0.
+
+
     Example: runtclean('gmc_120L.alma.all_int-weighted.ms', 
                 'gmc_120L', phasecenter='J2000 12:00:00 -35.00.00.0000', 
                 spw='0', field='0~68', imsize=[1120,1120], cell='0.21arcsec',
@@ -665,41 +685,60 @@ def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs',
         print('check the mask options')
         return False
 
+    # specmode and deconvolver
+    if multiscale:
+        mydeconvolver = 'multiscale'
+        myqa = qatool()
+        mycell = myqa.convert(myqa.quantity(cell),'arcsec')['value']
+        myscales = [0]
+        for i in range(0, int(math.log(maxscale/mycell,3))):
+            myscales.append(3**i*5)
+
+        print("My scales (units of pixels): "+str(myscales))
+
+    else:    
+        myscales = [0]
+        mydeconvolver = 'hogbom'
+
+    if niter==0:
+        casalog.post('You set niter to 0 (zero, the default). Only a dirty image will be created.', 'WARN')
+
     os.system('rm -rf '+imname+'.TCLEAN.*')
     tclean(vis = myvis,
-         imagename = imname+'.TCLEAN',
-         startmodel = startmodel,
-         field = field,
-         intent = 'OBSERVE_TARGET#ON_SOURCE',
-         phasecenter = phasecenter,
-         stokes = 'I',
-         spw = spw,
-         outframe = 'LSRK',
-         specmode = specmode,
-         nterms = 1,
-         imsize = imsize,
-         cell = cell,
-         deconvolver = 'hogbom',
-         niter = niter,
-         cycleniter = niter,
-         cyclefactor=2.0,
-         weighting = 'briggs',
-         robust = 0.5,
-         gridder = 'mosaic',
-         pbcor = True,
-         threshold = threshold,
-         interactive = interactive,
-         # Masking Parameters below this line 
-         # --> Should be updated depending on dataset
-         usemask=mymask,
-         sidelobethreshold=sidelobethreshold,
-         noisethreshold=noisethreshold,
-         lownoisethreshold=lownoisethreshold, 
-         minbeamfrac=minbeamfrac,
-         growiterations=growiterations,
-         negativethreshold=negativethreshold,
-         mask=mask,pbmask=pbmask,
-         verbose=True)
+           imagename = imname+'.TCLEAN',
+           startmodel = startmodel,
+           field = field,
+           intent = 'OBSERVE_TARGET#ON_SOURCE',
+           phasecenter = phasecenter,
+           stokes = 'I',
+           spw = spw,
+           outframe = 'LSRK',
+           specmode = specmode,
+           nterms = 1,
+           imsize = imsize,
+           cell = cell,
+           deconvolver = mydeconvolver,
+           scales = myscales,
+           niter = niter,
+           cycleniter = niter,
+           cyclefactor=2.0,
+           weighting = 'briggs',
+           robust = 0.5,
+           gridder = 'mosaic',
+           pbcor = True,
+           threshold = threshold,
+           interactive = interactive,
+           # Masking Parameters below this line 
+           # --> Should be updated depending on dataset
+           usemask=mymask,
+           sidelobethreshold=sidelobethreshold,
+           noisethreshold=noisethreshold,
+           lownoisethreshold=lownoisethreshold, 
+           minbeamfrac=minbeamfrac,
+           growiterations=growiterations,
+           negativethreshold=negativethreshold,
+           mask=mask,pbmask=pbmask,
+           verbose=True)
 
     print('Exporting final pbcor image to FITS ...')
     exportfits(imname+'.TCLEAN.image.pbcor', imname+'.TCLEAN.pbcor.fits')
