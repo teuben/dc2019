@@ -1,4 +1,3 @@
-#test
 """The datacomb module
 
 Tools for different methods of interferometric/single-dish 
