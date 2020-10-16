@@ -38,9 +38,88 @@ imname = pathtoimage + 'skymodel-b_120L'                                   # ima
 
 # general clean parameters:
 
-tclean_param = dict(infiles=[tpmstoimage], overwrite=overwrite,
-                                  phasecenter=model_refdir, mode='channel',
-                                  nchan=model_nchan, start=0, width=1)
+tclean_param = dict(
+    vis=[concatms], 
+    overwrite=overwrite,
+    phasecenter=model_refdir, mode='channel',
+    nchan=model_nchan, start=0, width=1)
+
+vis, 
+imname,
+
+spw='', 
+field='', 
+specmode='mfs', 
+              
+imsize=[], 
+cell='', 
+phasecenter='',
+                
+start=0, 
+width=1, 
+nchan=-1, 
+restfreq=None,
+                
+threshold='', # SDINT: None 
+
+interactive=True, 
+                
+multiscale=False, 
+maxscale=0.
+
+
+
+### tclean specific 
+
+startmodel='',  # ---> sdimage in WSM
+
+
+
+
+
+### runtclean/WSM specific
+niter=0,
+
+usemask='auto-multithresh' ,               
+sidelobethreshold=2.0, 
+noisethreshold=4.25, 
+lownoisethreshold=1.5,               
+minbeamfrac=0.3, 
+growiterations=75, 
+negativethreshold=0.0,
+               
+mask='', 
+pbmask=0.4, 
+
+
+
+
+
+
+
+#### WSM specific
+ 
+sdimage,  ### startmodel 
+
+
+
+# SDint specific
+
+sdimage, 
+jointname, ### = imname 
+
+sdpsf='',
+sdgain=5, 
+dishdia=12.0,
+
+
+
+
+
+
+
+
+
 tclean_param['gridfunction'] = 'SF'
 runtclean(**tclean_param)                    
                                                       
@@ -328,7 +407,7 @@ maxscale=0.)
                      weighting='briggs',
                      robust = 0.5,
                      specmode=specmode,
-                     *=gridder=mygridder, # mosaic
+                     *#gridder=mygridder, # mosaic
                      pblimit=0.2, 
                      pbcor=True,
                      interpolation='linear',
