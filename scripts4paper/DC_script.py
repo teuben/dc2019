@@ -21,10 +21,30 @@ import datacomb as dc
 import ssc_DC as ssc
 
 
-
+# path to input and outputs
 pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/gmcSkymodel_120L/gmc_120L/'   # path to the folder with the files to be concatenated
 pathtoimage  = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/DC_Ly_tests/'   # path to the folder where to put the combination and image results
+
+# setup for concat 
+thevis = [pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms',
+          pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-02.ms',
+          pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-03.ms',
+          pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-03.ms',
+          pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-04.ms',
+          pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-04.ms',
+          pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-05.ms',
+          pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-05.ms',
+          pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-20.ms',
+          pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-21.ms',
+          pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-22.ms',
+          pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-23.ms']
+
+weightscale = [1., 1., 1., 1., 1., 1., 1., 1.,
+               0.116, 0.116, 0.116, 0.116]
+
 concatms     = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
+
+
 
 
 ############# input to combination methods 
@@ -56,28 +76,73 @@ imbase    = pathtoimage + 'skymodel-b_120L'            # path + image base name
 # e.g. cleansetup = '.cube.n1e9.MS.AM'
 
 mode   = 'mfs'    # 'mfs' or 'cube'
-mscale = 'HB' # 'MS' (multiscale) or 'HB' (hogbom)
-inter  = 'man' # 'man' (manual), 'AM' ('auto-multithresh') or 'PB' (primary beam - not yet implemented)
-nit = 10000000
+mscale = 'HB'     # 'MS' (multiscale) or 'HB' (hogbom)
+inter  = 'AM'    # 'man' (manual), 'AM' ('auto-multithresh') or 'PB' (primary beam - not yet implemented)
+nit = 0           # max = 9.9 * 10**9 
 
 #cleansetup = "."+ mode +"."+ mscale +"."+ inter + (".n%.1e").replace("+","")  %(nit)
-cleansetup = "."+ mscale +"."+ inter + (".n%.1e").replace("+","")  %(nit)
+cleansetup = "."+ mscale +"."+ inter + ".n%.1e" %(nit)
+cleansetup = cleansetup.replace("+0","")
 
 
+#### general tclean parameters:
+#
+#general_tclean_param = dict(#overwrite  = overwrite,
+#                           spw         = '', 
+#                           field       = '', 
+#                           specmode    = mode,      # ! change in variable above dict !        
+#                           imsize      = [], 
+#                           cell        = '', 
+#                           phasecenter = '',             
+#                           start       = 0, 
+#                           width       = 1, 
+#                           nchan       = -1, 
+#                           restfreq    = None,
+#                           threshold   = '',        # SDINT: None 
+#                           maxscale    = 0.)        # recommendations/explanations 
+#                           
+#                           # interactive = True,      # couple to usemak!           
+#                           # multiscale  = False, 
+#
+#
+#### runtclean/WSM specific tclean parameters:
+#
+#special_tclean_param = dict(niter      = nit,
+#                           mask        = '', 
+#                           pbmask      = 0.4,
+#                           #usemask           = 'auto-multithresh',    # couple to interactive!              
+#                           sidelobethreshold = 2.0, 
+#                           noisethreshold    = 4.25, 
+#                           lownoisethreshold = 1.5,               
+#                           minbeamfrac       = 0.3, 
+#                           growiterations    = 75, 
+#                           negativethreshold = 0.0)
+#
+#
+#### SDint specific parameters:
+#
+#sdint_clean_param = dict(sdpsf   = '',
+#                         #sdgain  = 5,     # own factor! see below!
+#                         dishdia = 12.0)
+#                       
+                       
+                       
+                       
+                       
 ### general tclean parameters:
 
-general_tclean_param = dict(overwrite  = overwrite,
-                           spw         = '', 
-                           field       = '', 
+general_tclean_param = dict(#overwrite  = overwrite,
+                           spw         = '0', 
+                           field       = '0~68', 
                            specmode    = mode,      # ! change in variable above dict !        
-                           imsize      = [], 
-                           cell        = '', 
-                           phasecenter = '',             
+                           imsize      = [1120], 
+                           cell        = '0.21arcsec',    # arcsec
+                           phasecenter = 'J2000 12:00:00 -35.00.00.0000',             
                            start       = 0, 
                            width       = 1, 
                            nchan       = -1, 
                            restfreq    = None,
-                           threshold   = '',        # SDINT: None 
+                           threshold   = '0.021Jy',        # SDINT: None 
                            maxscale    = 0.)        # recommendations/explanations 
                            
                            # interactive = True,      # couple to usemak!           
@@ -103,23 +168,26 @@ special_tclean_param = dict(niter      = nit,
 sdint_clean_param = dict(sdpsf   = '',
                          #sdgain  = 5,     # own factor! see below!
                          dishdia = 12.0)
+                       
+                       
+                       
                          
                          
 ### naming scheme specific inputs:
                          
-if inter = 'man':
+if inter == 'man':
     general_tclean_param['interactive'] = True    # parameter combination from sdint
-	special_tclean_param['usemask']     = 'pb'
-if inter = 'AM':
+    special_tclean_param['usemask']     = 'pb'
+if inter == 'AM':
     general_tclean_param['interactive'] = False   # parameter combination from sdint
-	special_tclean_param['usemask']     = 'auto-multithresh'
-#if inter = 'PB':
+    special_tclean_param['usemask']     = 'auto-multithresh'
+#if inter == 'PB':
 #    general_tclean_param['interactive'] = False
-#	special_tclean_param['usemask']     = 'pb'
+#   special_tclean_param['usemask']     = 'pb'
 
-if mscale = 'HB':
+if mscale == 'HB':
     general_tclean_param['multiscale'] = False
-if mscale = 'MS':
+if mscale == 'MS':
     general_tclean_param['multiscale'] = True      # automated scale choice dependant on maxscale
 
 
@@ -145,23 +213,40 @@ SSCfac = [1.0]
 sdfac_h = [1.0]
 
 # SDINT parameters:
-sdgfac = [1.0]
+sdg = [1.0]
+
+## TP2VIS parameters:
+#tweak = [1.0]
 
 
 
-### output of combination methods
+### output of combination methods 
 
-imnametclean  = imbase + cleansetup + # output: imnametclean  + '.TCLEAN.image '
-imnamefeather = imbase + cleansetup + # output: imnamefeather = '.image'
-imnameSSC     = imbase + cleansetup + # output: imnameSSC     + '_ssc_f%sTP%s%s.image'   % (f,label,niter_label)
-imnamehybrid  = imbase + cleansetup + # output: imnamehybrid  + '.combined.image'			    
-imnamesdint   = imbase + cleansetup + # output: imnamesdint   + '.joint.multiterm.image.tt0' or '.joint.cube.image'
-
-
-
+#tcleansetup  = 
+feathersetup = '.feather_f' #+ str(sdfac)
+SSCsetup     = '.SSC_f'     #+ str(SSCfac)
+hybridsetup  = '.hybrid_f'  #+ str(sdfac_h)
+sdintsetup   = '.sdint_g'   #+ str(sdg)
+#TP2VISsetup  = '.TP2VIS_t'  #+ str(tweak)
 
 
+# current output: imnametclean  = imbase + cleansetup + '.TCLEAN.image '
+# current output: imnamefeather = imbase + cleansetup + '.image'
+# current output: imnameSSC     = imbase + cleansetup + '_ssc_f%sTP%s%s.image'   % (f,label,niter_label)
+# current output: imnamehybrid  = imbase + cleansetup + '.combined.image'               
+# current output: imnamesdint   = imbase + cleansetup + '.joint.multiterm.image.tt0' or '.joint.cube.image'
 
+
+####### collect file names for assessment ######
+
+dryrun = False    # False to execute combination, True to gather filenames only
+
+tcleanims  = []
+featherims = []
+SSCims     = []
+hybridims  = []
+sdintims   = []
+#TP2VISims  = []
 
 
 # methods for combining agg. bandwidth image with TP image - cube not yet tested/provided
@@ -182,22 +267,6 @@ if(mystep in thesteps):
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     print('Step ', mystep, step_title[mystep])
     
-    thevis = [pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms',
-              pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-02.ms',
-              pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-03.ms',
-              pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-03.ms',
-              pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-04.ms',
-              pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-04.ms',
-              pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-05.ms',
-              pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-05.ms',
-              pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-20.ms',
-              pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-21.ms',
-              pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-22.ms',
-              pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-23.ms']
-    
-    weightscale = [1., 1., 1., 1., 1., 1., 1., 1.,
-                   0.116, 0.116, 0.116, 0.116]
-    
     os.system('rm -rf '+concatms)
 
     concat(vis = thevis, concatvis = concatms, visweightscale = weightscale)
@@ -209,18 +278,32 @@ if(mystep in thesteps):
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     print('Step ', mystep, step_title[mystep])
 
-    imname = imnametclean
+    imname = imbase + '_full' #+ cleansetup
 
-    dc.runtclean(vis, imname, startmodel='', **general_tclean_param, **special_tclean_param)
 
-    #dc.runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs', 
-    #            imsize=[], cell='', phasecenter='',
-    #            start=0, width=1, nchan=-1, restfreq=None,
-    #            threshold='', niter=0, usemask='auto-multithresh' ,
-    #            sidelobethreshold=2.0, noisethreshold=4.25, lownoisethreshold=1.5, 
-    #            minbeamfrac=0.3, growiterations=75, negativethreshold=0.0,
-    #            mask='', pbmask=0.4, interactive=True, 
-    #            multiscale=False, maxscale=0.)
+    # for CASA 5.7:
+    z = general_tclean_param.copy()   
+    z.update(special_tclean_param)
+    
+    
+
+    if dryrun == True:
+        pass
+    else:
+        dc.runtclean(vis, imname, startmodel='', **z)
+#        dc.runtclean(vis, imname, startmodel='', 
+#                     **general_tclean_param, **special_tclean_param)
+	    
+        #dc.runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs', 
+        #            imsize=[], cell='', phasecenter='',
+        #            start=0, width=1, nchan=-1, restfreq=None,
+        #            threshold='', niter=0, usemask='auto-multithresh' ,
+        #            sidelobethreshold=2.0, noisethreshold=4.25, lownoisethreshold=1.5, 
+        #            minbeamfrac=0.3, growiterations=75, negativethreshold=0.0,
+        #            mask='', pbmask=0.4, interactive=True, 
+        #            multiscale=False, maxscale=0.)
+
+    tcleanims.append(imname)
 
 
 
@@ -229,18 +312,47 @@ if(mystep in thesteps):
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     print('Step ', mystep, step_title[mystep])
 
-    dc.runfeather(intimage, intpb, sdimage, #sdfactor = sdfac[0],
-                  featherim='featherim')
+    intimage = imbase + cleansetup + '.image'
+    intpb    = imbase + cleansetup + '.pb'
 
-    #dc.runfeather(intimage,intpb, sdimage, featherim='featherim')
+    for i in range(0,len(sdfac)):
+        imname = imbase + cleansetup + feathersetup + str(sdfac[i]) 
+	    
+        if dryrun == True:
+            pass
+        else:
+            dc.runfeather(intimage, intpb, sdimage, #sdfactor = sdfac[i],
+                          featherim = imname)
+	        
+            #dc.runfeather(intimage,intpb, sdimage, featherim='featherim')
+
+        featherims.append(imname)
 
 
 
-#mystep = 3    ################----- FARIDANI SSC -----#################
-#if(mystep in thesteps):
-#    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
-#    print('Step ', mystep, step_title[mystep])
-#
+
+mystep = 3    ################----- FARIDANI SSC -----#################
+if(mystep in thesteps):
+    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    print('Step ', mystep, step_title[mystep])
+
+    for i in range(0,len(sdfac)):
+        imname = imbase + cleansetup + SSCsetup + str(SSCfac[i]) 
+	    
+        if dryrun == True:
+            pass
+        else:
+            ssc.ssc(pathtoimage,highres=imbase+cleansetup+'.image', 
+                lowres=sdimage, f = SSCfac[i]) 
+
+            os.system('for file in '+imbase+cleansetup+'_ssc_f'+str(SSCfac[i])+'TP* \
+                       do mv "$file" "${file//_ssc_f'+str(SSCfac[i])+'TP/'+SSCsetup + str(SSCfac[i])+'}" \
+                       done')   # rename output to our convention 
+
+        SSCims.append(imname)
+
+
+
 
 
 mystep = 4    ###################----- HYBRID -----####################
@@ -248,18 +360,31 @@ if(mystep in thesteps):
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     print('Step ', mystep, step_title[mystep])
 
-    dc.runWSM(vis, sdimage, imname, #sdfactor = sdfac_h[0],
-              **general_tclean_param, **special_tclean_param)
 
-    #dc.runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs', 
-    #            imsize=[], cell='', phasecenter='',
-    #            start=0, width=1, nchan=-1, restfreq=None,
-    #            threshold='',niter=0,usemask='auto-multithresh' ,
-    #            sidelobethreshold=2.0,noisethreshold=4.25,lownoisethreshold=1.5, 
-    #            minbeamfrac=0.3,growiterations=75,negativethreshold=0.0,
-    #            mask='', pbmask=0.4,interactive=True, 
-    #            multiscale=False, maxscale=0.)
+    for i in range(0,len(sdfac_h)):
+        imname = imbase + cleansetup + hybridsetup + str(sdfac_h[i]) 
+	    
+        if dryrun == True:
+            pass
+        else:
+            dc.runWSM(vis, sdimage, imname, #sdfactor = sdfac_h[i],
+                      **general_tclean_param, **special_tclean_param)
+	        
+            #dc.runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs', 
+            #            imsize=[], cell='', phasecenter='',
+            #            start=0, width=1, nchan=-1, restfreq=None,
+            #            threshold='',niter=0,usemask='auto-multithresh' ,
+            #            sidelobethreshold=2.0,noisethreshold=4.25,lownoisethreshold=1.5, 
+            #            minbeamfrac=0.3,growiterations=75,negativethreshold=0.0,
+            #            mask='', pbmask=0.4,interactive=True, 
+            #            multiscale=False, maxscale=0.)
 
+
+            os.system('for file in '+imbase+cleansetup+'.combined* \
+                       do mv "$file" "${file//.combined/'+hybridsetup + str(sdfac_h[i])+'}" \
+                       done')   # rename output to our convention 
+
+        hybridims.append(imname)
 
 
 mystep = 5    ####################----- SDINT -----####################
@@ -267,15 +392,29 @@ if(mystep in thesteps):
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     print('Step ', mystep, step_title[mystep])
 
-    dc.runsdintimg(vis, sdimage, jointname, #sdgain = sdgfac[0],
+    for i in range(0,len(sdg)) :
+        jointname = imbase + cleansetup + sdintsetup + str(sdg[i]) 
+	    
+        if dryrun == True:
+            pass
+        else:
+            dc.runsdintimg(vis, sdimage, jointname, sdgain = sdg[0],
                    **general_tclean_param, **sdint_tclean_param)
+                        
+            #dc.runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf='',
+            #            threshold=None, sdgain=5, imsize=[], cell='', phasecenter='', dishdia=12.0,
+            #            start=0, width=1, nchan=-1, restfreq=None, interactive=True, 
+            #            multiscale=False, maxscale=0.)                
+  
+  
+  
+  
                 
-    #dc.runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf='',
-    #            threshold=None, sdgain=5, imsize=[], cell='', phasecenter='', dishdia=12.0,
-    #            start=0, width=1, nchan=-1, restfreq=None, interactive=True, 
-    #            multiscale=False, maxscale=0.)                
-                
-                
+            os.system('for file in '+imbase+cleansetup+'.combined* \
+                       do mv "$file" "${file//.combined/'+hybridsetup + str(sdfac_h[i])+'}" \
+                       done')   # rename output to our convention 
+
+        hybridims.append(imname)                
                 
                 
 #mystep = 5    ###################----- TP2VIS -----####################
