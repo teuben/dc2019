@@ -14,18 +14,21 @@ Run under CASA 6.
 
 import os
 import math
-from casatasks import casalog
-from casatasks import exportfits
-from casatasks import imhead
-from casatasks import sdintimaging
-from casatasks import tclean
-from casatasks import immath
-from casatasks import imregrid, imtrans
-from casatasks import feather
+try:
+    from casatasks import casalog
+    from casatasks import exportfits
+    from casatasks import imhead
+    from casatasks import sdintimaging
+    from casatasks import tclean
+    from casatasks import immath
+    from casatasks import imregrid, imtrans
+    from casatasks import feather
 
+    from casatools import image as iatool
+    from casatools import quanta as qatool
+except:
+    print("Warning: datacomb assuming not in casa6")
 
-from casatools import image as iatool
-from casatools import quanta as qatool
 
 ##########################################
 
@@ -262,11 +265,12 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
                      width=width,
                      nchan = numchan, 
                      field = field,
-                     cycleniter=100,
                      threshold=threshold,
                      restfreq=therf,
                      perchanweightdensity=False,
+                     
                      interactive=True,
+                     cycleniter=100,
                      usemask='pb',
                      pbmask=0.4,
                  )
@@ -303,6 +307,7 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
                      threshold=threshold,
                      restfreq=therf,
                      perchanweightdensity=False,
+                     
                      interactive=False,
                      cycleniter = 100000, 
                      cyclefactor=2.0,
@@ -744,4 +749,3 @@ def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs',
     exportfits(imname+'.TCLEAN.image.pbcor', imname+'.TCLEAN.pbcor.fits')
 
     return True
-
