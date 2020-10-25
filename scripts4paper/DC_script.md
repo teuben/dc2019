@@ -29,7 +29,7 @@ ms - data sets
 
       pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/gmcSkymodel_120L/gmc_120L/'   # path to the folder with the files to be concatenated
       pathtoimage  = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/DC_Ly_tests/'   # path to the folder where to put the combination and image results
-      concatms     = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
+      concatms     = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       # path and name of concatenated file (e.g. blabla.ms)
 
 The list of files to concatenate is defined in the concat section
 
@@ -43,7 +43,7 @@ The list of files to concatenate is defined in the concat section
 
 With this section, we define the clean parameters common for all clean 
 instances used in the combination methods. 
-Based on this, we can define a meaningful file name snipplet to attach 
+Based on this, we can define a meaningful file name snipplets to attach 
 to the imbase, reflecting the relevant clean properties (you define). 
 
        general_tclean_param  - present in all methods
@@ -51,7 +51,23 @@ to the imbase, reflecting the relevant clean properties (you define).
                                 -> to be merged into general_tclean_param
        sdint_clean_param     - only given in runsdintimg
 
-Further parameters depend 
+Further parameters like usemask and interactive depend on the choice of 
+the clean name snipplets.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
