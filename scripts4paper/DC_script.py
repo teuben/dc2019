@@ -15,18 +15,18 @@ Run under CASA 6.
 
 
 import sys 
-sys.path.append('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/')
+sys.path.append('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/')               # path to the folder swith datacomb.py and ssc_DC.py
 
 import datacomb as dc
-import ssc_DC as ssc
+#import ssc_DC as ssc     # need to import casatasks therein!
 
 
 # path to input and outputs
 pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/gmcSkymodel_120L/gmc_120L/'   # path to the folder with the files to be concatenated
-pathtoimage  = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/DC_Ly_tests/'   # path to the folder where to put the combination and image results
+pathtoimage  = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/DC_Ly_tests/'                          # path to the folder where to put the combination and image results
 
 # setup for concat 
-thevis = [pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms',
+thevis = [pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms']#,
           pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-02.ms',
           pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-03.ms',
           pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-03.ms',
@@ -39,7 +39,7 @@ thevis = [pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms',
           pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-22.ms',
           pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-23.ms']
 
-weightscale = [1., 1., 1., 1., 1., 1., 1., 1.,
+weightscale = [1.]#, 1., 1., 1., 1., 1., 1., 1.,
                0.116, 0.116, 0.116, 0.116]
 
 concatms     = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
@@ -47,7 +47,7 @@ concatms     = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       # 
 
 
 
-############# input to combination methods 
+############# input to combination methods ###########
 
 vis       = concatms 
 sdimage   = pathtoconcat + 'gmc_120L.sd.image'
@@ -76,7 +76,7 @@ imbase    = pathtoimage + 'skymodel-b_120L'            # path + image base name
 # e.g. cleansetup = '.cube.n1e9.MS.AM'
 
 mode   = 'mfs'    # 'mfs' or 'cube'
-mscale = 'HB'     # 'MS' (multiscale) or 'HB' (hogbom)
+mscale = 'HB'     # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT!)) 
 inter  = 'AM'    # 'man' (manual), 'AM' ('auto-multithresh') or 'PB' (primary beam - not yet implemented)
 nit = 0           # max = 9.9 * 10**9 
 
@@ -107,7 +107,7 @@ cleansetup = cleansetup.replace("+0","")
 #
 #### runtclean/WSM specific tclean parameters:
 #
-#special_tclean_param = dict(niter      = nit,
+#special_tclean_param = dict(niter      = nit,      # ! change in variable above dict !
 #                           mask        = '', 
 #                           pbmask      = 0.4,
 #                           #usemask           = 'auto-multithresh',    # couple to interactive!              
@@ -121,7 +121,7 @@ cleansetup = cleansetup.replace("+0","")
 #
 #### SDint specific parameters:
 #
-#sdint_clean_param = dict(sdpsf   = '',
+#sdint_tclean_param = dict(sdpsf   = '',
 #                         #sdgain  = 5,     # own factor! see below!
 #                         dishdia = 12.0)
 #                       
@@ -151,7 +151,7 @@ general_tclean_param = dict(#overwrite  = overwrite,
 
 ### runtclean/WSM specific tclean parameters:
 
-special_tclean_param = dict(niter      = nit,
+special_tclean_param = dict(niter      = nit,      # ! change in variable above dict !
                            mask        = '', 
                            pbmask      = 0.4,
                            #usemask           = 'auto-multithresh',    # couple to interactive!              
@@ -165,7 +165,7 @@ special_tclean_param = dict(niter      = nit,
 
 ### SDint specific parameters:
 
-sdint_clean_param = dict(sdpsf   = '',
+sdint_tclean_param = dict(sdpsf   = '',
                          #sdgain  = 5,     # own factor! see below!
                          dishdia = 12.0)
                        
@@ -222,7 +222,7 @@ sdg = [1.0]
 
 ### output of combination methods 
 
-#tcleansetup  = 
+tcleansetup  = '.tclean'
 feathersetup = '.feather_f' #+ str(sdfac)
 SSCsetup     = '.SSC_f'     #+ str(SSCfac)
 hybridsetup  = '.hybrid_f'  #+ str(sdfac_h)
@@ -257,8 +257,9 @@ step_title = {0: 'Concat',
               1: 'Feather', 
               2: 'Faridani short spacings combination (SSC)',
               3: 'Hybrid (startmodel clean + Feather)',
-              4: 'SDINT',
-              5: 'TP2VIS'}
+              4: 'SDINT'#,
+              #5: 'TP2VIS'
+              }
 
         
     
@@ -278,21 +279,19 @@ if(mystep in thesteps):
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     print('Step ', mystep, step_title[mystep])
 
-    imname = imbase + '_full' #+ cleansetup
+    imname = imbase + cleansetup = tcleansetup
 
-
-    # for CASA 5.7:
-    z = general_tclean_param.copy()   
-    z.update(special_tclean_param)
-    
-    
+    #### for CASA 5.7:
+    #z = general_tclean_param.copy()   
+    #z.update(special_tclean_param)
 
     if dryrun == True:
         pass
     else:
-        dc.runtclean(vis, imname, startmodel='', **z)
-#        dc.runtclean(vis, imname, startmodel='', 
-#                     **general_tclean_param, **special_tclean_param)
+        os.system('rm -rf '+imname+'*')
+        #dc.runtclean(vis, imname, startmodel='', **z)    # in CASA 5.7
+        dc.runtclean(vis, imname, startmodel='', 
+                     **general_tclean_param, **special_tclean_param)   # in CASA 6.x
 	    
         #dc.runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs', 
         #            imsize=[], cell='', phasecenter='',
@@ -303,6 +302,14 @@ if(mystep in thesteps):
         #            mask='', pbmask=0.4, interactive=True, 
         #            multiscale=False, maxscale=0.)
 
+        #os.system('for f in '+imbase+cleansetup+'.TCLEAN*; \
+         #          do mv "$f" "${f/.TCLEAN./.}" \
+          #         done')   # rename output to our convention 
+        #os.system('for f in '+imbase+cleansetup+'.TCLEAN*; do mv "$f" "$(echo $f | sed 's/^.TCLEAN././g')"; done')
+
+        os.system('rename "s/.TCLEAN//g" '+imname+'.TCLEAN*')
+
+
     tcleanims.append(imname)
 
 
@@ -312,12 +319,16 @@ if(mystep in thesteps):
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     print('Step ', mystep, step_title[mystep])
 
-    intimage = imbase + cleansetup + '.image'
-    intpb    = imbase + cleansetup + '.pb'
+    intimage = imbase + cleansetup + '.tclean.image'
+    intpb    = imbase + cleansetup + '.tclean.pb'
 
     for i in range(0,len(sdfac)):
+		
         imname = imbase + cleansetup + feathersetup + str(sdfac[i]) 
-	    
+		
+        os.system('rm -rf '+pathtoimage+'lowres*')
+        os.system('rm -rf '+imname+'.image.pbcor.fits')
+			    
         if dryrun == True:
             pass
         else:
@@ -336,18 +347,23 @@ if(mystep in thesteps):
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     print('Step ', mystep, step_title[mystep])
 
+    execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/ssc_DC.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
+
     for i in range(0,len(sdfac)):
         imname = imbase + cleansetup + SSCsetup + str(SSCfac[i]) 
 	    
         if dryrun == True:
             pass
         else:
-            ssc.ssc(pathtoimage,highres=imbase+cleansetup+'.image', 
+            os.system('rm -rf '+imname+'*')
+            ssc(pathtoimage,highres=imbase+cleansetup+'.image', 
                 lowres=sdimage, f = SSCfac[i]) 
 
-            os.system('for file in '+imbase+cleansetup+'_ssc_f'+str(SSCfac[i])+'TP* \
-                       do mv "$file" "${file//_ssc_f'+str(SSCfac[i])+'TP/'+SSCsetup + str(SSCfac[i])+'}" \
-                       done')   # rename output to our convention 
+            #os.system('for file in '+imbase+cleansetup+'_ssc_f'+str(SSCfac[i])+'TP* \
+            #           do mv "$file" "${file//_ssc_f'+str(SSCfac[i])+'TP/'+SSCsetup + str(SSCfac[i])+'}" \
+            #           done')   # rename output to our convention 
+
+            os.system('rename "s/_ssc_f'+str(SSCfac[i])+'TP/'+SSCsetup + str(SSCfac[i])+'/g" '+imbase+cleansetup+'_ssc_f'+str(SSCfac[i])+'TP*')
 
         SSCims.append(imname)
 
@@ -363,10 +379,14 @@ if(mystep in thesteps):
 
     for i in range(0,len(sdfac_h)):
         imname = imbase + cleansetup + hybridsetup + str(sdfac_h[i]) 
+
+        os.system('rm -rf '+pathtoimage+'lowres*')
+        os.system('rm -rf '+imname+'.image.pbcor.fits')
 	    
         if dryrun == True:
             pass
         else:
+            os.system('rm -rf '+imname+'*')
             dc.runWSM(vis, sdimage, imname, #sdfactor = sdfac_h[i],
                       **general_tclean_param, **special_tclean_param)
 	        
@@ -380,9 +400,11 @@ if(mystep in thesteps):
             #            multiscale=False, maxscale=0.)
 
 
-            os.system('for file in '+imbase+cleansetup+'.combined* \
-                       do mv "$file" "${file//.combined/'+hybridsetup + str(sdfac_h[i])+'}" \
-                       done')   # rename output to our convention 
+            #os.system('for file in '+imbase+cleansetup+'.combined* \
+            #           do mv "$file" "${file//.combined/'+hybridsetup + str(sdfac_h[i])+'}" \
+            #           done')   # rename output to our convention 
+
+            os.system('rename "s/.combined//g" '+imname+'.combined*')
 
         hybridims.append(imname)
 
@@ -398,6 +420,7 @@ if(mystep in thesteps):
         if dryrun == True:
             pass
         else:
+            os.system('rm -rf '+jointname+'*')
             dc.runsdintimg(vis, sdimage, jointname, sdgain = sdg[0],
                    **general_tclean_param, **sdint_tclean_param)
                         
@@ -405,16 +428,16 @@ if(mystep in thesteps):
             #            threshold=None, sdgain=5, imsize=[], cell='', phasecenter='', dishdia=12.0,
             #            start=0, width=1, nchan=-1, restfreq=None, interactive=True, 
             #            multiscale=False, maxscale=0.)                
-  
-  
-  
-  
-                
-            os.system('for file in '+imbase+cleansetup+'.combined* \
-                       do mv "$file" "${file//.combined/'+hybridsetup + str(sdfac_h[i])+'}" \
-                       done')   # rename output to our convention 
 
-        hybridims.append(imname)                
+            #os.system('for file in '+imbase+cleansetup+'.combined* \
+            #           do mv "$file" "${file//.combined/'+hybridsetup + str(sdfac_h[i])+'}" \
+            #           done')   # rename output to our convention 
+
+            os.system('rename "s/.joint.multiterm//g" '+jointname+'.joint.multiterm.*')
+            os.system('rename "s/.tt0//g" '+jointname+'.*.tt0*')
+            os.system('rename "s/.joint.cube//g" '+jointname+'.joint.cube.*')
+
+        sdintims.append(imname)                
                 
                 
 #mystep = 5    ###################----- TP2VIS -----####################
@@ -425,6 +448,9 @@ if(mystep in thesteps):
 
 
 
+# delete tclean TempLattices
+
+os.system('rm -rf '+pathtoimage + 'TempLattice*')
 
 
 
