@@ -28,20 +28,20 @@ pathtoimage  = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/DC_Ly_tests/'  
 # setup for concat 
 
 thevis = [pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms']#,
-          pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-02.ms',
-          pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-03.ms',
-          pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-03.ms',
-          pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-04.ms',
-          pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-04.ms',
-          pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-05.ms',
-          pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-05.ms',
-          pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-20.ms',
-          pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-21.ms',
-          pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-22.ms',
-          pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-23.ms']
+          #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-02.ms',
+          #pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-03.ms',
+          #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-03.ms',
+          #pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-04.ms',
+          #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-04.ms',
+          #pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-05.ms',
+          #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-05.ms',
+          #pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-20.ms',
+          #pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-21.ms',
+          #pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-22.ms',
+          #pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-23.ms']
 
 weightscale = [1.]#, 1., 1., 1., 1., 1., 1., 1.,
-               0.116, 0.116, 0.116, 0.116]
+               #0.116, 0.116, 0.116, 0.116]
 
 concatms     = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
 
