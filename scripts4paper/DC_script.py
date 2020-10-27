@@ -26,6 +26,7 @@ pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/gmcSky
 pathtoimage  = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/DC_Ly_tests/'                          # path to the folder where to put the combination and image results
 
 # setup for concat 
+
 thevis = [pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms']#,
           pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-02.ms',
           pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-03.ms',
@@ -77,11 +78,11 @@ imbase    = pathtoimage + 'skymodel-b_120L'            # path + image base name
 
 mode   = 'mfs'    # 'mfs' or 'cube'
 mscale = 'HB'     # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT!)) 
-inter  = 'AM'    # 'man' (manual), 'AM' ('auto-multithresh') or 'PB' (primary beam - not yet implemented)
+inter  = 'AM'     # 'man' (manual), 'AM' ('auto-multithresh') or 'PB' (primary beam - not yet implemented)
 nit = 0           # max = 9.9 * 10**9 
 
 #cleansetup = "."+ mode +"."+ mscale +"."+ inter + (".n%.1e").replace("+","")  %(nit)
-cleansetup = "."+ mscale +"."+ inter + ".n%.1e" %(nit)
+cleansetup = '.'+ mscale +'_'+ inter + '_n%.1e' %(nit)
 cleansetup = cleansetup.replace("+0","")
 
 
@@ -229,7 +230,7 @@ hybridsetup  = '.hybrid_f'  #+ str(sdfac_h)
 sdintsetup   = '.sdint_g'   #+ str(sdg)
 #TP2VISsetup  = '.TP2VIS_t'  #+ str(tweak)
 
-
+### need to modify datacomb.py because of its current output:
 # current output: imnametclean  = imbase + cleansetup + '.TCLEAN.image '
 # current output: imnamefeather = imbase + cleansetup + '.image'
 # current output: imnameSSC     = imbase + cleansetup + '_ssc_f%sTP%s%s.image'   % (f,label,niter_label)
@@ -279,7 +280,7 @@ if(mystep in thesteps):
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     print('Step ', mystep, step_title[mystep])
 
-    imname = imbase + cleansetup = tcleansetup
+    imname = imbase + cleansetup + tcleansetup
 
     #### for CASA 5.7:
     #z = general_tclean_param.copy()   
