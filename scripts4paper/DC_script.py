@@ -1,6 +1,8 @@
 """
 Script to use the datacomb module
 
+by L. Moser-Fischer, Oct 2020
+
 Based on the work at the Workshop
 "Improving Image Fidelity on Astronomical Data", 
 Lorentz Center, Leiden, August 2019, 
@@ -15,11 +17,11 @@ Run under CASA 6.
 
 
 import sys 
-sys.path.append('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/')               # path to the folder swith datacomb.py and ssc_DC.py
+sys.path.append('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/')               # path to the folder with datacomb.py and ssc_DC.py
 
 import datacomb as dc
-#import ssc_DC as ssc     # need to import casatasks therein!
-execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/ssc_DC.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
+import ssc_DC_2 as ssc     # need to import casatasks therein!
+#execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/ssc_DC.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
 
 
 # path to input and outputs
@@ -362,14 +364,19 @@ if(mystep in thesteps):
             pass
         else:
             os.system('rm -rf '+imname+'*')
-            ssc(pathtoimage,highres=imbase+cleansetup+tcleansetup+'.image.pbcor', 
-                lowres=sdimage, f = SSCfac[i]) 
+
+            ssc.ssc(highres=imbase+cleansetup+tcleansetup+'.image', 
+                lowres=sdimage, pb=imbase+cleansetup+tcleansetup+'.pb',
+                sdfactor = SSCfac[i], combined=imname) 
+
+            #ssc(pathtoimage,highres=imbase+cleansetup+tcleansetup+'.image.pbcor', 
+            #    lowres=sdimage, f = SSCfac[i]) 
 
             #os.system('for file in '+imbase+cleansetup+'_ssc_f'+str(SSCfac[i])+'TP* \
             #           do mv "$file" "${file//_ssc_f'+str(SSCfac[i])+'TP/'+SSCsetup + str(SSCfac[i])+'}" \
             #           done')   # rename output to our convention 
 
-            os.system('rename "s/'+tcleansetup+'_ssc_f'+str(SSCfac[i])+'TP/'+SSCsetup + str(SSCfac[i])+'/g" '+imbase+cleansetup+tcleansetup+'_ssc_f'+str(SSCfac[i])+'TP*')
+            #os.system('rename "s/'+tcleansetup+'_ssc_f'+str(SSCfac[i])+'TP/'+SSCsetup + str(SSCfac[i])+'/g" '+imbase+cleansetup+tcleansetup+'_ssc_f'+str(SSCfac[i])+'TP*')
 
         SSCims.append(imname)
 
