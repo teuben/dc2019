@@ -41,19 +41,22 @@ except:
 
 
 
-
 # Helper Functions
 
 # BUNIT from the header
-def getBunit(imName):
-        iatool.open(str(imName))
-        summary = iatool.summary()
+def getBunit(imName):     
+        myia=iatool() 	
+        myia.open(str(imName))
+        summary = myia.summary()
+        myia.close()    
+        
         return summary['unit']
 
 # BMAJ beam major axis in units of arcseconds
 def getBmaj(imName):
-        iatool.open(str(imName))
-        summary = iatool.summary()
+        myia=iatool() 
+        myia.open(str(imName))
+        summary = myia.summary()
         if 'perplanebeams' in summary:
                 n = summary['perplanebeams']['nChannels']//2
                 b = summary['perplanebeams']['beams']['*%d' % n]['*0']
@@ -64,13 +67,15 @@ def getBmaj(imName):
         major_value = major['value']
         if unit == 'deg':
                 major_value = major_value * 3600
+        myia.close()                    
                 
         return major_value
 
 # BMIN beam minor axis in units of arcseconds
 def getBmin(imName):
-        iatool.open(str(imName))
-        summary = iatool.summary()
+        myia=iatool() 
+        myia.open(str(imName))
+        summary = myia.summary()
         if 'perplanebeams' in summary:
                 n = summary['perplanebeams']['nChannels']//2
                 b = summary['perplanebeams']['beams']['*%d' % n]['*0']
@@ -82,12 +87,15 @@ def getBmin(imName):
         minor_value = minor['value']
         if unit == 'deg':
                 minor_value = minor_value * 3600
+        myia.close()    
+            
         return minor_value
 
 # Position angle of the interferometeric data
 def getPA(imName):
-        iatool.open(str(imName))
-        summary = iatool.summary()
+        myia=iatool() 
+        myia.open(str(imName))
+        summary = myia.summary()
         if 'perplanebeams' in summary:
                 n = summary['perplanebeams']['nChannels']//2
                 b = summary['perplanebeams']['beams']['*%d' % n]['*0']
@@ -96,6 +104,8 @@ def getPA(imName):
 
         pa_value = b['positionangle']['value']
         pa_unit  = b['positionangle']['unit']
+        myia.close()    
+        
         return pa_value, pa_unit
 
 
@@ -118,15 +128,6 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
 
     """
 
-
-
-
-
-
-
-
-
-
     #####################################
     #             USER INPUTS           #
     #####################################
@@ -144,6 +145,11 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     #            PROCESS DATA           #
     #####################################
     # Reorder the axes of the low to match high/pb 
+
+    print('##### CHANGES ########')
+
+
+
 
     myfiles=[highres,lowres]
     mykeys=['cdelt1','cdelt2','cdelt3','cdelt4']
