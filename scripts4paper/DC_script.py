@@ -19,9 +19,16 @@ Run under CASA 6.
 import sys 
 sys.path.append('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/')               # path to the folder with datacomb.py and ssc_DC.py
 
-import datacomb as dc
-import ssc_DC_2 as ssc     # need to import casatasks therein!
-#execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/ssc_DC.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
+try:
+    import datacomb as dc
+    import ssc_DC_2 as ssc     # need to import casatasks therein!
+    
+    from importlib import reload   
+    reload(ssc)
+except:
+    print("Warning: datacomb assuming not in casa6")
+    execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/datacomb.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
+    execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/ssc_DC_2.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
 
 
 # path to input and outputs
@@ -291,18 +298,23 @@ if(mystep in thesteps):
 
     imname = imbase + cleansetup + tcleansetup
 
-    #### for CASA 5.7:
-    #z = general_tclean_param.copy()   
-    #z.update(special_tclean_param)
+    ### for CASA 5.7:
+    z = general_tclean_param.copy()   
+    z.update(special_tclean_param)
 
     if dryrun == True:
         pass
     else:
         os.system('rm -rf '+imname+'*')
-        #dc.runtclean(vis, imname, startmodel='', **z)    # in CASA 5.7
-        dc.runtclean(vis, imname, startmodel='', 
-                     **general_tclean_param, **special_tclean_param)   # in CASA 6.x
-	    
+        try:
+            dc.runtclean(vis, imname, startmodel='', 
+                    **z)
+                    #**general_tclean_param, **special_tclean_param)   # in CASA 6.x
+        except:
+            runtclean(vis, imname, startmodel='', **z)    # in CASA 5.7
+
+        
+        
         #dc.runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs', 
         #            imsize=[], cell='', phasecenter='',
         #            start=0, width=1, nchan=-1, restfreq=None,
@@ -333,18 +345,22 @@ if(mystep in thesteps):
     intpb    = imbase + cleansetup + '.tclean.pb'
 
     for i in range(0,len(sdfac)):
-		
+        
         imname = imbase + cleansetup + feathersetup + str(sdfac[i]) 
-		
+        
         os.system('rm -rf '+pathtoimage+'lowres*')
         os.system('rm -rf '+imname+'.image.pbcor.fits')
-			    
+                
         if dryrun == True:
             pass
         else:
-            dc.runfeather(intimage, intpb, sdimage, #sdfactor = sdfac[i],
+            try:
+                dc.runfeather(intimage, intpb, sdimage, #sdfactor = sdfac[i],
                           featherim = imname)
-	        
+            except:
+                runfeather(intimage, intpb, sdimage, #sdfactor = sdfac[i],
+                          featherim = imname)
+                                      
             #dc.runfeather(intimage,intpb, sdimage, featherim='featherim')
 
         featherims.append(imname)
@@ -359,16 +375,22 @@ if(mystep in thesteps):
 
     for i in range(0,len(sdfac)):
         imname = imbase + cleansetup + SSCsetup + str(SSCfac[i]) 
-	    
+        
         if dryrun == True:
             pass
         else:
             os.system('rm -rf '+imname+'*')
 
-            ssc.ssc(highres=imbase+cleansetup+tcleansetup+'.image', 
-                lowres=sdimage, pb=imbase+cleansetup+tcleansetup+'.pb',
-                sdfactor = SSCfac[i], combined=imname) 
-
+            try:
+                ssc.ssc(highres=imbase+cleansetup+tcleansetup+'.image', 
+                    lowres=sdimage, pb=imbase+cleansetup+tcleansetup+'.pb',
+                    sdfactor = SSCfac[i], combined=imname) 
+            except:
+                ssc(highres=imbase+cleansetup+tcleansetup+'.image', 
+                    lowres=sdimage, pb=imbase+cleansetup+tcleansetup+'.pb',
+                    sdfactor = SSCfac[i], combined=imname) 
+                    
+                    
             #ssc(pathtoimage,highres=imbase+cleansetup+tcleansetup+'.image.pbcor', 
             #    lowres=sdimage, f = SSCfac[i]) 
 
@@ -389,20 +411,30 @@ if(mystep in thesteps):
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     print('Step ', mystep, step_title[mystep])
 
+    ### for CASA 5.7:
+    z = general_tclean_param.copy()   
+    z.update(special_tclean_param)
 
     for i in range(0,len(sdfac_h)):
         imname = imbase + cleansetup + hybridsetup + str(sdfac_h[i]) 
 
         os.system('rm -rf '+pathtoimage+'lowres*')
         os.system('rm -rf '+imname+'.image.pbcor.fits')
-	    
+        
         if dryrun == True:
             pass
         else:
             os.system('rm -rf '+imname+'*')
-            dc.runWSM(vis, sdimage, imname, #sdfactor = sdfac_h[i],
-                      **general_tclean_param, **special_tclean_param)
-	        
+            
+            try:
+                dc.runWSM(vis, sdimage, imname, #sdfactor = sdfac_h[i],
+                      **z)
+                      #**general_tclean_param, **special_tclean_param)
+            except:
+                runWSM(vis, sdimage, imname, #sdfactor = sdfac_h[i],
+                      **z)
+
+            
             #dc.runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs', 
             #            imsize=[], cell='', phasecenter='',
             #            start=0, width=1, nchan=-1, restfreq=None,
@@ -427,16 +459,28 @@ if(mystep in thesteps):
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     print('Step ', mystep, step_title[mystep])
 
+    ### for CASA 5.7:
+    z = general_tclean_param.copy()   
+    z.update(sdint_tclean_param)
+    
     for i in range(0,len(sdg)) :
         jointname = imbase + cleansetup + sdintsetup + str(sdg[i]) 
-	    
+        
         if dryrun == True:
             pass
         else:
             os.system('rm -rf '+jointname+'*')
-            dc.runsdintimg(vis, sdimage, jointname, sdgain = sdg[0],
-                   **general_tclean_param, **sdint_tclean_param)
-                        
+            
+            try:
+                dc.runsdintimg(vis, sdimage, jointname, sdgain = sdg[0],
+                   **z)
+                   #**general_tclean_param, **sdint_tclean_param)
+            except:
+                runsdintimg(vis, sdimage, jointname, sdgain = sdg[0],
+                   **z)
+                   
+                   
+                                           
             #dc.runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf='',
             #            threshold=None, sdgain=5, imsize=[], cell='', phasecenter='', dishdia=12.0,
             #            start=0, width=1, nchan=-1, restfreq=None, interactive=True, 
@@ -566,37 +610,37 @@ os.system('rm -rf '+pathtoimage + 'TempLattice*')
 #maxscale=0.)
 #                
 #                
-#       sdintimaging( °vis=myvis,
-#                     °sdimage=mysdimage,
-#                     °sdpsf=mysdpsf,
-#                     °dishdia=dishdia,
-#                     °sdgain=sdgain,
+#       sdintimaging( ^vis=myvis,
+#                     ^sdimage=mysdimage,
+#                     ^sdpsf=mysdpsf,
+#                     ^dishdia=dishdia,
+#                     ^sdgain=sdgain,
 #                     usedata='sdint',
-#                     °imagename=jointname,
-#                     °imsize=imsize,
-#                     °cell=cell,
-#                     °phasecenter=phasecenter,
+#                     ^imagename=jointname,
+#                     ^imsize=imsize,
+#                     ^cell=cell,
+#                     ^phasecenter=phasecenter,
 #                     weighting='briggs',
 #                     robust = 0.5,
-#                     °specmode=specmode,
+#                     ^specmode=specmode,
 #                     gridder=mygridder,
 #                     pblimit=0.2, 
 #                     pbcor=True,
 #                     interpolation='linear',
 #                     wprojplanes=1,
-#                     °deconvolver=mydeconvolver,
+#                     ^deconvolver=mydeconvolver,
 #                     scales=myscales,
 #                     nterms=1,
 #                     niter=10000000,
-#                     °spw=spw,
-#                     °start=start,
-#                     °width=width,
-#                     °nchan = numchan, 
-#                     °field = field,
-#                     °threshold=threshold,
-#                     °restfreq=therf,
+#                     ^spw=spw,
+#                     ^start=start,
+#                     ^width=width,
+#                     ^nchan = numchan, 
+#                     ^field = field,
+#                     ^threshold=threshold,
+#                     ^restfreq=therf,
 #                     perchanweightdensity=False,
-#                     °*#interactive=True,
+#                     ^*#interactive=True,
 #                     *#cycleniter=100,
 #                     *#usemask='pb',
 #                     #pbmask=0.4,
@@ -647,45 +691,45 @@ os.system('rm -rf '+pathtoimage + 'TempLattice*')
 #
 #
 #
-#    tclean(°vis = myvis,
-#         °*#imagename = imname+'.TCLEAN',
-#         °#startmodel = startmodel,
-#         °field = field,
+#    tclean(^vis = myvis,
+#         ^*#imagename = imname+'.TCLEAN',
+#         ^#startmodel = startmodel,
+#         ^field = field,
 #         #intent = 'OBSERVE_TARGET#ON_SOURCE',
-#         °phasecenter = phasecenter,
+#         ^phasecenter = phasecenter,
 #         #stokes = 'I',
 #         spw = spw,
 #         #outframe = 'LSRK',             # DEFAULT
-#         °specmode = specmode,
+#         ^specmode = specmode,
 #         nterms = 1,
-#         °imsize = imsize,
-#         °cell = cell,
+#         ^imsize = imsize,
+#         ^cell = cell,
 #         deconvolver = mydeconvolver,
 #         scales = myscales,
-#         °*#niter = niter,
+#         ^*#niter = niter,
 #         *#cycleniter = niter,
 #         *#cyclefactor=2.0,
 #         weighting = 'briggs',
 #         robust = 0.5,
 #         *#gridder = 'mosaic',
 #         pbcor = True,
-#         °threshold = threshold,
-#         °*#interactive = interactive,
+#         ^threshold = threshold,
+#         ^*#interactive = interactive,
 #         ++++# Masking Parameters below this line 
 #         ++++# --> Should be updated depending on dataset
-#         °*#usemask=mymask,
+#         ^*#usemask=mymask,
 #         *#sidelobethreshold=sidelobethreshold,
 #         *#noisethreshold=noisethreshold,
 #         *#lownoisethreshold=lownoisethreshold, 
 #         *#minbeamfrac=minbeamfrac,
 #         *#growiterations=growiterations,
 #         *#negativethreshold=negativethreshold,
-#         °mask=mask,
-#         °*#pbmask=pbmask,
+#         ^mask=mask,
+#         ^*#pbmask=pbmask,
 #         verbose=True
 #         )
-#                °start=0, width=1, nchan=-1, restfreq=None,
-#                °multiscale=False, maxscale=0.):
+#                ^start=0, width=1, nchan=-1, restfreq=None,
+#                ^multiscale=False, maxscale=0.):
 #
 #
 #
