@@ -21,14 +21,14 @@ import glob
 
 sys.path.append('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/')               # path to the folder with datacomb.py and ssc_DC.py
 
-try:
+if 'casatasks' in locals():
     import datacomb as dc
     import ssc_DC_2 as ssc     # need to import casatasks therein!
     
     from importlib import reload   
     reload(ssc)
-except:
-    print("Warning: datacomb assuming not in casa6")
+else:
+    #print("Warning: datacomb assuming not in casa6")
     execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/datacomb.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
     execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/ssc_DC_2.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
 
@@ -316,11 +316,11 @@ if(mystep in thesteps):
         pass
     else:
         os.system('rm -rf '+imname+'*')
-        try:
+        if 'casatasks' in locals():
             dc.runtclean(vis, imname, startmodel='', 
                     **z)
                     #**general_tclean_param, **special_tclean_param)   # in CASA 6.x
-        except:
+        else:
             runtclean(vis, imname, startmodel='', **z)    # in CASA 5.7
         
         #dc.runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs', 
@@ -369,10 +369,10 @@ if(mystep in thesteps):
         if dryrun == True:
             pass
         else:
-            try:
+            if 'casatasks' in locals():
                 dc.runfeather(intimage, intpb, sdimage, #sdfactor = sdfac[i],
                           featherim = imname)
-            except:
+            else:
                 runfeather(intimage, intpb, sdimage, #sdfactor = sdfac[i],
                           featherim = imname)
                                       
@@ -400,11 +400,11 @@ if(mystep in thesteps):
         else:
             os.system('rm -rf '+imname+'*')
 
-            try:
+            if 'casatasks' in locals():
                 ssc.ssc(highres=imbase+cleansetup+tcleansetup+'.image', 
                     lowres=sdimage, pb=imbase+cleansetup+tcleansetup+'.pb',
                     sdfactor = SSCfac[i], combined=imname) 
-            except:
+            else:
                 ssc(highres=imbase+cleansetup+tcleansetup+'.image', 
                     lowres=sdimage, pb=imbase+cleansetup+tcleansetup+'.pb',
                     sdfactor = SSCfac[i], combined=imname) 
@@ -452,11 +452,11 @@ if(mystep in thesteps):
             # delete tclean files ending on 'hybrid.*'  (dot '.' is important!)
 
             
-            try:
+            if 'casatasks' in locals():
                 dc.runWSM(vis, sdimage, imname, #sdfactor = sdfac_h[i],
                       **z)
                       #**general_tclean_param, **special_tclean_param)
-            except:
+            else:
                 runWSM(vis, sdimage, imname, #sdfactor = sdfac_h[i],
                       **z)
             
@@ -508,11 +508,11 @@ if(mystep in thesteps):
         else:
             os.system('rm -rf '+jointname+'*')
             
-            try:
+            if 'casatasks' in locals():
                 dc.runsdintimg(vis, sdimage, jointname, sdgain = sdg[0],
                    **z)
                    #**general_tclean_param, **sdint_tclean_param)
-            except:
+            else:
                 runsdintimg(vis, sdimage, jointname, sdgain = sdg[0],
                    **z)
                    
