@@ -17,6 +17,8 @@ Run under CASA 6.
 
 
 import sys 
+import glob
+
 sys.path.append('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/')               # path to the folder with datacomb.py and ssc_DC.py
 
 try:
@@ -282,8 +284,12 @@ step_title = {0: 'Concat',
     
 mystep = 0    ###################----- CONCAT -----####################
 if(mystep in thesteps):
+    casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    casalog.post('### ','INFO')
+    print('### ')
     print('Step ', mystep, step_title[mystep])
+    print('### ')
     
     os.system('rm -rf '+concatms)
 
@@ -293,8 +299,12 @@ if(mystep in thesteps):
 
 mystep = 1    ############----- CLEAN FOR FEATHER/SSC -----############
 if(mystep in thesteps):
+    casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    casalog.post('### ','INFO')
+    print('### ')
     print('Step ', mystep, step_title[mystep])
+    print('### ')
 
     imname = imbase + cleansetup + tcleansetup
 
@@ -312,8 +322,6 @@ if(mystep in thesteps):
                     #**general_tclean_param, **special_tclean_param)   # in CASA 6.x
         except:
             runtclean(vis, imname, startmodel='', **z)    # in CASA 5.7
-
-        
         
         #dc.runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs', 
         #            imsize=[], cell='', phasecenter='',
@@ -328,8 +336,11 @@ if(mystep in thesteps):
          #          do mv "$f" "${f/.TCLEAN./.}" \
           #         done')   # rename output to our convention 
         #os.system('for f in '+imbase+cleansetup+'.TCLEAN*; do mv "$f" "$(echo $f | sed 's/^.TCLEAN././g')"; done')
-
-        os.system('rename "s/.TCLEAN//g" '+imname+'.TCLEAN*')
+        
+        oldnames=glob.glob(imname+'.TCLEAN*')
+        for nam in oldnames:
+            os.system('mv '+nam+' '+nam.replace('.TCLEAN',''))
+        #os.system('rename "s/.TCLEAN//g" '+imname+'.TCLEAN*')
 
 
     tcleanims.append(imname)
@@ -338,8 +349,12 @@ if(mystep in thesteps):
 
 mystep = 2    ###################----- FEATHER -----###################
 if(mystep in thesteps):
+    casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    casalog.post('### ','INFO')
+    print('### ')
     print('Step ', mystep, step_title[mystep])
+    print('### ')
 
     intimage = imbase + cleansetup + '.tclean.image'
     intpb    = imbase + cleansetup + '.tclean.pb'
@@ -370,8 +385,12 @@ if(mystep in thesteps):
 
 mystep = 3    ################----- FARIDANI SSC -----#################
 if(mystep in thesteps):
+    casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    casalog.post('### ','INFO')
+    print('### ')
     print('Step ', mystep, step_title[mystep])
+    print('### ')
 
     for i in range(0,len(sdfac)):
         imname = imbase + cleansetup + SSCsetup + str(SSCfac[i]) 
@@ -408,8 +427,12 @@ if(mystep in thesteps):
 
 mystep = 4    ###################----- HYBRID -----####################
 if(mystep in thesteps):
+    casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    casalog.post('### ','INFO')
+    print('### ')
     print('Step ', mystep, step_title[mystep])
+    print('### ')
 
     ### for CASA 5.7:
     z = general_tclean_param.copy()   
@@ -425,6 +448,9 @@ if(mystep in thesteps):
             pass
         else:
             os.system('rm -rf '+imname+'*')
+            os.system('rm -rf '+imname.replace('_f'+str(sdfac_h[i]),'')+'.*') 
+            # delete tclean files ending on 'hybrid.*'  (dot '.' is important!)
+
             
             try:
                 dc.runWSM(vis, sdimage, imname, #sdfactor = sdfac_h[i],
@@ -433,7 +459,6 @@ if(mystep in thesteps):
             except:
                 runWSM(vis, sdimage, imname, #sdfactor = sdfac_h[i],
                       **z)
-
             
             #dc.runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs', 
             #            imsize=[], cell='', phasecenter='',
@@ -448,16 +473,28 @@ if(mystep in thesteps):
             #os.system('for file in '+imbase+cleansetup+'.combined* \
             #           do mv "$file" "${file//.combined/'+hybridsetup + str(sdfac_h[i])+'}" \
             #           done')   # rename output to our convention 
-
-            os.system('rename "s/.combined//g" '+imname+'.combined*')
-
+            
+            
+            oldnames=glob.glob(imname+'.TCLEAN*')
+            for nam in oldnames:
+                os.system('mv '+nam+' '+nam.replace('_f'+str(sdfac_h[i])+'.TCLEAN',''))
+            oldnames=glob.glob(imname+'.combined*')
+            for nam in oldnames:
+                os.system('mv '+nam+' '+nam.replace('.combined',''))
+            
+            #os.system('rename "s/.combined//g" '+imname+'.combined*')
+            
         hybridims.append(imname)
 
 
 mystep = 5    ####################----- SDINT -----####################
 if(mystep in thesteps):
+    casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    casalog.post('### ','INFO')
+    print('### ')
     print('Step ', mystep, step_title[mystep])
+    print('### ')
 
     ### for CASA 5.7:
     z = general_tclean_param.copy()   
