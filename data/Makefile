@@ -2,7 +2,12 @@
 # Explanations of the datasets are given in README_DC2019_data
 # these are some convenient shortcuts to get you going a little quicker
 
+#            wget, wgetc, ncftpget, curl, ....
 WGET = wget
+
+URL1 = http://www.astro.umd.edu
+URL2 = http://admit.astro.umd.edu
+URL3 = http://ftp.astro.umd.edu
 
 ALL = m100 tp2vis qac M51
 
@@ -21,12 +26,27 @@ M100_raw:
 M100: qac_bench5.tar.gz
 
 qac_bench5.tar.gz:
-	$(WGET) http://www.astro.umd.edu/~teuben/QAC/qac_bench5.tar.gz
+	$(WGET) $(URL1)/~teuben/QAC/qac_bench5.tar.gz
 	tar zxf qac_bench5.tar.gz
 
+skymodel-b.fits:
+	$(WGET) $(URL1)/~teuben/QAC/skymodel-b.fits
+
+skymodel-c.fits:
+	$(WGET) $(URL1)/~teuben/QAC/skymodel-c.fits
+
+skymodel-b.sim.tar:
+	$(WGET) $(URL3)/pub/teuben/DC2019/skymodel-b.sim.tar
+
+skymodel-c.sim.tar:
+	$(WGET) $(URL3)/pub/teuben/DC2019/skymodel-c.sim.tar
+
+
+
+#
 tp2vis:
-	$(WGET) http://www.astro.umd.edu/~teuben/QAC/skymodel.fits    
-	$(WGET) http://www.astro.umd.edu/~teuben/QAC/skymodel.ptg
+	$(WGET) $(URL1)/~teuben/QAC/skymodel.fits    
+	$(WGET) $(URL1)/~teuben/QAC/skymodel.ptg
 
 qac:  M100
 
@@ -36,8 +56,3 @@ M51ha.fits:
 	$(WGET) https://casaguides.nrao.edu/images/3/3f/M51ha.fits.txt -O M51ha.fits
 
 
-skymodel-b.fits:
-	$(WGET) http://www.astro.umd.edu/~teuben/QAC/skymodel-b.fits
-
-skymodel-c.fits:
-	$(WGET) http://www.astro.umd.edu/~teuben/QAC/skymodel-c.fits
