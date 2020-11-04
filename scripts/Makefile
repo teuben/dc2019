@@ -1,6 +1,7 @@
 #
 
-CASA = casa-config --version; time casa --nogui -c 
+TIME = /usr/bin/time
+CASA = casa-config --version; $(TIME) casa --nogui -c 
 
 all: FeatheringPresentation.ipynb
 

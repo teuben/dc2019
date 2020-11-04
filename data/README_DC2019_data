@@ -72,7 +72,8 @@ These are from the old 4096 x 4096 models.  The skymodel.fits
 is the original one, we added (two) 0.1 Jy point sources (see
 header where) to check how well they are recoverable.
 
-We use:
+We have:
+    skymodel-a.fits       original skymodel plus real point sources - not used
     skymodel-b.fits       original skymodel plus two fuzzy "point" sources
     skymodel-c.fits       skymodel with a different random seed, same powerlaw as 'b'
     skymodel-d.fits       skymodel with a different random seed, same powerlaw as 'b'
@@ -83,6 +84,15 @@ here:
 
 ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/skymodel_16k.fits
 ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/tp2vis-sample2.tar.gz
+
+Toshi's models are big, but best solved by placing them in dc2019/data as well (or a link)
+Examples:
+
+        gmcSkymodel/gmc_2L/                   an older - kind of wrong - but small < 1GB data for testing
+        skymodel-b.sim/skymodel-b_120L        full 8GB multi-day dataset
+        skymodel-c.sim/skymodel-c_120L        full 8GB multi-day dataset
+	 
+
 
 4) Gaussian Models (Fomalont)
    --------------------------
