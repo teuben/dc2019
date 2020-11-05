@@ -29,10 +29,9 @@ mask | no multiscale  | multiscale
 pbmask | ![pbmask1](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSM.int_pb.TCLEAN.pbcor.fits.cmr.rainforest.png)|![pbmask2](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSM.int_pb_multi.TCLEAN.pbcor.fits.cmr.rainforest.png)
 automask |![automask1](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSM.int_auto.TCLEAN.pbcor.fits.cmr.rainforest.png)|![automask2](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSM.int_auto_multi.TCLEAN.pbcor.fits.cmr.rainforest.png)
 
-pbmask  | auto-mask
-:---------------------:|:---------------------:
-![TCLEAN with startmodel](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.pb.TCLEAN.pbcor.fits.cmr.rainforest.png)|![FEATHER](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.pb.combined.image.pbcor.fits.cmr.rainforest.png)
-![TCLEAN with startmodel](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.auto.TCLEAN.pbcor.fits.cmr.rainforest.png)|![FEATHER](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.auto.combined.image.pbcor.fits.cmr.rainforest.png)
+mask | no multiscale  |no multiscale  |multiscale  | multiscale
+:--------------------:|:---------------------:|:---------------------:|:---------------------:|:---------------------:
+pbmask | ![pbmask1](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSMpb.TCLEAN.pbcor.fits.cmr.rainforest.png)|![pbmask2](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSMpb.combined.image.pbcor.fits.cmr.rainforest.png)| ![pbmask3](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSMpb_multi.TCLEAN.pbcor.fits.cmr.rainforest.png)|![pbmask4](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSMpb_multi.combined.image.pbcor.fits.cmr.rainforest.png)
 
 ## Previous TCLEAN tests without multi-scale
 
