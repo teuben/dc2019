@@ -1,15 +1,34 @@
 # Testing several TCLEAN techniques
 
-Here we describe three variations of TCLEAN on the same skymodel
+Here we describe variations of TCLEAN on the same skymodel
 simulated mosaic map.
 
-## Imaging script
+## Test multi-scale
+
+### Imaging script
+
+The script is found here: [scriptForImaging_modular_v2.py](https://github.com/teuben/dc2019/blob/master/scripts4paper/scriptForImaging_modular_v2.py)
+
+Int-only, WSM, WSM+feather | mask | multiscale  | flux | min | max |
+:---------------------|:----------------------:|:----------------------:|:---------------------:|:---------------------:|:--------------------:
+Int | pb| false1233.9|-1.007|3.347
+Int | pb| true1992.6|-0.604|2.785
+Int | auto | false|2029.5|-0.908|2.808
+Int| auto|true|1733.7|-1.198|2.664
+WSM| pb| false|9288.4|-0.522|3.300
+WSM+feather pb|false|7912.8|-0.562|3.311
+WSM| pb|true|9702.4|-0.492|3.307
+WSM+feather| pb|true|7919.0|-0.523|3.306
+WSM| auto|false|10219.6|-0.378|3.390
+WSM+feather| auto|false|7839.9|-0.581|3.334
+WSM auto|true|9739.2|-0.557|3.197
+WSM+feather| auto|true|7839.4|-0.549|3.175
+
+## Previous TCLEAN tests without multi-scale
+
+### Imaging script
 
 The script is found here: [scriptForImaging_tcleanTest.py](https://github.com/teuben/dc2019/blob/master/scripts4paper/scriptForImaging_tcleanTest.py)
-
-Three TCLEAN variations in the script are:
-
-## Note: Should we also test multi-scale?
 
 ### (1) ``Simple''
 
