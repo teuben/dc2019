@@ -24,7 +24,10 @@ WSM+feather| auto|false|7839.9|-0.581|3.334
 WSM |auto|true|9739.2|-0.557|3.197
 WSM+feather| auto|true|7839.4|-0.549|3.175
 
-Here I show TCLEAN interferometry-only images using pb-mask (top row)
+In the above table, WSM stands for 'with start model', in other words,
+startmodel='sd.image' in TCLEAN.
+
+Next I show TCLEAN interferometry-only images using pb-mask (top row)
 and auto-mask (lower row).  Column 1 uses multiscale=False; column 2
 uses multiscale=True.  These correspond to rows 1-4 in the table above.
 
@@ -37,7 +40,7 @@ Here I show pb-mask (top row) and auto-mask (lower row), for the
 'startmodel' method.  These correspond to rows 5-8 (pb mask) and 9-12 (auto-mask) in the table above. Columns 1 and 3 are the maps resulting from
 TCLEAN, using startmodel='tp.image'.  Columns 2 and 4 show the
 feathered image of columns 1 and 3, respectively.  Column 1  uses
-multiscale=False; and colunn 3 uses multiscale=True.
+multiscale=False; and column 3 uses multiscale=True.
 
 mask | no multiscale  | combined  |multiscale  | combined
 :--------------------:|:---------------------:|:---------------------:|:---------------------:|:---------------------:
@@ -208,3 +211,21 @@ tclean image)
 feather image)
 - autothresh39mJy/gmc_120L.WSM.auto.TCLEAN.pbcor.fits (--> automask,
 tclean image)
+
+### Images to test automasking and multiscale, for interferometry
+    only, and startmodel methods, are uploaded
+    [here](https://drive.google.com/file/d/1tiDHs0dJ0njfSDqt8ePYuBgrRHKkUCgK/view?usp=sharing)
+
+Files in startmodel_testautomulti.tgz:
+- skymodel_b.WSM.int_pb.TCLEAN.pbcor.fits
+- skymodel_b.WSM.int_pb_multi.TCLEAN.pbcor.fits
+- skymodel_b.WSM.int_auto.TCLEAN.pbcor.fits
+- skymodel_b.WSM.int_auto_multi.TCLEAN.pbcor.fits
+- skymodel_b.WSMpb.TCLEAN.pbcor.fits
+- skymodel_b.WSMpb.combined.image.pbcor.fits
+- skymodel_b.WSMpb_multi.TCLEAN.pbcor.fits
+- skymodel_b.WSMpb_multi.combined.image.pbcor.fits
+- skymodel_b.WSMauto.TCLEAN.pbcor.fits
+- skymodel_b.WSMauto.combined.image.pbcor.fits
+- skymodel_b.WSMauto_multi.TCLEAN.pbcor.fits
+- skymodel_b.WSMauto_multi.combined.image.pbcor.fits
