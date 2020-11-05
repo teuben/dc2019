@@ -7,7 +7,10 @@ simulated mosaic map.
 
 ### Imaging script
 
-The script is found here: [scriptForImaging_modular_v2.py](https://github.com/teuben/dc2019/blob/master/scripts4paper/scriptForImaging_modular_v2.py)
+The script is found here:
+[scriptForImaging_modular_v2.py](https://github.com/teuben/dc2019/blob/master/scripts4paper/scriptForImaging_modular_v2.py)
+
+The script called datacomb.py, and uses the multi-scale implemented there.
 
 Int, WSM, WSM+feather | mask | multiscale  | flux | min | max |
 :---------------------|:----------------------:|:----------------------:|:---------------------:|:---------------------:|:--------------------:
