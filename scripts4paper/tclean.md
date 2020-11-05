@@ -212,9 +212,7 @@ feather image)
 - autothresh39mJy/gmc_120L.WSM.auto.TCLEAN.pbcor.fits (--> automask,
 tclean image)
 
-### Images to test automasking and multiscale, for interferometry
-    only, and startmodel methods, are uploaded
-    [here](https://drive.google.com/file/d/1tiDHs0dJ0njfSDqt8ePYuBgrRHKkUCgK/view?usp=sharing)
+### Images to test automasking and multiscale, for interferometry only, and startmodel methods, are uploaded [here](https://drive.google.com/file/d/1tiDHs0dJ0njfSDqt8ePYuBgrRHKkUCgK/view?usp=sharing)
 
 Files in startmodel_testautomulti.tgz:
 - skymodel_b.WSM.int_pb.TCLEAN.pbcor.fits
