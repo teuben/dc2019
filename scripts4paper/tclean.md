@@ -9,14 +9,14 @@ simulated mosaic map.
 
 The script is found here: [scriptForImaging_modular_v2.py](https://github.com/teuben/dc2019/blob/master/scripts4paper/scriptForImaging_modular_v2.py)
 
-Int-only, WSM, WSM+feather | mask | multiscale  | flux | min | max |
+Int, WSM, WSM+feather | mask | multiscale  | flux | min | max |
 :---------------------|:----------------------:|:----------------------:|:---------------------:|:---------------------:|:--------------------:
-Int | pb| false1233.9|-1.007|3.347
-Int | pb| true1992.6|-0.604|2.785
+Int | pb| false|1233.9|-1.007|3.347
+Int | pb| true|1992.6|-0.604|2.785
 Int | auto | false|2029.5|-0.908|2.808
 Int| auto|true|1733.7|-1.198|2.664
 WSM| pb| false|9288.4|-0.522|3.300
-WSM+feather pb|false|7912.8|-0.562|3.311
+WSM+feather |pb|false|7912.8|-0.562|3.311
 WSM| pb|true|9702.4|-0.492|3.307
 WSM+feather| pb|true|7919.0|-0.523|3.306
 WSM| auto|false|10219.6|-0.378|3.390
