@@ -24,12 +24,17 @@ WSM+feather| auto|false|7839.9|-0.581|3.334
 WSM |auto|true|9739.2|-0.557|3.197
 WSM+feather| auto|true|7839.4|-0.549|3.175
 
-|no multiscale  | multiscale
-:----------------:|:---------------------:|:---------------------:
+mask | no multiscale  | multiscale
+:--------------------:|:---------------------:|:---------------------:
 pbmask | ![pbmask, multiscale
 false](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSM.int_pb.TCLEAN.pbcor.fits.cmr.rainforest.png)|![pbmask, multiscale true](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSM.int_pb_multi.TCLEAN.pbcor.fits.cmr.rainforest.png)
 automask |![automask, multiscale false](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSM.int_auto.TCLEAN.pbcor.fits.cmr.rainforest.png)|![automask,multiscale
 true](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSM.int_auto_multi.TCLEAN.pbcor.fits.cmr.rainforest.png)
+
+pbmask  | auto-mask
+:---------------------:|:---------------------:
+![TCLEAN with startmodel](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.pb.TCLEAN.pbcor.fits.cmr.rainforest.png)|![FEATHER](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.pb.combined.image.pbcor.fits.cmr.rainforest.png)
+![TCLEAN with startmodel](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.auto.TCLEAN.pbcor.fits.cmr.rainforest.png)|![FEATHER](https://github.com/adeleplunkett/myimages/blob/master/startmodel/gmc_120L.WSM.auto.combined.image.pbcor.fits.cmr.rainforest.png)
 
 ## Previous TCLEAN tests without multi-scale
 
