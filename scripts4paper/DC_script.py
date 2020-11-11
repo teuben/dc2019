@@ -14,23 +14,51 @@ Run under CASA 6.
 
 
 
-
+#thesteps=[3]
 
 import sys 
 import glob
 
 sys.path.append('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/')               # path to the folder with datacomb.py and ssc_DC.py
 
-if 'casatasks' in locals():
-    import datacomb as dc
-    import ssc_DC_2 as ssc     # need to import casatasks therein!
-    
-    from importlib import reload   
-    reload(ssc)
-else:
-    #print("Warning: datacomb assuming not in casa6")
-    execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/datacomb.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
-    execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/ssc_DC_2.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
+pythonversion = sys.version[0]
+
+
+if pythonversion=='3':
+    from casatasks import version as CASAvers
+    if CASAvers()[0]>=6 and CASAvers()[1]>=1:
+        print('Executed in CASA ' +'.'.join(map(str, CASAvers())))    
+#if 'casatasks' in locals():
+        import datacomb as dc
+        import ssc_DC_2 as ssc     # need to import casatasks therein!
+        from casatasks import concat
+        from importlib import reload   
+        reload(ssc)
+        reload(dc)
+    else:
+        print('###################################################')
+        print('Your CASA version does not support sdintimaging.')
+        print('Please use at least CASA 5.7.0 or 6.1.x')
+        print('Aborting script ...')
+        print('###################################################')
+        sys.exit()
+
+
+elif pythonversion=='2':
+    import casadef
+    if casadef.casa_version == '5.7.0':
+        print('Executed in CASA ' +casadef.casa_version)
+        execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/datacomb.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
+        execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/ssc_DC_2.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
+    else:
+        print('###################################################')
+        print('Your CASA version does not support sdintimaging.')
+        print('Please use at least CASA 5.7.0 or 6.1.x')
+        print('Aborting script ...')
+        print('###################################################')
+        sys.exit()
+
+
 
 
 # path to input and outputs
@@ -38,8 +66,9 @@ else:
 pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/skymodel-c.sim/skymodel-c_120L/'   # path to the folder with the files to be concatenated
 pathtoimage  = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/DC_Ly_tests/'                          # path to the folder where to put the combination and image results
 
-# setup for concat 
 
+
+# setup for concat 
 thevis = [pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-02.ms']#,
 #thevis = [pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms']#,
           #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-02.ms',
@@ -96,7 +125,7 @@ imbase    = pathtoimage + 'skymodel-c_120L'            # path + image base name
 mode   = 'mfs'    # 'mfs' or 'cube'
 mscale = 'HB'     # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT!)) 
 inter  = 'AM'     # 'man' (manual), 'AM' ('auto-multithresh') or 'PB' (primary beam - not yet implemented)
-nit = 0           # max = 9.9 * 10**9 
+nit = 10           # max = 9.9 * 10**9 
 
 #cleansetup = "."+ mode +"."+ mscale +"."+ inter + (".n%.1e").replace("+","")  %(nit)
 cleansetup = '.'+ mscale +'_'+ inter + '_n%.1e' %(nit)
@@ -316,7 +345,7 @@ if(mystep in thesteps):
         pass
     else:
         os.system('rm -rf '+imname+'*')
-        if 'casatasks' in locals():
+        if pythonversion=='3':
             dc.runtclean(vis, imname, startmodel='', 
                     **z)
                     #**general_tclean_param, **special_tclean_param)   # in CASA 6.x
@@ -369,7 +398,7 @@ if(mystep in thesteps):
         if dryrun == True:
             pass
         else:
-            if 'casatasks' in locals():
+            if pythonversion=='3':
                 dc.runfeather(intimage, intpb, sdimage, #sdfactor = sdfac[i],
                           featherim = imname)
             else:
@@ -400,7 +429,7 @@ if(mystep in thesteps):
         else:
             os.system('rm -rf '+imname+'*')
 
-            if 'casatasks' in locals():
+            if pythonversion=='3':
                 ssc.ssc(highres=imbase+cleansetup+tcleansetup+'.image', 
                     lowres=sdimage, pb=imbase+cleansetup+tcleansetup+'.pb',
                     sdfactor = SSCfac[i], combined=imname) 
@@ -452,7 +481,7 @@ if(mystep in thesteps):
             # delete tclean files ending on 'hybrid.*'  (dot '.' is important!)
 
             
-            if 'casatasks' in locals():
+            if pythonversion=='3':
                 dc.runWSM(vis, sdimage, imname, #sdfactor = sdfac_h[i],
                       **z)
                       #**general_tclean_param, **special_tclean_param)
@@ -508,7 +537,7 @@ if(mystep in thesteps):
         else:
             os.system('rm -rf '+jointname+'*')
             
-            if 'casatasks' in locals():
+            if pythonversion=='3':
                 dc.runsdintimg(vis, sdimage, jointname, sdgain = sdg[0],
                    **z)
                    #**general_tclean_param, **sdint_tclean_param)
