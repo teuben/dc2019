@@ -171,19 +171,19 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
 
 
     if not haspcb:
-        os.system('rm -rf copy_of_'+mysdimage)
-        os.system('cp -R '+mysdimage+' copy_of_'+mysdimage)
+        os.system('rm -rf '+mysdimage+'_copy')
+        os.system('cp -R '+mysdimage+' '+mysdimage+'_copy')
         if numchan == 1:
             # image has only one channel; need workaround for per-channel-beam problem
-            myia.open('copy_of_'+mysdimage)
+            myia.open(mysdimage+'_copy')
             mycoords = myia.coordsys().torecord()
             mycoords['spectral2']['wcs']['crval'] += mycoords['spectral2']['wcs']['cdelt']
             myia.setcoordsys(mycoords)
             myia.close()
-            tmpia = myia.imageconcat(outfile='mod_'+mysdimage, infiles=[mysdimage, 'copy_of_'+mysdimage], 
+            tmpia = myia.imageconcat(outfile=mysdimage+'_mod', infiles=[mysdimage, mysdimage+'_copy'], 
                                    axis=3, overwrite=True)
             tmpia.close()
-            mysdimage = 'mod_'+mysdimage
+            mysdimage = mysdimage+'_mod'
             numchan = 2
 
         myia.open(mysdimage)
