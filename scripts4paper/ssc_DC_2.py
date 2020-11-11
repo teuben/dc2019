@@ -21,7 +21,12 @@
 
 import os
 import math
-try:
+import sys
+
+
+pythonversion = sys.version[0]
+
+if pythonversion=='3':
     from casatasks import casalog
     from casatasks import exportfits
     from casatasks import imhead
@@ -34,8 +39,8 @@ try:
 #
     from casatools import image as iatool   # compare iatool in datacomb.py
 #    from casatools import quanta as qatool
-except:
-    print("Warning: datacomb assuming not in casa6")
+else:
+    pass #print("Warning: datacomb assuming not in casa6")
 #
 
 
@@ -148,9 +153,6 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
 
     print('##### CHANGES ########')
 
-
-
-
     myfiles=[highres,lowres]
     mykeys=['cdelt1','cdelt2','cdelt3','cdelt4']
 
@@ -169,7 +171,8 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
              im_axes[f]=axes
              print(' ')
 
-    # Check if axes order is the same, if not run imtrans to fix, could be improved
+    # Check if axes order is the same, if not run imtrans to fix, 
+    # could be improved
     order=[]           
 
     for i in range(4):
@@ -261,6 +264,7 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     #     expr='IM0/IM1',
     #     outfile='gmc_120L.Feather.image.pbcor')
 
+    # Combination 
     if getBunit(lowres_regrid) == 'Jy/beam':
         print('Computing the weighting factor according to the surface of the beam ...')
         weightingfac = (float(getBmaj(str(highres))) * float(getBmin(str(highres)))
@@ -283,7 +287,7 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
         immath([highres, sub], 'evalexpr', combined, 'IM0 + IM1')
         print('The missing flux has been restored' + '\n')
 
-    ## finally, perform the primary beamc correction
+    # primary beam correction
     os.system(combined +'.pbcor')
     immath(imagename=[combined,
         pb],
@@ -332,7 +336,8 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
 #                         overwrite = True
 #                         )
  
-
+ 
+# Tidy up 
 os.system('rm -rf lowres.regrid')
 os.system('rm -rf lowres.multiplied')
 os.system('rm -rf skymodel-b_120L.inter.auto.image_conv')
