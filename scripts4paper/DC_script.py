@@ -14,7 +14,7 @@ Run under CASA 6.
 
 
 
-thesteps=[5]
+thesteps=[3]
 
 import os 
 import sys 
@@ -31,12 +31,12 @@ if pythonversion=='3':
         print('Executed in CASA ' +'.'.join(map(str, CASAvers())))    
 #if 'casatasks' in locals():
         import datacomb as dc
-        import ssc_DC_2 as ssc     # need to import casatasks therein!
+        #import ssc_DC_2 as ssc     # need to import casatasks therein!
         from casatasks import concat
         from casatasks import casalog
         from importlib import reload  
          
-        reload(ssc)
+        #reload(ssc)
         reload(dc)
     else:
         print('###################################################')
@@ -52,7 +52,7 @@ elif pythonversion=='2':
     if casadef.casa_version == '5.7.0':
         print('Executed in CASA ' +casadef.casa_version)
         execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/datacomb.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
-        execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/ssc_DC_2.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
+        #execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/ssc_DC_2.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
     else:
         print('###################################################')
         print('Your CASA version does not support sdintimaging.')
@@ -433,7 +433,7 @@ if(mystep in thesteps):
             os.system('rm -rf '+imname+'*')
 
             if pythonversion=='3':
-                ssc.ssc(highres=imbase+cleansetup+tcleansetup+'.image', 
+                dc.ssc(highres=imbase+cleansetup+tcleansetup+'.image', 
                     lowres=sdimage, pb=imbase+cleansetup+tcleansetup+'.pb',
                     sdfactor = SSCfac[i], combined=imname) 
             else:
