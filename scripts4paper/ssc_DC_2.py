@@ -46,73 +46,71 @@ else:
 
 
 
-# Helper Functions
+def reorder_axes(template, to_reorder):
 
-# BUNIT from the header
-def getBunit(imName):     
-        myia=iatool() 	
-        myia.open(str(imName))
-        summary = myia.summary()
-        myia.close()    
-        
-        return summary['unit']
+    """
+    reorder_axes (M. Hoffmann, D. Kunneriath, N. Pingel, L. Moser-Fischer)
+    a tool to reorder the axes according to a reference/template image
 
-# BMAJ beam major axis in units of arcseconds
-def getBmaj(imName):
-        myia=iatool() 
-        myia.open(str(imName))
-        summary = myia.summary()
-        if 'perplanebeams' in summary:
-                n = summary['perplanebeams']['nChannels']//2
-                b = summary['perplanebeams']['beams']['*%d' % n]['*0']
-        else:
-                b = summary['restoringbeam']
-        major = b['major']
-        unit  = major['unit']
-        major_value = major['value']
-        if unit == 'deg':
-                major_value = major_value * 3600
-        myia.close()                    
-                
-        return major_value
+    template - the reference image
+             default: None, example: 'INT.image'
+    to_reorder - the image whose axes should be reordered
+             default: None, example: 'SD.image'
 
-# BMIN beam minor axis in units of arcseconds
-def getBmin(imName):
-        myia=iatool() 
-        myia.open(str(imName))
-        summary = myia.summary()
-        if 'perplanebeams' in summary:
-                n = summary['perplanebeams']['nChannels']//2
-                b = summary['perplanebeams']['beams']['*%d' % n]['*0']
-        else:
-                b = summary['restoringbeam']
+    Example: reorder_axes('INT.image', 'SD.image')
+    """
 
-        minor = b['minor']
-        unit = minor['unit']
-        minor_value = minor['value']
-        if unit == 'deg':
-                minor_value = minor_value * 3600
-        myia.close()    
+    print('##### Check axis order ########')
+
+    myfiles=[template,to_reorder]
+    mykeys=['cdelt1','cdelt2','cdelt3','cdelt4']
+
+    im_axes={}
+    print('Making dictionary of axes information for template and to-reorder images')
+    for f in myfiles:
+             print(f)
+             print('------------')
+             axes = {}
+             i=0
+             for key in mykeys:
+                     q = imhead(f,mode='get',hdkey=key)
+                     axes[i]=q
+                     i=i+1
+                     print(str(key)+' : '+str(q))
+             im_axes[f]=axes
+             print(' ')
+
+    # Check if axes order is the same, if not run imtrans to fix, 
+    # could be improved
+    order=[]           
+
+    for i in range(4):
+             hi_ax = im_axes[template][i]['unit']
+             lo_ax = im_axes[to_reorder][i]['unit']
+             if hi_ax == lo_ax:
+                     order.append(str(i))
+             else:
+                     lo_m1 = im_axes[to_reorder][i-1]['unit']
+                     if hi_ax == lo_m1:
+                             order.append(str(i-1))
+                     else:
+                             lo_p1 = im_axes[to_reorder][i+1]['unit']
+                             if hi_ax == lo_p1:
+                                     order.append(str(i+1))
+    order = ''.join(order)
+    print('order is '+order)
+
+    if order=='0123':
+             print('No reordering necessary')
+             outputname = to_reorder
+    else:
+            reordered_image='lowres.ro'
+            imtrans(imagename=to_reorder,outfile=reordered_image,order=order)
+            print('Had to reorder!')
+            outputname = reordered_image
             
-        return minor_value
-
-# Position angle of the interferometeric data
-def getPA(imName):
-        myia=iatool() 
-        myia.open(str(imName))
-        summary = myia.summary()
-        if 'perplanebeams' in summary:
-                n = summary['perplanebeams']['nChannels']//2
-                b = summary['perplanebeams']['beams']['*%d' % n]['*0']
-        else:
-                b = summary['restoringbeam']
-
-        pa_value = b['positionangle']['value']
-        pa_unit  = b['positionangle']['unit']
-        myia.close()    
-        
-        return pa_value, pa_unit
-
+    print(outputname)
+    return outputname
 
 
 
@@ -126,12 +124,93 @@ def getPA(imName):
 def ssc(highres=None, lowres=None, pb=None, combined=None, 
         sdfactor=1.0):
     """
-        highres     high res (interferometer) image
-        lowres      low res (SD/TP) image
-        pb          high res (interferometer) primary beam
-        sdfactor    scaling factor for the SD/TP contribution
+        ssc (P. Teuben, N. Pingel, L. Moser-Fischer)
+        an implementation of Faridani's short spacing combination method
+        https://bitbucket.org/snippets/faridani/pRX6r
+        https://onlinelibrary.wiley.com/doi/epdf/10.1002/asna.201713381
+
+        highres  - high resolution (interferometer) image
+        lowres   - low resolution (single dish (SD)/ total power (TP)) image
+        pb       - high resolution (interferometer) primary beam image 
+        combined - output image name 
+        sdfactor - scaling factor for the SD/TP contribution
+
+        Example: ssc(highres='INT.image', lowres='SD.image', pb='INT.pb',
+                     combined='INT_SD_1.7.image', sdfactor=1.7)
 
     """
+
+    
+    # Helper Functions
+    
+    # BUNIT from the header
+    def getBunit(imName):     
+            myia=iatool() 	
+            myia.open(str(imName))
+            summary = myia.summary()
+            myia.close()    
+            
+            return summary['unit']
+    
+    # BMAJ beam major axis in units of arcseconds
+    def getBmaj(imName):
+            myia=iatool() 
+            myia.open(str(imName))
+            summary = myia.summary()
+            if 'perplanebeams' in summary:
+                    n = summary['perplanebeams']['nChannels']//2
+                    b = summary['perplanebeams']['beams']['*%d' % n]['*0']
+            else:
+                    b = summary['restoringbeam']
+            major = b['major']
+            unit  = major['unit']
+            major_value = major['value']
+            if unit == 'deg':
+                    major_value = major_value * 3600
+            myia.close()                    
+                    
+            return major_value
+    
+    # BMIN beam minor axis in units of arcseconds
+    def getBmin(imName):
+            myia=iatool() 
+            myia.open(str(imName))
+            summary = myia.summary()
+            if 'perplanebeams' in summary:
+                    n = summary['perplanebeams']['nChannels']//2
+                    b = summary['perplanebeams']['beams']['*%d' % n]['*0']
+            else:
+                    b = summary['restoringbeam']
+    
+            minor = b['minor']
+            unit = minor['unit']
+            minor_value = minor['value']
+            if unit == 'deg':
+                    minor_value = minor_value * 3600
+            myia.close()    
+                
+            return minor_value
+    
+    # Position angle of the interferometeric data
+    def getPA(imName):
+            myia=iatool() 
+            myia.open(str(imName))
+            summary = myia.summary()
+            if 'perplanebeams' in summary:
+                    n = summary['perplanebeams']['nChannels']//2
+                    b = summary['perplanebeams']['beams']['*%d' % n]['*0']
+            else:
+                    b = summary['restoringbeam']
+    
+            pa_value = b['positionangle']['value']
+            pa_unit  = b['positionangle']['unit']
+            myia.close()    
+            
+            return pa_value, pa_unit
+    
+    
+    # ssc main body
+
 
     #####################################
     #             USER INPUTS           #
@@ -151,52 +230,9 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     #####################################
     # Reorder the axes of the low to match high/pb 
 
-    print('##### CHANGES ########')
+    
+    lowres = reorder_axes(highres,lowres)
 
-    myfiles=[highres,lowres]
-    mykeys=['cdelt1','cdelt2','cdelt3','cdelt4']
-
-    im_axes={}
-    print('Making dictionary of axes information for high and lowres images')
-    for f in myfiles:
-             print(f)
-             print('------------')
-             axes = {}
-             i=0
-             for key in mykeys:
-                     q = imhead(f,mode='get',hdkey=key)
-                     axes[i]=q
-                     i=i+1
-                     print(str(key)+' : '+str(q))
-             im_axes[f]=axes
-             print(' ')
-
-    # Check if axes order is the same, if not run imtrans to fix, 
-    # could be improved
-    order=[]           
-
-    for i in range(4):
-             hi_ax = im_axes[highres][i]['unit']
-             lo_ax = im_axes[lowres][i]['unit']
-             if hi_ax == lo_ax:
-                     order.append(str(i))
-             else:
-                     lo_m1 = im_axes[lowres][i-1]['unit']
-                     if hi_ax == lo_m1:
-                             order.append(str(i-1))
-                     else:
-                             lo_p1 = im_axes[lowres][i+1]['unit']
-                             if hi_ax == lo_p1:
-                                     order.append(str(i+1))
-    order = ''.join(order)
-    print('order is '+order)
-
-    if order=='0123':
-             print('No reordering necessary')
-    else:
-            imtrans(imagename=lowres,outfile='lowres.ro',order=order)
-            lowres='lowres.ro'
-            print('Had to reorder!')
 
     # Regrid low res Image to match high res image
     print('Regridding lowres image...')
@@ -346,3 +382,4 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     #os.system('rm -rf '+combined)
     #os.system('rm -rf '+combined+'.pbcor')
     
+    return True
