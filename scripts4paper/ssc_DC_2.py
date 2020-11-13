@@ -137,7 +137,7 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     #             USER INPUTS           #
     #####################################
     # Only user inputs required are the 
-    # high res, low res, pb name, and sdfactor (scaling factor)
+    # high res, low res, pb name, combined name and sdfactor (scaling factor)
     
     #####sdfactor = 1.0
     #####
@@ -250,7 +250,7 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
 
     sub = 'sub.im'
     sub_bc = 'sub_bc.im'
-
+    combined = combined + '.image'
 
     # Feather together the low*pb and hi images
     #print('Feathering...')
@@ -323,27 +323,26 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
 #                         overwrite = True
 #                         )
 #
-#myimages = ['skymodel-b_120L.inter.auto_ssc_f%s_TP' % sdfactor]
-#
-#for myimagebase in myimages:
-#     exportfits(imagename = myimagebase+'.image.pbcor',
-#                         fitsimage = myimagebase+'.pbcor.fits',
-#                         overwrite = True
-#                         )
-#
-#     exportfits(imagename = myimagebase+'.image',
-#                         fitsimage = myimagebase+'.image.fits',
-#                         overwrite = True
-#                         )
+    myimages = [combined]
+    
+    for myimagebase in myimages:
+         exportfits(imagename = myimagebase+'.pbcor',
+                             fitsimage = myimagebase+'.pbcor.fits',
+                             overwrite = True
+                             )
+    
+         exportfits(imagename = myimagebase,
+                             fitsimage = myimagebase+'.fits',
+                             overwrite = True
+                             )
+     
  
- 
-# Tidy up 
-os.system('rm -rf lowres.regrid')
-os.system('rm -rf lowres.multiplied')
-os.system('rm -rf skymodel-b_120L.inter.auto.image_conv')
-os.system('rm -rf sub.im')
-os.system('rm -rf sub_bc.im')
-#os.system('rm -rf skymodel-b_120L.inter.auto_ssc_f1.0_TP.image')
-#os.system('rm -rf skymodel-b_120L.inter.auto_ssc_f1.0_TP.image.pbcor')
-
+    # Tidy up 
+    os.system('rm -rf lowres.regrid')
+    os.system('rm -rf lowres.multiplied')
+    os.system('rm -rf '+highres_conv)
+    os.system('rm -rf '+sub)
+    os.system('rm -rf '+sub_bc)
+    #os.system('rm -rf '+combined)
+    #os.system('rm -rf '+combined+'.pbcor')
     
