@@ -14,8 +14,9 @@ Run under CASA 6.
 
 
 
-#thesteps=[3]
+thesteps=[5]
 
+import os 
 import sys 
 import glob
 
@@ -32,7 +33,9 @@ if pythonversion=='3':
         import datacomb as dc
         import ssc_DC_2 as ssc     # need to import casatasks therein!
         from casatasks import concat
-        from importlib import reload   
+        from casatasks import casalog
+        from importlib import reload  
+         
         reload(ssc)
         reload(dc)
     else:
@@ -125,7 +128,7 @@ imbase    = pathtoimage + 'skymodel-c_120L'            # path + image base name
 mode   = 'mfs'    # 'mfs' or 'cube'
 mscale = 'HB'     # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT!)) 
 inter  = 'AM'     # 'man' (manual), 'AM' ('auto-multithresh') or 'PB' (primary beam - not yet implemented)
-nit = 10           # max = 9.9 * 10**9 
+nit = 0           # max = 9.9 * 10**9 
 
 #cleansetup = "."+ mode +"."+ mscale +"."+ inter + (".n%.1e").replace("+","")  %(nit)
 cleansetup = '.'+ mscale +'_'+ inter + '_n%.1e' %(nit)
@@ -560,7 +563,7 @@ if(mystep in thesteps):
             os.system('rename "s/.tt0//g" '+jointname+'.*.tt0*')
             os.system('rename "s/.joint.cube//g" '+jointname+'.joint.cube.*')
 
-        sdintims.append(imname)                
+        sdintims.append(jointname)                
                 
                 
 #mystep = 5    ###################----- TP2VIS -----####################
