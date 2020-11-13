@@ -22,6 +22,7 @@ try:
     from casatasks import tclean
     from casatasks import immath
     from casatasks import imregrid, imtrans
+    from casatasks import imsmooth
     from casatasks import feather
 
     from casatools import image as iatool
@@ -171,19 +172,19 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
 
 
     if not haspcb:
-        os.system('rm -rf copy_of_'+mysdimage)
-        os.system('cp -R '+mysdimage+' copy_of_'+mysdimage)
+        os.system('rm -rf '+mysdimage+'_copy')
+        os.system('cp -R '+mysdimage+' '+mysdimage+'_copy')
         if numchan == 1:
             # image has only one channel; need workaround for per-channel-beam problem
-            myia.open('copy_of_'+mysdimage)
+            myia.open(mysdimage+'_copy')
             mycoords = myia.coordsys().torecord()
             mycoords['spectral2']['wcs']['crval'] += mycoords['spectral2']['wcs']['cdelt']
             myia.setcoordsys(mycoords)
             myia.close()
-            tmpia = myia.imageconcat(outfile='mod_'+mysdimage, infiles=[mysdimage, 'copy_of_'+mysdimage], 
+            tmpia = myia.imageconcat(outfile=mysdimage+'_mod', infiles=[mysdimage, mysdimage+'_copy'], 
                                    axis=3, overwrite=True)
             tmpia.close()
-            mysdimage = 'mod_'+mysdimage
+            mysdimage = mysdimage+'_mod'
             numchan = 2
 
         myia.open(mysdimage)
@@ -465,7 +466,7 @@ def runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs',
 
 def runfeather(intimage,intpb, sdimage, featherim='featherim'):
     """
-    runtcleanFeather (A. Plunkett, NRAO)
+    runfeather (A. Plunkett, NRAO)
     a wrapper around the CASA task "FEATHER,"
 
     intimage - the interferometry image
@@ -749,3 +750,283 @@ def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs',
     exportfits(imname+'.TCLEAN.image.pbcor', imname+'.TCLEAN.pbcor.fits')
 
     return True
+
+
+
+
+
+
+######################################
+
+def reorder_axes(template, to_reorder):
+
+    """
+    reorder_axes (M. Hoffmann, D. Kunneriath, N. Pingel, L. Moser-Fischer)
+    a tool to reorder the axes according to a reference/template image
+
+    template - the reference image
+             default: None, example: 'INT.image'
+    to_reorder - the image whose axes should be reordered
+             default: None, example: 'SD.image'
+
+    Example: reorder_axes('INT.image', 'SD.image')
+    """
+
+    print('##### Check axis order ########')
+
+    myfiles=[template,to_reorder]
+    mykeys=['cdelt1','cdelt2','cdelt3','cdelt4']
+
+    im_axes={}
+    print('Making dictionary of axes information for template and to-reorder images')
+    for f in myfiles:
+             print(f)
+             print('------------')
+             axes = {}
+             i=0
+             for key in mykeys:
+                     q = imhead(f,mode='get',hdkey=key)
+                     axes[i]=q
+                     i=i+1
+                     print(str(key)+' : '+str(q))
+             im_axes[f]=axes
+             print(' ')
+
+    # Check if axes order is the same, if not run imtrans to fix, 
+    # could be improved
+    order=[]           
+
+    for i in range(4):
+             hi_ax = im_axes[template][i]['unit']
+             lo_ax = im_axes[to_reorder][i]['unit']
+             if hi_ax == lo_ax:
+                     order.append(str(i))
+             else:
+                     lo_m1 = im_axes[to_reorder][i-1]['unit']
+                     if hi_ax == lo_m1:
+                             order.append(str(i-1))
+                     else:
+                             lo_p1 = im_axes[to_reorder][i+1]['unit']
+                             if hi_ax == lo_p1:
+                                     order.append(str(i+1))
+    order = ''.join(order)
+    print('order is '+order)
+
+    if order=='0123':
+             print('No reordering necessary')
+             outputname = to_reorder
+    else:
+            reordered_image='lowres.ro'
+            imtrans(imagename=to_reorder,outfile=reordered_image,order=order)
+            print('Had to reorder!')
+            outputname = reordered_image
+            
+    print(outputname)
+    return outputname
+
+
+
+
+######################################
+
+def ssc(highres=None, lowres=None, pb=None, combined=None, 
+        sdfactor=1.0):
+    """
+        ssc (P. Teuben, N. Pingel, L. Moser-Fischer)
+        an implementation of Faridani's short spacing combination method
+        https://bitbucket.org/snippets/faridani/pRX6r
+        https://onlinelibrary.wiley.com/doi/epdf/10.1002/asna.201713381
+
+        highres  - high resolution (interferometer) image
+        lowres   - low resolution (single dish (SD)/ total power (TP)) image
+        pb       - high resolution (interferometer) primary beam image 
+        combined - output image name 
+        sdfactor - scaling factor for the SD/TP contribution
+
+        Example: ssc(highres='INT.image', lowres='SD.image', pb='INT.pb',
+                     combined='INT_SD_1.7.image', sdfactor=1.7)
+
+    """
+
+    
+    ######################  Helper Functions  ##################### 
+    
+    # BUNIT from the header
+    def getBunit(imName):     
+            myia=iatool() 	
+            myia.open(str(imName))
+            summary = myia.summary()
+            myia.close()    
+            
+            return summary['unit']
+    
+    # BMAJ beam major axis in units of arcseconds
+    def getBmaj(imName):
+            myia=iatool() 
+            myia.open(str(imName))
+            summary = myia.summary()
+            if 'perplanebeams' in summary:
+                    n = summary['perplanebeams']['nChannels']//2
+                    b = summary['perplanebeams']['beams']['*%d' % n]['*0']
+            else:
+                    b = summary['restoringbeam']
+            major = b['major']
+            unit  = major['unit']
+            major_value = major['value']
+            if unit == 'deg':
+                    major_value = major_value * 3600
+            myia.close()                    
+                    
+            return major_value
+    
+    # BMIN beam minor axis in units of arcseconds
+    def getBmin(imName):
+            myia=iatool() 
+            myia.open(str(imName))
+            summary = myia.summary()
+            if 'perplanebeams' in summary:
+                    n = summary['perplanebeams']['nChannels']//2
+                    b = summary['perplanebeams']['beams']['*%d' % n]['*0']
+            else:
+                    b = summary['restoringbeam']
+    
+            minor = b['minor']
+            unit = minor['unit']
+            minor_value = minor['value']
+            if unit == 'deg':
+                    minor_value = minor_value * 3600
+            myia.close()    
+                
+            return minor_value
+    
+    # Position angle of the interferometeric data
+    def getPA(imName):
+            myia=iatool() 
+            myia.open(str(imName))
+            summary = myia.summary()
+            if 'perplanebeams' in summary:
+                    n = summary['perplanebeams']['nChannels']//2
+                    b = summary['perplanebeams']['beams']['*%d' % n]['*0']
+            else:
+                    b = summary['restoringbeam']
+    
+            pa_value = b['positionangle']['value']
+            pa_unit  = b['positionangle']['unit']
+            myia.close()    
+            
+            return pa_value, pa_unit
+    
+    
+    ###################### SSC main body #####################
+
+    # Reorder the axes of the low to match high/pb 
+    lowres = reorder_axes(highres,lowres)
+
+
+    # Regrid low res Image to match high res image
+    print('Regridding lowres image...')
+    imregrid(imagename=lowres,
+                     template=highres,
+                     axes=[0,1,2,3],
+                     output='lowres.regrid')
+
+    # Multiply the lowres image with the highres primary beam response
+    print('Multiplying lowres by the highres pb...')
+    immath(imagename=['lowres.regrid',
+                                        pb],
+                 expr='IM0*IM1',
+                 outfile='lowres.multiplied')
+
+    lowres_regrid = 'lowres.multiplied'
+
+    print('')
+    print('LR_Bmin: ' + str(getBmin(lowres_regrid)))
+    print('LR_Bmaj: ' + str(getBmaj(lowres_regrid)))
+    print('')
+    print('HR_Bmin: ' + str(getBmin(highres)))
+    print('HR_Bmaj: ' + str(getBmaj(highres)))
+    print('')
+
+    kernel1 = float(getBmaj(lowres_regrid))**2 - float(getBmaj(highres))**2
+    kernel2 = float(getBmin(lowres_regrid))**2 - float(getBmin(highres))**2
+
+    kernel1 = math.sqrt(kernel1)
+    kernel2 = math.sqrt(kernel2)
+    
+    print('Kernel1: ' + str(kernel1))
+    print('Kernel2: ' + str(kernel2))
+    print('')
+
+    # Convolve the highres with the appropriate beam so it matches the lowres 
+    print('Convolving high resolution cube ...')
+    major = str(getBmaj(lowres_regrid)) + 'arcsec'
+    minor = str(getBmin(lowres_regrid)) + 'arcsec'
+    pa = str(getPA(highres)[0]) + str(getPA(highres)[1])
+    print('imsmooth',major,minor,pa)
+    imsmooth(highres, 'gauss', major, minor, pa, True, outfile=highres + '_conv', overwrite=True)
+
+    highres_conv = highres + '_conv'
+
+    # Missing flux
+    print('Computing the obtained flux only by single-dish ...')
+    immath([lowres_regrid, highres_conv], 'evalexpr', 'sub.im', '%s*IM0-IM1' % sdfactor)
+    print('Flux difference has been determined' + '\n')
+    print('Units', getBunit(lowres_regrid))
+
+    sub = 'sub.im'
+    sub_bc = 'sub_bc.im'
+    combined = combined + '.image'
+
+    # Combination 
+    if getBunit(lowres_regrid) == 'Jy/beam':
+        print('Computing the weighting factor according to the surface of the beam ...')
+        weightingfac = (float(getBmaj(str(highres))) * float(getBmin(str(highres)))
+                ) / (float(getBmaj(str(lowres_regrid))) * float(getBmin(str(lowres_regrid))))
+        print('Weighting factor: ' + str(weightingfac) + '\n')
+        print('Considering the different beam sizes ...')
+        os.system('rm -rf %s' % sub_bc)        
+        immath(sub, 'evalexpr', sub_bc, 'IM0*' + str(weightingfac))
+        print('Fixed for the beam size' + '\n')
+        print('Combining the single-dish and interferometer cube [Jy/beam mode]')
+        os.system('rm -rf %s' % combined)        
+        immath([highres, sub_bc], 'evalexpr', combined, 'IM0+IM1')
+        print('The missing flux has been restored' + '\n')
+
+    if getBunit(lowres_regrid) == 'Kelvin':
+        print('Combining the single-dish and interferometer cube [K-mode]')
+        os.system('rm -rf %s' % combined)                
+        immath([highres, sub], 'evalexpr', combined, 'IM0 + IM1')
+        print('The missing flux has been restored' + '\n')
+
+    # primary beam correction
+    os.system(combined +'.pbcor')
+    immath(imagename=[combined,
+        pb],
+        expr='IM0/IM1',
+        outfile=combined +'.pbcor')
+
+    myimages = [combined]
+    
+    for myimagebase in myimages:
+         exportfits(imagename = myimagebase+'.pbcor',
+                             fitsimage = myimagebase+'.pbcor.fits',
+                             overwrite = True
+                             )
+    
+         exportfits(imagename = myimagebase,
+                             fitsimage = myimagebase+'.fits',
+                             overwrite = True
+                             )
+
+    # Tidy up 
+    os.system('rm -rf lowres.*')
+    #os.system('rm -rf lowres.regrid')
+    #os.system('rm -rf lowres.multiplied')
+    os.system('rm -rf '+highres_conv)
+    os.system('rm -rf '+sub)
+    os.system('rm -rf '+sub_bc)
+    #os.system('rm -rf '+combined)
+    #os.system('rm -rf '+combined+'.pbcor')
+    
+    return True
+

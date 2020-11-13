@@ -19,9 +19,9 @@ The naming scheme of the output images is the following
 
       imname = imbase + cleansetup + combisetup
 
-imbase     - a basename you define
-cleansetup - defined by your tclean parameter choice
-combisetup - defined by your combination method and parameter choice
+- imbase     - a basename you define
+- cleansetup - defined by your tclean parameter choice
+- combisetup - defined by your combination method and parameter choice
 
 
 
@@ -33,8 +33,7 @@ corresponding other version
 
 
 
-## Paths to the input and output files and for concatenation of several 
-ms - data sets
+## USER INPUTS: Paths to the input and output files and for concatenation of several ms - data sets
 
       pathtoconcat = 'path-to-ms-datasets-(array-configs)-and-SD-image-to-combine'   
       # path to the folder with the files to be concatenated
@@ -48,15 +47,20 @@ ms - data sets
 The list of files to concatenate is defined in this section, too, 
 as well as the visweighting.
 
+If you don't need/want to concatenate data, give the name and path 
+of the file or a list of files you want to image directly to concatms 
+and skip thesteps=[0].
 
-## files and names used by the combination methods 
+      
+   
+## USER INPUTS: files and names used by the combination methods 
       
       vis       = concatms 
       sdimage   = pathtoconcat + 'gmc_120L.sd.image'
       imbase    = pathtoimage + 'skymodel-b_120L'        # path + image base name
 
 
-## setup of the clean parameters
+##  USER INPUTS: setup of the clean parameters
 
 With this section, we set up the clean parameters common for all tclean 
 instances used in the combination methods including SDINT.
@@ -92,7 +96,7 @@ Maybe introduce a loop over some clean parameters like niter.
 
 
 
-## SD scaling in combination
+##  USER INPUTS: SD scaling in combination
 
 Here we can list multiple scaling factors per scaling parameter 
 (e.g sdfac=[0.8, 1.0, 1.2] for feather) for the corresponding 
@@ -119,10 +123,14 @@ iterators and cleanname without executing the combination method.
 
 ## execution steps/methods
 
-### concat
-Straight forward
+### step 0: concat
 
-### tclean only
+If you want to combine several interferometric datasets specify 
+'thevis', 'weighscale', 'concatms' and add 0 to your 'thestep'-list 
+
+
+### step 1: tclean only
+
 need to rename the products name after image creation 
 -> need to adjust in datacomb.py
 
