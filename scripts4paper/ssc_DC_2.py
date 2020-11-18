@@ -21,7 +21,12 @@
 
 import os
 import math
-try:
+import sys
+
+
+pythonversion = sys.version[0]
+
+if pythonversion=='3':
     from casatasks import casalog
     from casatasks import exportfits
     from casatasks import imhead
@@ -34,128 +39,34 @@ try:
 #
     from casatools import image as iatool   # compare iatool in datacomb.py
 #    from casatools import quanta as qatool
-except:
-    print("Warning: datacomb assuming not in casa6")
+else:
+    pass #print("Warning: datacomb assuming not in casa6")
 #
 
 
 
 
-# Helper Functions
-
-# BUNIT from the header
-def getBunit(imName):     
-        myia=iatool() 	
-        myia.open(str(imName))
-        summary = myia.summary()
-        myia.close()    
-        
-        return summary['unit']
-
-# BMAJ beam major axis in units of arcseconds
-def getBmaj(imName):
-        myia=iatool() 
-        myia.open(str(imName))
-        summary = myia.summary()
-        if 'perplanebeams' in summary:
-                n = summary['perplanebeams']['nChannels']//2
-                b = summary['perplanebeams']['beams']['*%d' % n]['*0']
-        else:
-                b = summary['restoringbeam']
-        major = b['major']
-        unit  = major['unit']
-        major_value = major['value']
-        if unit == 'deg':
-                major_value = major_value * 3600
-        myia.close()                    
-                
-        return major_value
-
-# BMIN beam minor axis in units of arcseconds
-def getBmin(imName):
-        myia=iatool() 
-        myia.open(str(imName))
-        summary = myia.summary()
-        if 'perplanebeams' in summary:
-                n = summary['perplanebeams']['nChannels']//2
-                b = summary['perplanebeams']['beams']['*%d' % n]['*0']
-        else:
-                b = summary['restoringbeam']
-
-        minor = b['minor']
-        unit = minor['unit']
-        minor_value = minor['value']
-        if unit == 'deg':
-                minor_value = minor_value * 3600
-        myia.close()    
-            
-        return minor_value
-
-# Position angle of the interferometeric data
-def getPA(imName):
-        myia=iatool() 
-        myia.open(str(imName))
-        summary = myia.summary()
-        if 'perplanebeams' in summary:
-                n = summary['perplanebeams']['nChannels']//2
-                b = summary['perplanebeams']['beams']['*%d' % n]['*0']
-        else:
-                b = summary['restoringbeam']
-
-        pa_value = b['positionangle']['value']
-        pa_unit  = b['positionangle']['unit']
-        myia.close()    
-        
-        return pa_value, pa_unit
-
-
-
-
-#################################
-## Faridani
-## adopted from script, ssc_DC.py
-## written by Lydia Moser-Fischer
-#################################
-
-
-def ssc(highres=None, lowres=None, pb=None, combined=None, 
-        sdfactor=1.0):
-    """
-        highres     high res (interferometer) image
-        lowres      low res (SD/TP) image
-        pb          high res (interferometer) primary beam
-        sdfactor    scaling factor for the SD/TP contribution
+def reorder_axes(template, to_reorder):
 
     """
+    reorder_axes (M. Hoffmann, D. Kunneriath, N. Pingel, L. Moser-Fischer)
+    a tool to reorder the axes according to a reference/template image
 
-    #####################################
-    #             USER INPUTS           #
-    #####################################
-    # Only user inputs required are the 
-    # high res, low res, pb name, and sdfactor (scaling factor)
-    
-    #####sdfactor = 1.0
-    #####
-    #####highres='skymodel-b_120L.inter.auto.image'
-    #####lowres='skymodel-b_120L.sd.image/'
-    ######lowres='gmc_reorder.image'
-    #####pb='skymodel-b_120L.inter.auto.pb'
+    template - the reference image
+             default: None, example: 'INT.image'
+    to_reorder - the image whose axes should be reordered
+             default: None, example: 'SD.image'
 
-    #####################################
-    #            PROCESS DATA           #
-    #####################################
-    # Reorder the axes of the low to match high/pb 
+    Example: reorder_axes('INT.image', 'SD.image')
+    """
 
-    print('##### CHANGES ########')
+    print('##### Check axis order ########')
 
-
-
-
-    myfiles=[highres,lowres]
+    myfiles=[template,to_reorder]
     mykeys=['cdelt1','cdelt2','cdelt3','cdelt4']
 
     im_axes={}
-    print('Making dictionary of axes information for high and lowres images')
+    print('Making dictionary of axes information for template and to-reorder images')
     for f in myfiles:
              print(f)
              print('------------')
@@ -169,20 +80,21 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
              im_axes[f]=axes
              print(' ')
 
-    # Check if axes order is the same, if not run imtrans to fix, could be improved
+    # Check if axes order is the same, if not run imtrans to fix, 
+    # could be improved
     order=[]           
 
     for i in range(4):
-             hi_ax = im_axes[highres][i]['unit']
-             lo_ax = im_axes[lowres][i]['unit']
+             hi_ax = im_axes[template][i]['unit']
+             lo_ax = im_axes[to_reorder][i]['unit']
              if hi_ax == lo_ax:
                      order.append(str(i))
              else:
-                     lo_m1 = im_axes[lowres][i-1]['unit']
+                     lo_m1 = im_axes[to_reorder][i-1]['unit']
                      if hi_ax == lo_m1:
                              order.append(str(i-1))
                      else:
-                             lo_p1 = im_axes[lowres][i+1]['unit']
+                             lo_p1 = im_axes[to_reorder][i+1]['unit']
                              if hi_ax == lo_p1:
                                      order.append(str(i+1))
     order = ''.join(order)
@@ -190,10 +102,137 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
 
     if order=='0123':
              print('No reordering necessary')
+             outputname = to_reorder
     else:
-            imtrans(imagename=lowres,outfile='lowres.ro',order=order)
-            lowres='lowres.ro'
+            reordered_image='lowres.ro'
+            imtrans(imagename=to_reorder,outfile=reordered_image,order=order)
             print('Had to reorder!')
+            outputname = reordered_image
+            
+    print(outputname)
+    return outputname
+
+
+
+#################################
+## Faridani
+## adopted from script, ssc_DC.py
+## written by Lydia Moser-Fischer
+#################################
+
+
+def ssc(highres=None, lowres=None, pb=None, combined=None, 
+        sdfactor=1.0):
+    """
+        ssc (P. Teuben, N. Pingel, L. Moser-Fischer)
+        an implementation of Faridani's short spacing combination method
+        https://bitbucket.org/snippets/faridani/pRX6r
+        https://onlinelibrary.wiley.com/doi/epdf/10.1002/asna.201713381
+
+        highres  - high resolution (interferometer) image
+        lowres   - low resolution (single dish (SD)/ total power (TP)) image
+        pb       - high resolution (interferometer) primary beam image 
+        combined - output image name 
+        sdfactor - scaling factor for the SD/TP contribution
+
+        Example: ssc(highres='INT.image', lowres='SD.image', pb='INT.pb',
+                     combined='INT_SD_1.7.image', sdfactor=1.7)
+
+    """
+
+    
+    # Helper Functions
+    
+    # BUNIT from the header
+    def getBunit(imName):     
+            myia=iatool() 	
+            myia.open(str(imName))
+            summary = myia.summary()
+            myia.close()    
+            
+            return summary['unit']
+    
+    # BMAJ beam major axis in units of arcseconds
+    def getBmaj(imName):
+            myia=iatool() 
+            myia.open(str(imName))
+            summary = myia.summary()
+            if 'perplanebeams' in summary:
+                    n = summary['perplanebeams']['nChannels']//2
+                    b = summary['perplanebeams']['beams']['*%d' % n]['*0']
+            else:
+                    b = summary['restoringbeam']
+            major = b['major']
+            unit  = major['unit']
+            major_value = major['value']
+            if unit == 'deg':
+                    major_value = major_value * 3600
+            myia.close()                    
+                    
+            return major_value
+    
+    # BMIN beam minor axis in units of arcseconds
+    def getBmin(imName):
+            myia=iatool() 
+            myia.open(str(imName))
+            summary = myia.summary()
+            if 'perplanebeams' in summary:
+                    n = summary['perplanebeams']['nChannels']//2
+                    b = summary['perplanebeams']['beams']['*%d' % n]['*0']
+            else:
+                    b = summary['restoringbeam']
+    
+            minor = b['minor']
+            unit = minor['unit']
+            minor_value = minor['value']
+            if unit == 'deg':
+                    minor_value = minor_value * 3600
+            myia.close()    
+                
+            return minor_value
+    
+    # Position angle of the interferometeric data
+    def getPA(imName):
+            myia=iatool() 
+            myia.open(str(imName))
+            summary = myia.summary()
+            if 'perplanebeams' in summary:
+                    n = summary['perplanebeams']['nChannels']//2
+                    b = summary['perplanebeams']['beams']['*%d' % n]['*0']
+            else:
+                    b = summary['restoringbeam']
+    
+            pa_value = b['positionangle']['value']
+            pa_unit  = b['positionangle']['unit']
+            myia.close()    
+            
+            return pa_value, pa_unit
+    
+    
+    # ssc main body
+
+
+    #####################################
+    #             USER INPUTS           #
+    #####################################
+    # Only user inputs required are the 
+    # high res, low res, pb name, combined name and sdfactor (scaling factor)
+    
+    #####sdfactor = 1.0
+    #####
+    #####highres='skymodel-b_120L.inter.auto.image'
+    #####lowres='skymodel-b_120L.sd.image/'
+    ######lowres='gmc_reorder.image'
+    #####pb='skymodel-b_120L.inter.auto.pb'
+
+    #####################################
+    #            PROCESS DATA           #
+    #####################################
+    # Reorder the axes of the low to match high/pb 
+
+    
+    lowres = reorder_axes(highres,lowres)
+
 
     # Regrid low res Image to match high res image
     print('Regridding lowres image...')
@@ -247,7 +286,7 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
 
     sub = 'sub.im'
     sub_bc = 'sub_bc.im'
-
+    combined = combined + '.image'
 
     # Feather together the low*pb and hi images
     #print('Feathering...')
@@ -261,6 +300,7 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     #     expr='IM0/IM1',
     #     outfile='gmc_120L.Feather.image.pbcor')
 
+    # Combination 
     if getBunit(lowres_regrid) == 'Jy/beam':
         print('Computing the weighting factor according to the surface of the beam ...')
         weightingfac = (float(getBmaj(str(highres))) * float(getBmin(str(highres)))
@@ -283,7 +323,7 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
         immath([highres, sub], 'evalexpr', combined, 'IM0 + IM1')
         print('The missing flux has been restored' + '\n')
 
-    ## finally, perform the primary beamc correction
+    # primary beam correction
     os.system(combined +'.pbcor')
     immath(imagename=[combined,
         pb],
@@ -319,26 +359,27 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
 #                         overwrite = True
 #                         )
 #
-#myimages = ['skymodel-b_120L.inter.auto_ssc_f%s_TP' % sdfactor]
-#
-#for myimagebase in myimages:
-#     exportfits(imagename = myimagebase+'.image.pbcor',
-#                         fitsimage = myimagebase+'.pbcor.fits',
-#                         overwrite = True
-#                         )
-#
-#     exportfits(imagename = myimagebase+'.image',
-#                         fitsimage = myimagebase+'.image.fits',
-#                         overwrite = True
-#                         )
- 
-
-os.system('rm -rf lowres.regrid')
-os.system('rm -rf lowres.multiplied')
-os.system('rm -rf skymodel-b_120L.inter.auto.image_conv')
-os.system('rm -rf sub.im')
-os.system('rm -rf sub_bc.im')
-#os.system('rm -rf skymodel-b_120L.inter.auto_ssc_f1.0_TP.image')
-#os.system('rm -rf skymodel-b_120L.inter.auto_ssc_f1.0_TP.image.pbcor')
-
+    myimages = [combined]
     
+    for myimagebase in myimages:
+         exportfits(imagename = myimagebase+'.pbcor',
+                             fitsimage = myimagebase+'.pbcor.fits',
+                             overwrite = True
+                             )
+    
+         exportfits(imagename = myimagebase,
+                             fitsimage = myimagebase+'.fits',
+                             overwrite = True
+                             )
+     
+ 
+    # Tidy up 
+    os.system('rm -rf lowres.regrid')
+    os.system('rm -rf lowres.multiplied')
+    os.system('rm -rf '+highres_conv)
+    os.system('rm -rf '+sub)
+    os.system('rm -rf '+sub_bc)
+    #os.system('rm -rf '+combined)
+    #os.system('rm -rf '+combined+'.pbcor')
+    
+    return True

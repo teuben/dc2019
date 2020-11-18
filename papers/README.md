@@ -23,6 +23,8 @@ We should have PDF's of the following papers
 
 * Hoffman & Kepley 2018 https://library.nrao.edu/public/memos/gbt/GBT_300.pdf *GBT Memo 300: Correcting ALMA 12-m Array Data for Missing Short Spacings Using the Green Bank Telescope*
 
+* Rau et al. 2019, AJ: https://ui.adsabs.harvard.edu/abs/2019AJ....158....3R/abstract *A Joint Deconvolution Algorithm to Combine Single-dish and Interferometer Data for Wideband Multiterm and Mosaic Imaging*
+
 * ALMA cycle 7 technical handbook (version 1.1)
 
 
