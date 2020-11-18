@@ -693,13 +693,13 @@ os.system('rm -rf '+pathtoimage + 'TempLattice*')
 #                     robust = 0.5,
 #                     ^specmode=specmode,
 #                     gridder=mygridder,
-#                     pblimit=0.2, 
+#                     pblimit=0.2,                #default
 #                     pbcor=True,
-#                     interpolation='linear',
-#                     wprojplanes=1,
+#                     interpolation='linear',    #default
+#                     wprojplanes=1,             # default & irrelevant
 #                     ^deconvolver=mydeconvolver,
 #                     scales=myscales,
-#                     nterms=1,
+#                     nterms=1,                  # for mtmfs
 #                     niter=10000000,
 #                     ^spw=spw,
 #                     ^start=start,
@@ -747,7 +747,7 @@ os.system('rm -rf '+pathtoimage + 'TempLattice*')
 #                     perchanweightdensity=False,
 #                     *#interactive=False,
 #                     *#cycleniter = 100000, 
-#                     #cyclefactor=2.0,
+#                     #cyclefactor=2.0,           # = 1.0 default
 #                     *#usemask='auto-multithresh',
 #                     #sidelobethreshold=2.0,
 #                     #noisethreshold=4.25,
@@ -766,7 +766,7 @@ os.system('rm -rf '+pathtoimage + 'TempLattice*')
 #         ^field = field,
 #         #intent = 'OBSERVE_TARGET#ON_SOURCE',
 #         ^phasecenter = phasecenter,
-#         #stokes = 'I',
+#         #stokes = 'I',                  # default
 #         spw = spw,
 #         #outframe = 'LSRK',             # DEFAULT
 #         ^specmode = specmode,
