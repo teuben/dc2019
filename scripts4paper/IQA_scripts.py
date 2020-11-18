@@ -2,10 +2,20 @@
 ## Image Quality Assessment (IQA) scripts for CASA
 ##
 ## Created: Feb. 2020
-## Last modified: Aug. 2020
-## Created: A. Hacar, IQA group
+## Last modified: Nov. 2020
+## Authors:
+## 	1.- Genearal IQA tests: Alvaro Hacar (alvaro.hacar@univie.ac.at)
+##	2.- Power spectra: Nickolas Pingel (Nickolas.Pingel@anu.edu.au), Dirk Petry (dpetry@eso.org)
+##	3.- Aperture methods: Brian Mason (bmason@nrao.edu), Alvaro Hacar (alvaro.hacar@univie.ac.at)
 ##
 #########################################################
+
+##############################################################################################
+# 1.- General IQA tests
+# Script to obtain general IQA tests (Aperture, Fidelity, Differences) for both continuum and cube images
+#
+# authors: Alvaro Hacar (alvaro.hacar@univie.ac.at)
+
 ## Functions
 
 ## keywords
@@ -18,7 +28,7 @@
 ##
 
 ##-------------------------------------------------------
-## Additional libraries
+## Imports
 
 from scipy import fftpack
 from astropy.io import fits
@@ -157,6 +167,8 @@ def resample_velaxis(image,template):
 # Mask data (typically reference image)
 def mask_image(myimage,threshold=0.0,relative=False):
 	"""
+	mask_image (A. Hacar, Univ. of Vienna)
+
 	Mask an image (typicaly your reference) below an intensity threshold.
 	Thresholding is recommended to avoid noisy data in many of the IQA tests
 	Arguments:
@@ -225,6 +237,8 @@ def check_axis(ref_image,target_im=[]):
 
 def drop_axis(myimage):
 	"""
+	drop_axis (A. Hacar, Univ. of Vienna)
+	
 	Drop unnecesary axis (e.g. Stokes)
 	Arguments:
 	 myimage : image wher drop_axis will be applied (CASA image)
@@ -252,10 +266,28 @@ def drop_axis(myimage):
 ## see a detailed discussion in: https://library.nrao.edu/public/memos/ngvla/NGVLA_67.pdf
 
 ## Calculate Image Accuracy parameter (Apar)
-## Apar = (image-reference)/abs(reference)
-## image & reference have to have the same resolution
-## image will be resampled into reference frame
 def image_Apar(image,ref_image):
+	"""
+	image_Apar (A. Hacar, Univ. of Vienna)
+
+	Function to generate A-par maps
+	A-par is defined as the relative error between the target and reference images:
+	Apar = (image-reference)/abs(reference)
+
+	Arguments:
+	  image - target image
+	  ref_image - reference image
+	(Note that the target image should have the same resolution as the target one)
+
+	Outputs:
+	  str(image)+'_Apar' - A-par image
+
+	Description:
+	  A=0 - Perfect image
+	  A>1 - target image overestimates the expected flux in the reference
+	  A<1 - target image underestimates the expected flux in the reference
+	  A value - relative difference (in %) between the target and the reference
+	"""
 	# Resampling
 	os.system('rm -rf tmp_resampled')
 	imregrid(imagename= image,
@@ -271,10 +303,26 @@ def image_Apar(image,ref_image):
 	os.system('rm -rf tmp_resampled')
 
 ## Calculate image Fidelity
-## Fidelity = abs(reference)/abs(reference-image)
-## image & reference have to have the same resolution
-## image will be resampled into reference frame
 def image_Fidelity(image,ref_image):
+	"""
+	image_Fidelity (A. Hacar, Univ. of Vienna)
+
+	Function to generate Fidelity maps
+	Fidelity is defined as the ratio between the reference image and the difference between
+	target and the reference images all in absolute terms:
+	Fidelity = abs(reference)/abs(image-reference)
+
+	Arguments:
+	  image - target image
+	  ref_image - reference image
+	(Note that the target image should have the same resolution as the target one)
+
+	Outputs:
+	  str(image)+'_fidelity' - Fidelity image
+
+	Description:
+	  The higher the fidelity, the better correspondance between the target and the reference images
+	"""
 	# Resampling
 	os.system('rm -rf tmp_resampled')
 	imregrid(imagename= image,
@@ -291,10 +339,15 @@ def image_Fidelity(image,ref_image):
 
 
 ## Calculate image Difference
-## Difference = reference-image
-## image & reference have to have the same resolution
-## image will be resampled into reference frame
 def image_Diff(image,ref_image):
+	"""
+	Generate difference image: Difference = reference-image
+	Arguments:
+	  image - target CASA image
+	  ref_image - CASA image used as reference
+	Output:
+	  str(image)+'_Diff' = Difference CASA image
+	"""
 	# Resampling
 	os.system('rm -rf tmp_resampled')
 	imregrid(imagename= image,
@@ -316,6 +369,8 @@ def noise_image(fitsfile,noise=0.1,noisefile="noise"):
 	  fitsfile - FITS file used as template
 	  noise - noise level (in whatever units if fitsfile)
 	  noisefile - name of the file where the results will be stored (default = "noise"+".fits"
+	Output:
+	  str(noisefile)+'.fits' - FITS noise file
 	"""
 	# Read Templeate
 	hdu = fits.open(fitsfile)
@@ -335,6 +390,8 @@ def noise_image(fitsfile,noise=0.1,noisefile="noise"):
 # IQA methods: Accuracy, Fidelity, etc...
 def get_IQA(ref_image = '',target_image=['']):
 	"""
+	get_IQA (A. Hacar, Univ. of Vienna)
+	
 	Obtain all Image Quality Assesment images
 	Arguments:
 	  ref_image - image used as reference
@@ -391,7 +448,7 @@ def get_IQA(ref_image = '',target_image=['']):
 # Accuracy parameter comparisons
 def Compare_Apar(ref_image = '',target_image=[''],save=False):
 	"""
-	Compare all Apar images (continuum or mom0 maps)
+	Compare all Apar images (continuum or mom0 maps) (A. Hacar, Univ. of Vienna)
 
 	Arguments:
 	  ref_image - image used as reference
@@ -465,23 +522,34 @@ def Compare_Apar(ref_image = '',target_image=[''],save=False):
 	print("=============================================")
 	return True
 
-def Compare_Apar_signal(ref_image = '',target_image=[''],save=False):
+def Compare_Apar_signal(ref_image = '',target_image=[''],save=False,noise=0.0):
 	"""
-	Compare all Apar images vs signal (continuum or mom0 maps)
-
+	Compare_Apar_signal (A. Hacar, Univ. of Vienna) 
+	
+	Compare all Apar images vs signal (continuum or mom0 maps).
+	If No. of targets = 1, the mean and std of A-par will be calculated.
+	This function can be applied in both cont/mom0 and cubes FITS files.
+	
 	Arguments:
 	  ref_image - image used as reference
-	  target_image - list of images to be compared with reference (better only one)
-	  save - save plot? (default = False)
+	  target_image - list of images to be compared with reference 
+		(recommended to <= 4 targets)
+	  save - (optional) save plot? (default = False)
+	  noise - (optional) if noise > 0.0 the evolution of the noise level
+		will be displayed  
+	
 	Requires:
 	  The script will look for target_image[i]_convo2ref_Apar.fits images produced by the get_IQA() script
 	
 	Results:
-	  Apar vs signal in the original image
-
-	Example:
+	  Apar as function of reference & target signals
+	
+	Example 1: compare a list of targets
 	  Compare_Apar_signal(ref_image = 'TP_image',target_image=['Feather.image','TP2vis.image'])
-
+	
+	Example 2: investigate singel target (incl. A-par statistics)
+	  Compare_Apar_signal(ref_image = 'TP_image',target_image=['Feather.image'],noise=0.5)
+	
 	"""
 	# Reference image
 	print("=============================================")
@@ -489,26 +557,149 @@ def Compare_Apar_signal(ref_image = '',target_image=[''],save=False):
 	print("---------------------------------------------")
 	# Number of plots
 	Nplots = np.shape(target_image)[0]
-	# Global comparisons 
-	plt.figure(figsize=(8,11))
-	grid = plt.GridSpec(ncols=1,nrows=5, wspace=0.3, hspace=0.3)
-	ax1 = plt.subplot(grid[0:4, 0])
+	# These plots get too crowded with a high number of targets. If No. targets > 4 then exit this function
+	if (Nplots > 4):
+		print(" Too many targets. Please use <= 4.")
+		print(" No plot shown.")
+		print("---------------------------------------------")
+		print(" A-par vs Signal... DONE")
+		print("=============================================")
+		return None
+
+	# Figure parameters 
+	plt.figure(figsize=(8,14))
+	grid = plt.GridSpec(ncols=1,nrows=7, wspace=0.3, hspace=0.3)
+	
+	# Plot #1: Reference vs A-par
+	ax0 = plt.subplot(grid[0:2, 0])
 	# Loop over all images
+	xmax0 = 0.0; xmin0 = 1E6	# Dummy values
 	for m in np.arange(Nplots):
 		# Images
-		im1 = fits.open(target_image[m]+"_convo2ref_Apar.fits") # parameter
-		im2 = fits.open(target_image[m]+"_convo2ref.fits") 	# signal
+		im1 = fits.open(ref_image+".fits")
+		im2 = fits.open(target_image[m]+"_convo2ref_Apar.fits")
+		# Define plot limits
+		xmin = np.min(im1[0].data[np.isnan(im1[0].data)==False])
+		xmax = np.max(im1[0].data[np.isnan(im1[0].data)==False])
+		if (xmax > xmax0):
+			xmax0=xmax+xmax/10. # Slightly larger
+		if (xmin < xmin0):
+			xmin0=xmin
 		# Plot results
-		ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="+",rasterized=True,label=target_image[m])
-	plt.hlines(0.,0,np.max(im1[0].data),linestyle="--",color="black",linewidth=3,label="Goal",alpha=1.,zorder=-2)
+		ax0.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,edgecolor='none')
+
+	# Goal (A-par = 0)
+	ax0.hlines(0.,xmin,xmax0,linestyle="--",color="black",linewidth=3,alpha=1.,zorder=2)
+
+	# Calculate mean and sigma if there is only one target
+	if (Nplots == 1):
+		print("---------------------------------------------")
+		print(" A-par values per bin: ")
+		# Calculate bins & step in log-scale
+		steplog=(np.log10(xmax0)-np.log10(xmin0))/10.
+		xvalueslog=np.arange(np.log10(xmin0),np.log10(xmax0),steplog)
+		# back to linear scale
+		step=10.**steplog
+		xvalues=10.**xvalueslog
+		# Define stats vectors
+		means=np.zeros(len(xvalues))	# Mean
+		stds=np.zeros(len(xvalues))	# STD
+		medians=np.zeros(len(xvalues))	# Median
+		q1values=np.zeros(len(xvalues))	# Q1
+		q3values=np.zeros(len(xvalues))	# Q2
+		
+		print xmin0, xmax0
+		print xvalues
+
+		count=0
+		for j in xvalueslog:
+			# Define bin ranges in log-space
+			idx = (im1[0].data >= 10.**j) & (im1[0].data < 10.**(j+steplog)) & (np.isnan(im1[0].data)==False) & (np.isfinite(im1[0].data)==True)
+			values = im2[0].data[idx]
+			values = values[ (np.isnan(values)==False) & (np.isfinite(values)==True) ] # remove Nan & Inf.
+			# Stats
+			if (np.shape(values)[0] > 0):
+				means[count] = np.mean(values)	# Mean
+				stds[count] = np.std(values)	# STD
+				medians[count] = np.median(values)	# Median
+				q1values[count] = np.percentile(values, 10)	# 10% Quartile
+				q3values[count] = np.percentile(values, 90)	# 90% Quartile
+			# Show results on screen
+			print("Bin "+str(count+1)+": Ref.Flux = " + str(np.round(10.**(j+steplog/2.),2)) + " ; A = " + str(np.round(means[count],2)) + " +/- " + str(np.round(stds[count],2)) + " ; [Q10,Q90] = ["+ str(np.round(q1values[count],3)) + " , " + str(np.round(q3values[count],3)) +"]")
+			# Counter +1
+			count+=1
+			#
+		# Display mean and STD
+		ax0.errorbar(10.**(xvalueslog+steplog/2.),means, yerr=stds, fmt='o',c="blue",label=r"|y|$\pm 1 \sigma$ ",linewidth=2,markersize=10,zorder=2,capsize=5)
+		#ax0.errorbar(10.**(xvalueslog+steplog/2.),medians, yerr=[q1values,q3values], fmt='o',c="cyan",label=r"[Q1,Median,Q3]",linewidth=2)
+		ax0.vlines(10.**(xvalueslog+steplog/2.),q1values,q3values,color="cyan",label=r"[Q10,Q90]",linewidth=5,zorder=1)
+
+	# Show noise effects?
+	if (noise > 0):
+		xvalues=np.arange(np.log10(xmin0),np.log10(xmax0),(np.log10(xmax0)-np.log10(xmin0))/20.)
+		xvalues=10.**xvalues
+		ax0.plot(xvalues,noise/np.abs(xvalues),c="blue",zorder=2,linewidth=4,linestyle="dotted")
+		ax0.plot(xvalues,-noise/np.abs(xvalues),c="blue",zorder=2,linewidth=4,linestyle="dotted")
+
 	# Plot limits, legend, labels...
-	plt.xlim(-1.0,1.0)
-	#plt.yscale('log')	# Make y axis in log scale
-	#plt.legend(loc='lower right')
-	plt.legend(bbox_to_anchor=(0.5, -0.1),loc='upper center', borderaxespad=0.)
-	plt.xlabel("Accuracy",fontsize=20)
-	plt.ylabel(r'# Flux (image units)',fontsize=20)
-	plt.title("Accuracy vs signal",fontsize=20)
+	ax0.legend()
+	ax0.set_yticks(np.arange(-2.,2.,0.25))
+	ax0.set_xlim(xmin0,xmax0)
+	ax0.set_ylim(-0.65, 0.65)
+	# Adjust ylims if the results are really bad!
+	if (np.mean(im2[0].data[np.isnan(im2[0].data)==False]) <= -0.5):
+		ax0.set_ylim(-1.5, 0.5)
+	ax0.set_xscale('log')
+	ax0.set_ylabel(r" A-par",fontsize=20)
+
+
+	# Plot #2: Reference vs Target
+	ax1 = plt.subplot(grid[2:6, 0])
+	# Loop over all images
+	xmax0 = 0.0; xmin0 = 1E6	# Dummy values
+	for m in np.arange(Nplots):
+		# Images
+		im1 = fits.open(ref_image+".fits")
+		im2 = fits.open(target_image[m]+"_convo2ref.fits")
+		# Define plot limits
+		xmin = np.min(im1[0].data[np.isnan(im1[0].data)==False])
+		xmax = np.max(im1[0].data[np.isnan(im1[0].data)==False])
+		if (xmax > xmax0):
+			xmax0=xmax+xmax/10. # Slightly larger
+		if (xmin < xmin0):
+			xmin0=xmin
+		# Plot results
+		ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,label=target_image[m],edgecolor='none')
+
+	# Show A values lines
+	xvalues=np.arange(xmin0,xmax0,(xmax0-xmin0)/20.)
+	plt.plot(xvalues,xvalues,c="k",zorder=2,linewidth=3,linestyle="--",label="Goal (linear correlation; A-par = 0.0)")
+	plt.text((xmax0-xmin0)/3.,(xmax0-xmin0)/3.,"A=0",rotation=45,ha='center',va='center',rotation_mode="anchor",bbox=dict(boxstyle='square',facecolor='white', edgecolor='black'))
+	# Note that the value of A=-1 needs values of Target=0, which is not allowed in ylog-plots
+	for k in np.array([-0.75,-0.5,-0.25,0.25,0.5,0.75,1.0]):
+		def Avalues(A,x):
+			return A*x+x
+		yvalues=Avalues(A=k,x=xvalues)
+		ax1.plot(xvalues,yvalues,c="grey",zorder=2,linestyle="dashed",alpha=0.5)
+		ax1.text((xmax0-xmin0)/3.,Avalues(A=k,x=(xmax0-xmin0)/3.),"A="+str(k),rotation=45,ha='center',va='center',rotation_mode="anchor",clip_on=True,size=10.,color="grey",zorder=2)
+
+	# Show noise effects?
+	if (noise > 0):
+		xvalues=np.arange(np.log10(xmin0),np.log10(xmax0),(np.log10(xmax0)-np.log10(xmin0))/20.)
+		xvalues=10.**xvalues
+		plt.plot(xvalues,xvalues-noise,c="blue",zorder=2,linewidth=4,linestyle="dotted",label=r"White noise:  $\sigma = $"+str(np.round(noise,2))+" (image units)")
+		plt.plot(xvalues,xvalues+noise,c="blue",zorder=2,linewidth=4,linestyle="dotted")
+
+	# Plot limits, legend, labels...
+	plt.xlim(xmin0,xmax0)
+	plt.ylim(xmin0,xmax0)
+	plt.xscale('log')
+	plt.yscale('log')
+	# Legend and labels
+	plt.legend(bbox_to_anchor=(0.5, -0.15),loc='upper center', borderaxespad=0.)
+	plt.ylabel(r" Target flux (image units)",fontsize=20)
+	plt.xlabel(r" Reference flux (image units)",fontsize=20)
+
 	# Save plot?
 	if save == True:
 		plt.savefig("Apar_signal_ALL_tmp.png")
@@ -522,7 +713,7 @@ def Compare_Apar_signal(ref_image = '',target_image=[''],save=False):
 # Fidelity comparisons
 def Compare_Fidelity(ref_image = '',target_image=[''],save=False):
 	"""
-	Compare all Fidelity images (continuum or mom0 maps)
+	Compare all Fidelity images (continuum or mom0 maps) (A. Hacar, Univ. of Vienna)
 
 	Arguments:
 	  ref_image - image used as reference
@@ -586,7 +777,7 @@ def Compare_Fidelity(ref_image = '',target_image=[''],save=False):
 
 def Compare_Fidelity_signal(ref_image = '',target_image=[''],save=False):
 	"""
-	Compare all Fidelity images vs signal (continuum or mom0 maps)
+	Compare all Fidelity images vs signal (continuum or mom0 maps) (A. Hacar, Univ. of Vienna)
 
 	Arguments:
 	  ref_image - image used as reference
@@ -613,20 +804,46 @@ def Compare_Fidelity_signal(ref_image = '',target_image=[''],save=False):
 	grid = plt.GridSpec(ncols=1,nrows=5, wspace=0.3, hspace=0.3)
 	ax1 = plt.subplot(grid[0:4, 0])
 	# Loop over all images
+	xmin0 = 100; xmax0 = 0.
 	for m in np.arange(Nplots):
 		# Images
-		im1 = fits.open(target_image[m]+"_convo2ref_Fidelity.fits") # parameter
-		im2 = fits.open(target_image[m]+"_convo2ref.fits") 	# signal
+		##im1 = fits.open(target_image[m]+"_convo2ref.fits") 	# signal
+		im1 = fits.open(ref_image+".fits")
+		im2 = fits.open(target_image[m]+"_convo2ref.fits") # parameter
 		xmin = np.min(im1[0].data[np.isnan(im1[0].data)==False])
 		xmax = np.max(im1[0].data[np.isnan(im1[0].data)==False])
+		ymin = np.min(im2[0].data[np.isnan(im2[0].data)==False])
+		ymax = np.max(im2[0].data[np.isnan(im2[0].data)==False])
+		if (xmax > xmax0):
+			xmax0=xmax
+		if (xmin < xmin0):
+			xmin0=xmin
 		# Plot results
-		ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="+",rasterized=True,label=target_image[m],s=1)
+		ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,label=target_image[m],edgecolor='none')
 	# Plot limits, legend, labels...
-	plt.xlim(1,1000)
-	plt.xscale('log')	
+	plt.xlim(xmin0,xmax0+xmax0/5)
+	plt.ylim(xmin0,xmax0+xmax0/5)
+	plt.xscale('log')
+	plt.yscale('log')	
+	# Get A values lines
+	xvalues=np.arange(xmin0,xmax0,(xmax0-xmin0)/20.)
+	plt.plot(xvalues,xvalues,linestyle="dashed",c="k",label="Goal (linear correlation)",zorder=2,linewidth=3)
+	# Fidelities
+	for k in np.array([2.,5.,10.]):
+		def Fvalues(F,x):
+			return F*x/(F+1.)
+		yvalues=Fvalues(F=k,x=xvalues)
+		plt.plot(xvalues,yvalues,c="grey",zorder=2,linestyle="dashed")
+		plt.text((xmax0-xmin0)/2.,Fvalues(F=k,x=(xmax0-xmin0)/2.),"Fid.="+str(k),rotation=45,ha='center',va='center',rotation_mode="anchor",bbox=dict(boxstyle='square',facecolor='white', edgecolor='black'))
+		def Fvalues(F,x):
+			return F*x/(F-1.)
+		yvalues=Fvalues(F=k,x=xvalues)
+		plt.plot(xvalues,yvalues,c="grey",zorder=2,linestyle="dashed")
+		plt.text((xmax0-xmin0)/2.,Fvalues(F=k,x=(xmax0-xmin0)/2.),"Fid.="+str(k),rotation=45,ha='center',va='center',rotation_mode="anchor",bbox=dict(boxstyle='square',facecolor='white', edgecolor='black'))
+	#plt.legend(loc='lower right')
 	plt.legend(bbox_to_anchor=(0.5, -0.1),loc='upper center', borderaxespad=0.)
-	plt.xlabel("Fidelity",fontsize=20)
-	plt.ylabel(r'# Flux (image units)',fontsize=20)
+	plt.ylabel(r" Target flux (image units)",fontsize=20)
+	plt.xlabel(r'# Reference flux (image units)',fontsize=20)
 	plt.title("Fidelity vs signal",fontsize=20)
 	# Save plot?
 	if save == True:
@@ -644,7 +861,7 @@ def Compare_Fidelity_signal(ref_image = '',target_image=[''],save=False):
 #  Compare Accuracy parameter (cubes) 
 def Compare_Apar_cubes(ref_image = '',target_image=[''],save=False):
 	"""
-	Compare all Apar cubes (per channel)
+	Compare all Apar cubes (per channel) (A. Hacar, Univ. of Vienna)
 
 	Arguments:
 	  ref_image - image used as reference
@@ -725,7 +942,7 @@ def Compare_Apar_cubes(ref_image = '',target_image=[''],save=False):
 # Fidelity comparisons (cubes)
 def Compare_Fidelity_cubes(ref_image = '',target_image=[''],save=False):
 	"""
-	Compares all Fidelity cubes (per channel)
+	Compares all Fidelity cubes (per channel) (A. Hacar, Univ. of Vienna)
 
 	Arguments:
 	  ref_image - image used as reference
@@ -940,7 +1157,7 @@ def plot_Fidelity(image2plot,Nplots,Ny,title):
 
 def show_Apar_map(ref_image,target_image,channel=0):
 	"""
-	Display Accuracy maps. 
+	Display Accuracy maps (A. Hacar, Univ. of Vienna)
 	Arguments:
 	 ref_image - reference image
 	 target_image - imaged to be compared
@@ -1054,7 +1271,7 @@ def show_Apar_map(ref_image,target_image,channel=0):
 
 def show_Fidelity_map(ref_image,target_image,channel=0):
 	"""
-	Display Fifelity maps. 
+	Display Fifelity maps (A. Hacar, Univ. of Vienna)
 	Arguments:
 	 ref_image - reference image
 	 target_image - imaged to be compared
@@ -1155,6 +1372,277 @@ def show_Fidelity_map(ref_image,target_image,channel=0):
 
 
 
+##############################################################################################
+# 2.- Power Spectra
+# Script to plot the power spectra of multiple user provided general 2D FITS files
+#
+# authors: Nickolas Pingel Nickolas.Pingel@anu.edu.au"
+#          Dirk Petry dpetry@eso.org
+#
+# 
+#  For CASA 6.1.0, the following packages need to be pip installed:
+#   turbustat
+#   sklearn
+#   statsmodels
+#   radio_beam
+#   scikit-image
+
+## imports
+import numpy as np
+from astropy.io import fits
+from scipy.optimize import curve_fit
+from scipy import stats
+import argparse
+#from turbustat.statistics import PowerSpectrum
+import astropy.units as u
+import matplotlib 
+import matplotlib.pyplot as pyplot
+from matplotlib.ticker import MultipleLocator, FormatStrFormatter
+
+## define linear fitting function
+def linFunc(x, slope, b):
+	return x*slope+b
+
+## define function to compute MAD
+MAD = lambda x: np.median(np.abs(x - np.median(x)))
+
+## define function to return 1D SPS
+def compute_1D_SPS(image):
+	## mask out image NaN's
+	nan_inds = np.isnan(image)
+	image[nan_inds] = 0.
+
+	## compute 2D power spectrum
+	modulusImage = np.abs(np.fft.fftshift(np.fft.fft2(image)))**2
+
+	## obtain center pixel coordinates (where the DC power component is located)
+	center = np.where(modulusImage == np.nanmax(modulusImage))
+	center = [center[0][0], center[1][0]]
+
+
+	## define pixel grid
+	y = np.arange(-center[0], modulusImage.shape[0] - center[0])
+	x = np.arange(-center[1], modulusImage.shape[1] - center[1])
+	yy, xx = np.meshgrid(y, x, indexing='ij')
+	dists = np.sqrt(yy**2 + xx**2)
+    
+	## define spatial frequency grid
+	yfreqs = np.fft.fftshift(np.fft.fftfreq(modulusImage.shape[0]))
+	xfreqs = np.fft.fftshift(np.fft.fftfreq(modulusImage.shape[1]))
+	yy_freq, xx_freq = np.meshgrid(yfreqs, xfreqs, indexing='ij')
+	freqs_dist = np.sqrt(yy_freq**2 + xx_freq**2)
+	zero_freq_val = freqs_dist[np.nonzero(freqs_dist)].min() / 2.
+	freqs_dist[freqs_dist == 0] = zero_freq_val
+    
+	## define bin spacing
+	max_bin = 0.5
+	min_bin = 1.0 / np.min(modulusImage.shape)
+	nbins = int(np.round(dists.max()) + 1)
+	bins = np.linspace(min_bin, max_bin, nbins + 1)
+	finite_mask = np.isfinite(modulusImage)
+	## compute the radial profile using median values within each annulus
+	ps1D, bin_edges, cts = stats.binned_statistic(freqs_dist[finite_mask].ravel(), modulusImage[finite_mask].ravel(), bins=bins, statistic='median')
+	## compute MAD uncertainties
+	ps1D_MADErrs, bin_edges, cts = stats.binned_statistic(freqs_dist[finite_mask].ravel(), modulusImage[finite_mask].ravel(), bins=bins, statistic=MAD)
+	bin_cents = (bin_edges[1:] + bin_edges[:-1]) / 2.
+	## return profile & errors (in linear space) and bin centers for x-axis
+	return ps1D, ps1D_MADErrs, bin_cents*1/u.pix
+
+
+def genmultisps(fitsimages, save=False):
+	"""
+	gensps
+	Script to plot the power spectra of a user provided general 2D FITS file
+	Arguments: 
+	  fitsimages - list of names of input images
+	  save      - save plot? (default False)
+	"""
+
+	matplotlib.rc('font', family='sans-serif') 
+	matplotlib.rc('font', serif='Helvetica Neue') 
+	matplotlib.rc('text', usetex='false') 
+
+    
+	# Note: we use new IQA_colours instead
+
+	if type(fitsimages) != list or len(fitsimages)==0:
+		print("ERROR: fitsimages needs to be non-empty list")
+		return False
+
+
+	# initialise plotting
+	fig, ax = pyplot.subplots(figsize = (8,8))
+
+	## set plotting parameters
+	majorYLocFactor = 2
+	minorYLocFactor = majorYLocFactor/2.
+	majorXLocFactor = 0.5
+	minorXLocFactor = majorXLocFactor/4.
+    
+	majorYLocator = MultipleLocator(majorYLocFactor)
+	majorYFormatter = FormatStrFormatter('%d')
+	minorYLocator = MultipleLocator(minorYLocFactor)
+	majorXLocator = MultipleLocator(majorXLocFactor)
+	majorXFormatter = FormatStrFormatter('%.1f')
+	minorXLocator = MultipleLocator(minorXLocFactor)
+
+	## set tick mark parameters
+	ax.yaxis.set_major_locator(majorYLocator)
+	ax.yaxis.set_major_formatter(majorYFormatter)
+	ax.yaxis.set_minor_locator(minorYLocator)
+	ax.xaxis.set_major_locator(majorXLocator)
+	ax.xaxis.set_major_formatter(majorXFormatter)
+	ax.xaxis.set_minor_locator(minorXLocator)
+
+
+	imnumber = 0
+
+	for fitsimage in fitsimages:
+
+		if type(fitsimage) != str or len(fitsimage)==0:
+		    print('ERROR: empty fitsimage name')
+		    return False
+
+		fitsName = fitsimage
+
+		## open the header data unit
+		hdu = fits.open(fitsName)
+
+		## open up 2D image
+		image = hdu[0].data
+
+		## set useful variables
+		pixUnits = False
+		noBeamInfo = False
+		fit = False
+
+		## check for degenerate stokes axes and remove
+		if len(image.shape) == 4:
+		    image = image[0, 0, :, :]
+		elif len(image.shape) == 3:
+		    image = image[0, :, :]
+		else:
+		    print('No degenerate axes...')
+
+		## check for relevant header info
+		try: 
+		    pixSize = hdu[0].header['CDELT2']*3600 *u.arcsec
+		except (KeyError):
+		    pixUnits = True
+		    print('Missing pixel size in header, we will continue with units of pixels')
+
+		try:
+		    bmaj = hdu[0].header['BMAJ']*3600 * u.arcsec
+		    bmin = hdu[0].header['BMIN']*3600. * u.arcsec 
+		except (KeyError):
+		    noBeamInfo = True
+
+		    print('Missing beam information in header, we will apply no spatial frequency cut-off')
+
+		if not noBeamInfo:
+		    print('pixSize bmaj bmin ', pixSize, bmaj, bmin)
+
+		    ## convert image to Jy/pixel 
+		    image*=(pixSize.value)**2/(1.1331*bmaj.value*bmin.value)
+
+		## compute power spectrum
+		SPS_1D, MADErrs, spatialFreqs = compute_1D_SPS(image)
+		
+
+		## compute power spectrum
+		if pixUnits == True and noBeamInfo == False: ## use pixel units; however, set high spatial frequency cutoff from BMAJ
+		    angularScales = spatialFreqs**(-1)*u.pix
+
+		    ## determine low/high cutoffs indices (where angular scales < 0.5*map/3 & angular scales > BMAJ)
+		    lowCut_idx = np.where(angularScales < angularScales[0]/3)[0][0]
+		    bmaj_pix = bmaj/pixSize*u.pix/u.arcsec
+		    highCut_idx = np.where(angularScales > bmaj_pix)[0][-1]
+		elif noBeamInfo == True and pixUnits == True: ## use pixel units with no cutoff from beam (i.e., simulated image)
+		    angularScales = spatialFreqs**(-1)
+
+		    ## determine low/high cutoffs indices (where angular scales < 0.5*map/3 & high cut is the pixel size
+		    lowCut_idx = np.where(angularScales < angularScales[0]/3)[0][0]
+		    highCut_idx = -1
+		elif noBeamInfo == True and pixUnits == False: ## use angular units but no cutoff from beam (i.e., simulated image)
+		    angularScales = spatialFreqs**(-1) * pixSize * (1/u.pix)
+
+		    ## determine low/high cutoffs indices (where angular scales < 0.5*map/3 & high cut is the pixel size
+		    lowCut_idx = np.where(angularScales < angularScales[0]/3)[0][0]
+		    highCut_idx = -1
+		else: # i.e.  noBeamInfo == False and pixUnits == False; use angular units and set high-freq cutoff from beam info
+		    angularScales = spatialFreqs**(-1) * pixSize * (1/u.pix) ## in arcsec
+		    ## determine low/high cutoffs indices (where angular scales < 0.5*map/3 & angular scales > BMAJ)
+		    lowCut_idx = np.where(angularScales < angularScales[0]/3)[0][0]
+		    highCut_idx = np.where(angularScales > bmaj)[0][-1]
+
+		    if lowCut_idx == highCut_idx: ## likely dealing with single-dish/tp image => DON'T FIT
+		        fit = False
+		print('low/high spatial freq. cutoffs [arcsec]: ', angularScales[lowCut_idx].value, angularScales[highCut_idx].value)
+
+		## convert to log space
+		logErrors= MADErrs/(SPS_1D*np.log(10))
+		logPwr = np.log10(SPS_1D)
+		logAngScales= np.log10(angularScales.value)
+
+		if fit:
+		    ## fit from large-scale to brk    
+		    coeffs, matcov = curve_fit(linFunc, logAngScales[lowCut_idx:highCut_idx], logPwr[lowCut_idx:highCut_idx], [1,1])
+		    perr = np.sqrt(np.diag(matcov))
+
+		## finally, do the plotting
+
+		## plot full power spectra ##
+		######ax.plot(logAngScales, logPwr, label='Data '+str(imnumber), color=IQA_colours[imnumber])
+		ax.plot(logAngScales, logPwr, label=str(fitsName), color=IQA_colours[imnumber])
+
+		## fill inbetween for errors ##
+		#ax.fill_between(logAngScales, logPwr-logErrors, logPwr+logErrors, color=IQA_colours[1])
+
+		if fit:
+		    ax.plot(logAngScales[lowCut_idx:highCut_idx], linFunc(logAngScales[lowCut_idx:highCut_idx], coeffs[0], coeffs[1]), color='black', linestyle='--', label = 'PL: %.1f+/-%.1f' % (coeffs[0], perr[0]))
+		
+		## set x and y limits ##
+		ax.set_xlim(np.max(logAngScales)+0.25, np.min(logAngScales) - 0.25)
+
+		## show fit limits ##
+		ax.axvline(logAngScales[lowCut_idx], color = IQA_colours[imnumber], linestyle = '-.')
+		ax.axvline(logAngScales[highCut_idx], color= IQA_colours[imnumber], linestyle = '--')
+
+		imnumber += 1
+	# end for
+
+
+	if pixUnits == True:
+		ax.set_xlabel(r'$log_{10}\left(\rm 1/pix\right)$')
+	else:
+		ax.set_xlabel(r'$log_{10}\left(\rm arcsec\right)$')
+
+	ax.set_ylabel(r'$log_{10}\left(\rm Power\right)$')
+	#pyplot.legend(loc='upper right', fontsize=6)
+	pyplot.legend(loc='lower left')
+
+	if save == True:
+		pyplot.savefig(fitsimages[0]+'_and_others.sps.pdf')
+    
+	pyplot.show()
+
+	return True
+
+
+
+
+
+
+
+
+##############################################################################################
+# 3.- Aperture methods (under development)
+# Script to calculate flux in different apertures
+#
+# authors: Brian Mason bmason@nrao.edu
+#	   Alvaro Hacar alvaro.hacar@univie.ac.at
+#
+#
 
 def sum_region_fluxes(imvals,peak_indices,radius=4.0):
     fluxes = np.zeros(np.shape(peak_indices)[0])
@@ -1225,7 +1713,7 @@ def sum_region_fluxes2(imvals,pixel,max_radius,pix_beam):
 
 def get_aperture(fitslist,position=(1,1),Nbeams=10):
 	"""
-	 Generate aperture plot ata given position (x,y)
+	 Generate aperture plot ata given position (x,y) (A. Hacar, Univ. of Vienna)
 	 Arguments:
 	  fitslits = list of FITS files. The first one is taken as reference.
 		Note: ALL FITS files should be have the same beam + grid
