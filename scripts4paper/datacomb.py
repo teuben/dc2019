@@ -33,10 +33,27 @@ except:
 
 ##########################################
 
-def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf='',
-                threshold=None, sdgain=5, imsize=[], cell='', phasecenter='', dishdia=12.0,
-                start=0, width=1, nchan=-1, restfreq=None, interactive=True, 
-                multiscale=False, maxscale=0.):
+def runsdintimg(vis, 
+                sdimage, 
+                jointname, 
+                spw='', 
+                field='', 
+                specmode='mfs', 
+                sdpsf='',
+                threshold=None, 
+                sdgain=5, 
+                imsize=[], 
+                cell='', 
+                phasecenter='', 
+                dishdia=12.0,
+                start=0, 
+                width=1, 
+                nchan=-1, 
+                restfreq=None, 
+                interactive=True, 
+                multiscale=False, 
+                maxscale=0.
+                ):
     """
     runsdintimg (D. Petry, ESO)
     a wrapper around the CASA task "sdintimaging"
@@ -199,7 +216,7 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
     # specmode and deconvolver
     if multiscale:
         if specmode == 'mfs':
-            mydeconvolver = 'mtmfs'
+            mydeconvolver = 'mtmfs'   # needed bc the only mfs mode implemented into sdint
         elif specmode == 'cube':
             mydeconvolver = 'multiscale'
             numchan = nchan
@@ -213,7 +230,7 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
     else:    
         myscales = [0]
         if specmode == 'mfs':
-            mydeconvolver = 'mtmfs'
+            mydeconvolver = 'mtmfs'   # needed bc the only mfs mode implemented into sdint
         elif specmode == 'cube':
             mydeconvolver = 'hogbom'
             numchan = nchan
@@ -333,14 +350,35 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
 
 
 
-def runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs', 
-                imsize=[], cell='', phasecenter='',
-                start=0, width=1, nchan=-1, restfreq=None,
-                threshold='',niter=0,usemask='auto-multithresh' ,
-                sidelobethreshold=2.0,noisethreshold=4.25,lownoisethreshold=1.5, 
-                minbeamfrac=0.3,growiterations=75,negativethreshold=0.0,
-                mask='', pbmask=0.4,interactive=True, 
-                multiscale=False, maxscale=0.):
+def runWSM(vis, 
+           sdimage, 
+           imname, 
+           spw='', 
+           field='', 
+           specmode='mfs', 
+           imsize=[], 
+           cell='', 
+           phasecenter='',
+           start=0, 
+           width=1, 
+           nchan=-1, 
+           restfreq=None,
+           threshold='',
+           niter=0,
+           usemask='auto-multithresh' ,
+           sidelobethreshold=2.0,
+           noisethreshold=4.25,
+           lownoisethreshold=1.5, 
+           minbeamfrac=0.3,
+           growiterations=75,
+           negativethreshold=0.0,
+           mask='', 
+           pbmask=0.4,
+           interactive=True, 
+           multiscale=False, 
+           maxscale=0.,
+           sdfactorh=1.0
+           ):
     """
     runWSM (A. Plunkett, NRAO)
     a wrapper around the CASA tasks "TCLEAN" and "FEATHER"
@@ -393,6 +431,8 @@ def runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs',
     maxscale - for multiscale cleaning, use scales up to this value (arcsec)
              Recommended value: 10 arcsec
              default: 0.
+    sdfactorh - Scale factor to apply to Single Dish image (same as for feather)
+
 
 
     Example: runtclean('gmc_120L.alma.all_int-weighted.ms', 
@@ -455,16 +495,17 @@ def runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs',
                 interactive=interactive,multiscale=multiscale,maxscale=maxscale)
 
     ## then FEATHER METHOD 
-    highres = imname+'.TCLEAN.image'
-    pb= imname+'.TCLEAN.pb'
-    featherim = imname+'.combined'
+    highres = imname+'.image'
+    pb= imname+'.pb'
+    featherim = imname+sdfactorh
     
-    runfeather(intimage=highres,intpb=pb,sdimage=sdimage,featherim=featherim)    
+    runfeather(intimage=highres,intpb=pb,sdimage=sdimage,sdfactor = sdfactorh, 
+               featherim=featherim)    
     return True
 
 #################################
 
-def runfeather(intimage,intpb, sdimage, featherim='featherim'):
+def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
     """
     runfeather (A. Plunkett, NRAO)
     a wrapper around the CASA task "FEATHER,"
@@ -477,6 +518,7 @@ def runfeather(intimage,intpb, sdimage, featherim='featherim'):
              Note that in case you are creating a cube, this image must be a cube
              with the same spectral grid as the one you are trying to create.
              default: None, example: 'TPimage.image'
+    sdfactor - Scale factor to apply to Single Dish image
     featherim - the name of the output feather image
              default: 'featherim'
 
@@ -502,6 +544,14 @@ def runfeather(intimage,intpb, sdimage, featherim='featherim'):
     else:
         print(intpb+' does not exist')
         return False
+
+
+    # use function for reordering instead of commented code down here 
+
+    # Reorder the axes of the low to match high/pb 
+    mysdimage = reorder_axes(myintimage,mysdimage)
+
+
 
     # TO DO: Improve this bit, because it's messy
     #
@@ -556,6 +606,8 @@ def runfeather(intimage,intpb, sdimage, featherim='featherim'):
     #   lowres='lowres.ro'
     #   print('Had to reorder!')
 
+
+
     # Regrid low res Image to match high res image
 
     print('Regridding lowres image...')
@@ -579,6 +631,7 @@ def runfeather(intimage,intpb, sdimage, featherim='featherim'):
     feather(imagename=featherim+'.image',
           highres=myintimage,
           lowres='lowres.multiplied',
+          sdfactor = sdfactor,
           lowpassfiltersd = True )
 
     os.system('rm -rf '+featherim+'.image.pbcor')
@@ -588,7 +641,12 @@ def runfeather(intimage,intpb, sdimage, featherim='featherim'):
        outfile=featherim+'.image.pbcor')
     
     print('Exporting final pbcor image to FITS ...')
+    os.system('rm -rf '+featherim+'.image.pbcor.fits')
     exportfits(featherim+'.image.pbcor', featherim+'.image.pbcor.fits')
+
+    os.system('rm -rf lowres.*')
+
+
 
     return True
 
@@ -596,14 +654,34 @@ def runfeather(intimage,intpb, sdimage, featherim='featherim'):
 
 ######################################
 
-def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs', 
-                imsize=[], cell='', phasecenter='',
-                start=0, width=1, nchan=-1, restfreq=None,
-                threshold='', niter=0, usemask='auto-multithresh' ,
-                sidelobethreshold=2.0, noisethreshold=4.25, lownoisethreshold=1.5, 
-                minbeamfrac=0.3, growiterations=75, negativethreshold=0.0,
-                mask='', pbmask=0.4, interactive=True, 
-                multiscale=False, maxscale=0.):
+def runtclean(vis, 
+              imname, 
+              startmodel='',
+              spw='', 
+              field='', 
+              specmode='mfs', 
+              imsize=[], 
+              cell='', 
+              phasecenter='',
+              start=0, 
+              width=1, 
+              nchan=-1, 
+              restfreq=None,
+              threshold='', 
+              niter=0, 
+              usemask='auto-multithresh' ,
+              sidelobethreshold=2.0, 
+              noisethreshold=4.25, 
+              lownoisethreshold=1.5, 
+              minbeamfrac=0.3, 
+              growiterations=75, 
+              negativethreshold=0.0,
+              mask='', 
+              pbmask=0.4, 
+              interactive=True, 
+              multiscale=False, 
+              maxscale=0.
+              ):
     """
     runtclean (A. Plunkett, NRAO, D. Petry, ESO)
     a wrapper around the CASA task "TCLEAN,"
@@ -680,12 +758,12 @@ def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs',
         pbmask = pbmask
         print('Run with {0} mask {1}'.format(mymask,pbmask))
     elif usemask == 'user':
-        if os.path.exists(maskname):
+        if os.path.exists(mask):
            mymask = usemask
            mymaskname = mask
-           print('Run with {0} mask {1} '.format(mymask,maskname))
+           print('Run with {0} mask {1} '.format(mymask,mymaskname))
         else:
-           print('mask '+maskname+' does not exist, or not specified')
+           print('mask '+mymaskname+' does not exist, or not specified')
            return False
     else:
         print('check the mask options')
@@ -709,9 +787,9 @@ def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs',
     if niter==0:
         casalog.post('You set niter to 0 (zero, the default). Only a dirty image will be created.', 'WARN')
 
-    os.system('rm -rf '+imname+'.TCLEAN.*')
+    os.system('rm -rf '+imname) #+'.TCLEAN.*')
     tclean(vis = myvis,
-           imagename = imname+'.TCLEAN',
+           imagename = imname, #+'.TCLEAN',
            startmodel = startmodel,
            field = field,
            intent = 'OBSERVE_TARGET#ON_SOURCE',
@@ -747,7 +825,8 @@ def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs',
            verbose=True)
 
     print('Exporting final pbcor image to FITS ...')
-    exportfits(imname+'.TCLEAN.image.pbcor', imname+'.TCLEAN.pbcor.fits')
+    #exportfits(imname+'.TCLEAN.image.pbcor', imname+'.TCLEAN.pbcor.fits')
+    exportfits(imname+'.image.pbcor', imname+'.pbcor.fits')
 
     return True
 
@@ -820,6 +899,12 @@ def reorder_axes(template, to_reorder):
             imtrans(imagename=to_reorder,outfile=reordered_image,order=order)
             print('Had to reorder!')
             outputname = reordered_image
+    
+    ### just testing what happens:        
+    #reordered_image='lowres.ro'
+    #imtrans(imagename=to_reorder,outfile=reordered_image,order=order)
+    #print('Had to reorder!')
+    #outputname = reordered_image            
             
     print(outputname)
     return outputname
@@ -918,6 +1003,20 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     
     
     ###################### SSC main body #####################
+
+
+    if os.path.exists(lowres):
+        pass
+    else:
+        print(sdimage+' does not exist')
+        return False
+
+    if os.path.exists(highres):
+        pass
+    else:
+        print(intimage+' does not exist')
+        return False
+
 
     # Reorder the axes of the low to match high/pb 
     lowres = reorder_axes(highres,lowres)
