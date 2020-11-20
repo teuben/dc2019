@@ -14,7 +14,10 @@ Run under CASA 6.
 
 
 
-thesteps=[3]
+#thesteps=[0,1,2,3,4,5]
+thesteps=[4]
+
+
 
 import os 
 import sys 
@@ -369,10 +372,11 @@ if(mystep in thesteps):
           #         done')   # rename output to our convention 
         #os.system('for f in '+imbase+cleansetup+'.TCLEAN*; do mv "$f" "$(echo $f | sed 's/^.TCLEAN././g')"; done')
         
-        oldnames=glob.glob(imname+'.TCLEAN*')
-        for nam in oldnames:
-            os.system('mv '+nam+' '+nam.replace('.TCLEAN',''))
-        #os.system('rename "s/.TCLEAN//g" '+imname+'.TCLEAN*')
+        #oldnames=glob.glob(imname+'.TCLEAN*')
+        #for nam in oldnames:
+        #    os.system('mv '+nam+' '+nam.replace('.TCLEAN',''))
+        #
+        ##os.system('rename "s/.TCLEAN//g" '+imname+'.TCLEAN*')
 
 
     tcleanims.append(imname)
@@ -395,17 +399,17 @@ if(mystep in thesteps):
         
         imname = imbase + cleansetup + feathersetup + str(sdfac[i]) 
         
-        os.system('rm -rf '+pathtoimage+'lowres*')
-        os.system('rm -rf '+imname+'.image.pbcor.fits')
+        #os.system('rm -rf '+pathtoimage+'lowres*')
+        #os.system('rm -rf '+imname+'.image.pbcor.fits')
                 
         if dryrun == True:
             pass
         else:
             if pythonversion=='3':
-                dc.runfeather(intimage, intpb, sdimage, #sdfactor = sdfac[i],
+                dc.runfeather(intimage, intpb, sdimage, sdfactor = sdfac[i],
                           featherim = imname)
             else:
-                runfeather(intimage, intpb, sdimage, #sdfactor = sdfac[i],
+                runfeather(intimage, intpb, sdimage, sdfactor = sdfac[i],
                           featherim = imname)
                                       
             #dc.runfeather(intimage,intpb, sdimage, featherim='featherim')
@@ -471,25 +475,25 @@ if(mystep in thesteps):
     z.update(special_tclean_param)
 
     for i in range(0,len(sdfac_h)):
-        imname = imbase + cleansetup + hybridsetup + str(sdfac_h[i]) 
+        imname = imbase + cleansetup + hybridsetup #+ str(sdfac_h[i]) 
 
-        os.system('rm -rf '+pathtoimage+'lowres*')
-        os.system('rm -rf '+imname+'.image.pbcor.fits')
+        #os.system('rm -rf '+pathtoimage+'lowres*')
+        #os.system('rm -rf '+imname+'.image.pbcor.fits')
         
         if dryrun == True:
             pass
         else:
-            os.system('rm -rf '+imname+'*')
-            os.system('rm -rf '+imname.replace('_f'+str(sdfac_h[i]),'')+'.*') 
+            os.system('rm -rf '+imname+'.*')
+            #os.system('rm -rf '+imname.replace('_f'+str(sdfac_h[i]),'')+'.*') 
             # delete tclean files ending on 'hybrid.*'  (dot '.' is important!)
 
             
             if pythonversion=='3':
-                dc.runWSM(vis, sdimage, imname, #sdfactor = sdfac_h[i],
+                dc.runWSM(vis, sdimage, imname, sdfactorh = sdfac_h[i],
                       **z)
                       #**general_tclean_param, **special_tclean_param)
             else:
-                runWSM(vis, sdimage, imname, #sdfactor = sdfac_h[i],
+                runWSM(vis, sdimage, imname, sdfactorh = sdfac_h[i],
                       **z)
             
             #dc.runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs', 
@@ -507,9 +511,9 @@ if(mystep in thesteps):
             #           done')   # rename output to our convention 
             
             
-            oldnames=glob.glob(imname+'.TCLEAN*')
-            for nam in oldnames:
-                os.system('mv '+nam+' '+nam.replace('_f'+str(sdfac_h[i])+'.TCLEAN',''))
+            #oldnames=glob.glob(imname+'.TCLEAN*')
+            #for nam in oldnames:
+            #    os.system('mv '+nam+' '+nam.replace('_f'+str(sdfac_h[i])+'.TCLEAN',''))
             oldnames=glob.glob(imname+'.combined*')
             for nam in oldnames:
                 os.system('mv '+nam+' '+nam.replace('.combined',''))
@@ -559,9 +563,9 @@ if(mystep in thesteps):
             #           do mv "$file" "${file//.combined/'+hybridsetup + str(sdfac_h[i])+'}" \
             #           done')   # rename output to our convention 
 
-            os.system('rename "s/.joint.multiterm//g" '+jointname+'.joint.multiterm.*')
-            os.system('rename "s/.tt0//g" '+jointname+'.*.tt0*')
-            os.system('rename "s/.joint.cube//g" '+jointname+'.joint.cube.*')
+            #os.system('rename "s/.joint.multiterm//g" '+jointname+'.joint.multiterm.*')
+            #os.system('rename "s/.tt0//g" '+jointname+'.*.tt0*')
+            #os.system('rename "s/.joint.cube//g" '+jointname+'.joint.cube.*')
 
         sdintims.append(jointname)                
                 
@@ -585,6 +589,34 @@ os.system('rm -rf '+pathtoimage + 'TempLattice*')
 
 
 
+
+
+
+### SDINT OUTPUTS
+
+## MTMFS
+
+#   *.int.cube.model/
+#   *.int.cube.pb/
+#   *.int.cube.psf/
+#   *.int.cube.residual/
+#   *.int.cube.sumwt/
+#   *.int.cube.weight/
+#   *.joint.cube.psf/
+#   *.joint.cube.residual/
+#   *.joint.multiterm.image.tt0/
+#   *.joint.multiterm.image.tt0.pbcor/
+#   *.joint.multiterm.image.tt0.pbcor.fits
+#   *.joint.multiterm.mask/
+#   *.joint.multiterm.model.tt0/
+#   *.joint.multiterm.pb.tt0/
+#   *.joint.multiterm.psf.tt0/
+#   *.joint.multiterm.residual.tt0/
+#   *.joint.multiterm.sumwt.tt0/
+#   *.joint.multiterm.weight.tt0/
+#   *.sd.cube.image/
+#   *.sd.cube.psf/
+#   *.sd.cube.residual/
 
 
 
