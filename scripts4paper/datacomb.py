@@ -21,6 +21,7 @@ try:
     from casatasks import sdintimaging
     from casatasks import tclean
     from casatasks import immath
+    from casatasks import imstat
     from casatasks import imregrid, imtrans
     from casatasks import imsmooth
     from casatasks import feather
@@ -333,12 +334,106 @@ def runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf
 
 
 
+def trunWSM(vis, sdimage, imname, spw='', field='', specmode='mfs', 
+                imsize=[], cell='', phasecenter='',
+                start=0, width=1, nchan=-1, restfreq=None,
+                threshold='',niter=0,usemask='auto-multithresh' ,
+                sidelobethreshold=2.0,noisethreshold=4.25,lownoisethreshold=1.5, 
+                minbeamfrac=0.3,growiterations=75,negativethreshold=0.0,
+                sdmasklev=0.3,
+                mask='', pbmask=0.4,interactive=True, 
+                multiscale=False, maxscale=0.):
+    """
+    runWSM (A. Plunkett, NRAO)
+    a wrapper around the CASA tasks "TCLEAN" and "FEATHER"
+    in order to run TCLEAN with a single dish start model, then combine with FEATHER
+
+    """
+
+
+    if os.path.exists(vis):
+        myvis = vis 
+    else:
+        print(vis+' does not exist')
+        return False
+
+    if os.path.exists(sdimage):
+        mysdimage = sdimage
+    else:
+        print(sdimage+' does not exist')
+        return False
+
+    if imhead(mysdimage)['unit']=='Jy/beam': print('SD units {}. OK, will convert to Jy/pixel.'.format(imhead(mysdimage)['unit']))
+    elif imhead(mysdimage)['unit']=='Jy/pixel': print('SD units {}. SKIP conversion. '.format(imhead(mysdimage)['unit']))
+    else: print('SD units {}. NOT OK, needs conversion. '.format(imhead(mysdimage)['unit']))
+
+    ##CHECK: header units
+    SingleDishResolutionArcsec = imhead(mysdimage)['restoringbeam']['major']['value'] #in Arcsec
+    CellSizeArcsec = abs(imhead(mysdimage)['incr'][0])*206265. #in Arcsec
+    toJyPerPix = CellSizeArcsec**2/(1.1331*SingleDishResolutionArcsec**2)
+    SDEfficiency = 1.0 #--> Scaling factor
+    fluxExpression = "(IM0 * {0:f} / {1:f})".format(toJyPerPix,SDEfficiency)
+    scaled_name = mysdimage.split('/')[-1]+'.Jyperpix'
+
+    os.system('rm -rf '+scaled_name)
+    immath(imagename=mysdimage,
+           outfile=scaled_name,
+           mode='evalexpr',
+           expr=fluxExpression)
+    hdval = 'Jy/pixel'
+    dummy = imhead(imagename=scaled_name,
+                   mode='put',
+                   hdkey='BUNIT',
+                   hdvalue=hdval)
+    ### TO DO: MAY NEED TO REMOVE BLANK 
+    ### and/or NEGATIVE PIXELS IN SD OBSERVATIONS
+
+    ## SETUP mask if usemask='user' and mask=''
+    if usemask=='user' and mask=='':
+        casalog.post("Generating a mask based on SD image", 'INFO', 
+                     origin='runWSM')
+        #get max in SD image
+        maxSD = imstat(scaled_name)['max'][0]
+        sdmasklev=0.3
+        sdmaskval = sdmasklev*maxSD
+        try: immath(imagename=[scaled_name],expr='iif(IM0>'+str(sdmaskval)+',1,0)',outfile='SD.mask')
+        except: print('### SD.mask already exists, will proceed')
+
+        runtclean(myvis,imname+'.setmask',
+                phasecenter=phasecenter, 
+                spw=spw, field=field, imsize=imsize, cell=cell,
+                niter=1,usemask='user',mask='SD.mask',restart=True,interactive=True)
+        os.system('cp -rf '+imname+'.setmask.TCLEAN.mask SD2.mask')
+        os.system('rm -rf '+imname+'.setmask.TCLEAN.pbcor.fits')
+        runtclean(myvis,imname+'.setmask',
+                phasecenter=phasecenter, 
+                spw=spw, field=field, imsize=imsize, cell=cell,
+                niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=True)
+        os.system('cp -rf '+imname+'.setmask.TCLEAN.mask SDint.mask')
+
+        '''##imregrid(imagename='SD.mask',output='SD.mask.rg1',axes=[0,1],shape=imsize)
+        # Run TCLEAN with niter=1, and automask to catch anything around point sources
+        runtclean(myvis,imname+'.niter1',
+                phasecenter=phasecenter, 
+                spw=spw, field=field, imsize=imsize, cell=cell,threshold=threshold,
+                niter=1,usemask='auto-multithresh',
+                interactive=interactive,multiscale=False)
+
+        try: imregrid(imagename='SD.mask',output='SD.mask.rg',template=imname+'.niter1.TCLEAN.mask')
+        except: print('### SD.mask.rg already exists, will proceed')
+        try: immath(imagename=['SD.mask.rg',imname+'.niter1.TCLEAN.mask'],
+                    expr='iif(IM0+IM1 >=1,1,0)',outfile='SDInt.mask')
+        except: print('### SDInt.mask already exists, will proceed')
+        mask='SDInt.mask' '''
+
+
 def runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs', 
                 imsize=[], cell='', phasecenter='',
                 start=0, width=1, nchan=-1, restfreq=None,
                 threshold='',niter=0,usemask='auto-multithresh' ,
                 sidelobethreshold=2.0,noisethreshold=4.25,lownoisethreshold=1.5, 
                 minbeamfrac=0.3,growiterations=75,negativethreshold=0.0,
+                sdmasklev=0.3,
                 mask='', pbmask=0.4,interactive=True, 
                 multiscale=False, maxscale=0.):
     """
@@ -385,6 +480,8 @@ def runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs',
              if usemask='user', must specify mask='maskname.mask' 
              if usemask='pb', can specify pbmask=0.4, or some level.
              default: 'auto-multithresh'
+    sdmasklev - if usemask='user', then use SD image at this level to draw a mask.
+             default: 0.3
     interactive - the standard tclean interactive option
              default: True
     
@@ -446,7 +543,30 @@ def runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs',
                    hdvalue=hdval)
     ### TO DO: MAY NEED TO REMOVE BLANK 
     ### and/or NEGATIVE PIXELS IN SD OBSERVATIONS
-  
+
+    ## SETUP mask if usemask='user' and mask=''
+    if usemask=='user' and mask=='':
+        casalog.post("Generating a mask based on SD image", 'INFO', 
+                     origin='runWSM')
+        #get max in SD image
+        maxSD = imstat(scaled_name)['max'][0]
+        sdmasklev=0.3
+        sdmaskval = sdmasklev*maxSD
+        try: immath(imagename=[scaled_name],expr='iif(IM0>'+str(sdmaskval)+',1,0)',outfile='SD.mask')
+        except: print('### SD.mask already exists, will proceed')
+
+        runtclean(myvis,imname+'.setmask',
+                phasecenter=phasecenter, 
+                spw=spw, field=field, imsize=imsize, cell=cell,
+                niter=1,usemask='user',mask='SD.mask',restart=True,interactive=True)
+        os.system('cp -rf '+imname+'.setmask.TCLEAN.mask SD2.mask')
+        os.system('rm -rf '+imname+'.setmask.TCLEAN.pbcor.fits')
+        runtclean(myvis,imname+'.setmask',
+                phasecenter=phasecenter, 
+                spw=spw, field=field, imsize=imsize, cell=cell,
+                niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=True)
+        os.system('cp -rf '+imname+'.setmask.TCLEAN.mask SDint.mask')
+        mask='SDint.mask'
     ## TCLEAN METHOD WITH START MODEL
     runtclean(myvis,imname, startmodel=scaled_name,
                 phasecenter=phasecenter, 
@@ -603,7 +723,7 @@ def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs',
                 sidelobethreshold=2.0, noisethreshold=4.25, lownoisethreshold=1.5, 
                 minbeamfrac=0.3, growiterations=75, negativethreshold=0.0,
                 mask='', pbmask=0.4, interactive=True, 
-                multiscale=False, maxscale=0.):
+                multiscale=False, maxscale=0.,restart=True):
     """
     runtclean (A. Plunkett, NRAO, D. Petry, ESO)
     a wrapper around the CASA task "TCLEAN,"
@@ -674,18 +794,21 @@ def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs',
     mymaskname = ''
     if usemask == 'auto-multithresh':
         mymask = usemask
-        print('Run with {0} mask'.format(mymask))
+        if os.path.exists(mask):
+           mymaskname = mask
+           print('Run with {0} mask and {1} '.format(mymask,mymaskname))
+        else: print('Run with {0} mask'.format(mymask))
     elif usemask =='pb':
         mymask = usemask
         pbmask = pbmask
         print('Run with {0} mask {1}'.format(mymask,pbmask))
     elif usemask == 'user':
-        if os.path.exists(maskname):
+        if os.path.exists(mask):
            mymask = usemask
            mymaskname = mask
-           print('Run with {0} mask {1} '.format(mymask,maskname))
+           print('Run with {0} mask {1} '.format(mymask,mymaskname))
         else:
-           print('mask '+maskname+' does not exist, or not specified')
+           print('mask '+mask+' does not exist, or not specified')
            return False
     else:
         print('check the mask options')
@@ -709,7 +832,9 @@ def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs',
     if niter==0:
         casalog.post('You set niter to 0 (zero, the default). Only a dirty image will be created.', 'WARN')
 
-    os.system('rm -rf '+imname+'.TCLEAN.*')
+    if os.path.exists(imname+'.TCLEAN.image'):
+        casalog.post('Image '+imname+'.TCLEAN already exists.  Running with restart='+str(restart), 'WARN')        
+    #os.system('rm -rf '+imname+'.TCLEAN.*')
     tclean(vis = myvis,
            imagename = imname+'.TCLEAN',
            startmodel = startmodel,
@@ -743,11 +868,12 @@ def runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs',
            minbeamfrac=minbeamfrac,
            growiterations=growiterations,
            negativethreshold=negativethreshold,
-           mask=mask,pbmask=pbmask,
-           verbose=True)
+           mask=mymaskname,pbmask=pbmask,
+           verbose=True,restart=restart)
 
     print('Exporting final pbcor image to FITS ...')
-    exportfits(imname+'.TCLEAN.image.pbcor', imname+'.TCLEAN.pbcor.fits')
+    try: exportfits(imname+'.TCLEAN.image.pbcor', imname+'.TCLEAN.pbcor.fits')
+    except: print('exportfits failed, '+imname+'.TCLEAN.pbcor.fits may already exist')
 
     return True
 
