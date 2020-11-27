@@ -14,21 +14,45 @@ Run under CASA 6.
 
 import os
 import math
-try:
-    from casatasks import casalog
-    from casatasks import exportfits
-    from casatasks import imhead
-    from casatasks import sdintimaging
-    from casatasks import tclean
-    from casatasks import immath
-    from casatasks import imregrid, imtrans
-    from casatasks import imsmooth
-    from casatasks import feather
 
-    from casatools import image as iatool
-    from casatools import quanta as qatool
-except:
-    print("Warning: datacomb assuming not in casa6")
+pythonversion = sys.version[0]
+
+if pythonversion=='3':
+    from casatasks import version as CASAvers
+    if CASAvers()[0]>=6 and CASAvers()[1]>=1:
+        print('Executed in CASA ' +'.'.join(map(str, CASAvers()))) 
+        from casatasks import casalog
+        from casatasks import exportfits
+        from casatasks import imhead
+        from casatasks import sdintimaging
+        from casatasks import tclean
+        from casatasks import immath
+        from casatasks import imregrid, imtrans
+        from casatasks import imsmooth
+        from casatasks import feather
+	    
+        from casatools import image as iatool
+        from casatools import quanta as qatool
+    else:
+        print('###################################################')
+        print('Your CASA version does not support sdintimaging.')
+        print('Please use at least CASA 5.7.0 or 6.1.x')
+        print('Aborting script ...')
+        print('###################################################')
+        sys.exit()
+
+elif pythonversion=='2':
+    import casadef
+    if casadef.casa_version == '5.7.0':
+        print('Executed in CASA ' +casadef.casa_version)
+        #print("Warning: datacomb assuming not in casa6")
+    else:
+        print('###################################################')
+        print('Your CASA version does not support sdintimaging.')
+        print('Please use at least CASA 5.7.0 or 6.1.x')
+        print('Aborting script ...')
+        print('###################################################')
+        sys.exit()
 
 
 ##########################################
@@ -50,10 +74,21 @@ def runsdintimg(vis,
                 width=1, 
                 nchan=-1, 
                 restfreq=None, 
-                interactive=True, 
+                niter=0,
+                usemask= 'auto-multithresh',
+                sidelobethreshold=2.0,
+                noisethreshold=4.25,
+                lownoisethreshold=1.5, 
+                minbeamfrac=0.3,
+                growiterations=75,
+                negativethreshold=0.0,                
+                mask   = '', 
+                pbmask = 0.4,
+                interactive=True,               
                 multiscale=False, 
-                maxscale=0.
+                maxscale=0.              
                 ):
+
     """
     runsdintimg (D. Petry, ESO)
     a wrapper around the CASA task "sdintimaging"
@@ -189,7 +224,7 @@ def runsdintimg(vis,
 
 
     if not haspcb:
-        os.system('rm -rf '+mysdimage+'_copy')
+        os.system('rm -rf '+mysdimage+'_*')
         os.system('cp -R '+mysdimage+' '+mysdimage+'_copy')
         if numchan == 1:
             # image has only one channel; need workaround for per-channel-beam problem
@@ -219,7 +254,7 @@ def runsdintimg(vis,
             mydeconvolver = 'mtmfs'   # needed bc the only mfs mode implemented into sdint
         elif specmode == 'cube':
             mydeconvolver = 'multiscale'
-            numchan = nchan
+            numchan = nchan        #not really needed here?
         mycell = myqa.convert(myqa.quantity(cell),'arcsec')['value']
         myscales = [0]
         for i in range(0, int(math.log(maxscale/mycell,3))):
@@ -233,10 +268,10 @@ def runsdintimg(vis,
             mydeconvolver = 'mtmfs'   # needed bc the only mfs mode implemented into sdint
         elif specmode == 'cube':
             mydeconvolver = 'hogbom'
-            numchan = nchan
+            numchan = nchan        #not really needed here?
 
 
-    mygridder='mosaic'
+    #mygridder='mosaic'
 
     # image and cell size
     npnt = 0
@@ -254,89 +289,74 @@ def runsdintimg(vis,
 
     os.system('rm -rf '+jointname+'.*')
 
-    if interactive:
 
-        sdintimaging(vis=myvis,
-                     sdimage=mysdimage,
-                     sdpsf=mysdpsf,
-                     dishdia=dishdia,
-                     sdgain=sdgain,
-                     usedata='sdint',
-                     imagename=jointname,
-                     imsize=imsize,
-                     cell=cell,
-                     phasecenter=phasecenter,
-                     weighting='briggs',
-                     robust = 0.5,
-                     specmode=specmode,
-                     gridder=mygridder,
-                     pblimit=0.2, 
-                     pbcor=True,
-                     interpolation='linear',
-                     wprojplanes=1,
-                     deconvolver=mydeconvolver,
-                     scales=myscales,
-                     nterms=1,
-                     niter=10000000,
-                     spw=spw,
-                     start=start,
-                     width=width,
-                     nchan = numchan, 
-                     field = field,
-                     threshold=threshold,
-                     restfreq=therf,
-                     perchanweightdensity=False,
-                     
-                     interactive=True,
-                     cycleniter=100,
-                     usemask='pb',
-                     pbmask=0.4,
-                 )
+    sdint_arg=dict(vis=myvis,
+                   imagename=jointname,
+                   sdimage=mysdimage,
+                   field = field,
+                   phasecenter=phasecenter,
+                   imsize=imsize,
+                   cell=cell,                                   
+                   spw=spw,
+                   specmode=specmode,
+                   deconvolver=mydeconvolver,
+                   scales=myscales,
+                   nterms=1,                  # turns mtmfs into mfs
+                   start=start,
+                   width=width,
+                   nchan = numchan, 
+                   restfreq=therf,
+                   gridder='mosaic',          #mygridder,
+                   weighting='briggs',
+                   robust = 0.5,
+                   niter=niter,
+                   #cycleniter = niter,        # bogus if = niter
+                   cyclefactor=2.0,
+                   threshold=threshold,
+                   interactive = interactive,
+                   #perchanweightdensity=False, # better True (=default)?                  
+                   #pblimit=0.2,               # default
+                   pbcor=True,               
+                   sdpsf=mysdpsf,
+                   dishdia=dishdia,
+                   sdgain=sdgain,
+                   usedata='sdint',
+                   #interpolation='linear',    # default
+                   #wprojplanes=1,             # default & not needed
+                   usemask=usemask,
+                   sidelobethreshold=sidelobethreshold,
+                   noisethreshold=noisethreshold,
+                   lownoisethreshold=lownoisethreshold, 
+                   minbeamfrac=minbeamfrac,
+                   growiterations=growiterations,
+                   negativethreshold=negativethreshold,
+                   mask=mask,
+                   pbmask=pbmask,
+                   verbose=True)
+
+
+
+    #if interactive:
+
+        #sdint_arg['interactive']=True
+        #sdint_arg['cycleniter']=100
+        #sdint_arg['usemask']='pb'
+        #sdint_arg['pbmask']=0.4
+
         
-    else: # non-interactive, use automasking
+    #else: # non-interactive, use automasking
 
-        sdintimaging(vis=myvis,
-                     sdimage=mysdimage,
-                     sdpsf=mysdpsf,
-                     dishdia=dishdia,
-                     sdgain=sdgain,
-                     usedata='sdint',
-                     imagename=jointname,
-                     imsize=imsize,
-                     cell=cell,
-                     phasecenter=phasecenter,
-                     weighting='briggs',
-                     robust = 0.5,
-                     specmode=specmode,
-                     gridder=mygridder,
-                     pblimit=0.2, 
-                     pbcor=True,
-                     interpolation='linear',
-                     wprojplanes=1,
-                     deconvolver=mydeconvolver,
-                     scales=myscales,
-                     nterms=1,
-                     niter=10000000,
-                     spw=spw,
-                     start=start,
-                     width=width,
-                     nchan = numchan, 
-                     field = field,
-                     threshold=threshold,
-                     restfreq=therf,
-                     perchanweightdensity=False,
-                     
-                     interactive=False,
-                     cycleniter = 100000, 
-                     cyclefactor=2.0,
-                     usemask='auto-multithresh',
-                     sidelobethreshold=2.0,
-                     noisethreshold=4.25,
-                     lownoisethreshold=1.5, 
-                     minbeamfrac=0.3,
-                     growiterations=75,
-                     negativethreshold=0.0
-                 )
+        #sdint_arg['interactive']=False
+        #sdint_arg['cycleniter'] = 100000
+        #sdint_arg['cyclefactor']=2.0
+        #sdint_arg['usemask']='auto-multithresh' #,
+        
+
+                 
+    sdintimaging(**sdint_arg)
+
+                 
+                 
 
     print('Exporting final pbcor image to FITS ...')
     if mydeconvolver=='mtmfs':
@@ -488,16 +508,38 @@ def runWSM(vis,
     ### and/or NEGATIVE PIXELS IN SD OBSERVATIONS
   
     ## TCLEAN METHOD WITH START MODEL
-    runtclean(myvis,imname, startmodel=scaled_name,
-                phasecenter=phasecenter, 
-                spw=spw, field=field, imsize=imsize, cell=cell,threshold=threshold,
-                niter=niter,usemask=usemask,pbmask=pbmask,mask=mask,
-                interactive=interactive,multiscale=multiscale,maxscale=maxscale)
+    runtclean(myvis,
+              imname, 
+              startmodel=scaled_name,
+              spw=spw, 
+              field=field, 
+              specmode=specmode,
+              imsize=imsize, 
+              cell=cell,
+              phasecenter=phasecenter, 
+              start=start,
+              width=width,
+              nchan=nchan,
+              restfreq=restfreq,
+              threshold=threshold,
+              niter=niter,
+              usemask=usemask,
+              sidelobethreshold=sidelobethreshold,  
+              noisethreshold=noisethreshold,
+              lownoisethreshold=lownoisethreshold,
+              minbeamfrac=minbeamfrac,
+              growiterations=growiterations,
+              negativethreshold=negativethreshold,         
+              mask=mask,              
+              pbmask=pbmask,
+              interactive=interactive,
+              multiscale=multiscale,
+              maxscale=maxscale)
 
     ## then FEATHER METHOD 
     highres = imname+'.image'
     pb= imname+'.pb'
-    featherim = imname+sdfactorh
+    featherim = imname+str(sdfactorh)
     
     runfeather(intimage=highres,intpb=pb,sdimage=sdimage,sdfactor = sdfactorh, 
                featherim=featherim)    
@@ -749,21 +791,17 @@ def runtclean(vis,
         print(vis+' does not exist')
         return False
 
-    mymaskname = ''
+
+    #mymaskname = ''
     if usemask == 'auto-multithresh':
-        mymask = usemask
-        print('Run with {0} mask'.format(mymask))
+        print('Run with {0} mask'.format(usemask))
     elif usemask =='pb':
-        mymask = usemask
-        pbmask = pbmask
-        print('Run with {0} mask {1}'.format(mymask,pbmask))
+        print('Run with {0} mask on PB level {1}'.format(usemask,pbmask))
     elif usemask == 'user':
         if os.path.exists(mask):
-           mymask = usemask
-           mymaskname = mask
-           print('Run with {0} mask {1} '.format(mymask,mymaskname))
+           print('Run with {0} mask {1}'.format(usemask,mask))
         else:
-           print('mask '+mymaskname+' does not exist, or not specified')
+           print('mask '+mask+' does not exist, or not specified')
            return False
     else:
         print('check the mask options')
@@ -787,46 +825,62 @@ def runtclean(vis,
     if niter==0:
         casalog.post('You set niter to 0 (zero, the default). Only a dirty image will be created.', 'WARN')
 
+
+
+    tclean_arg=dict(vis = myvis,
+                    imagename = imname, #+'.TCLEAN',
+                    startmodel = startmodel,
+                    field = field,
+                    #intent = 'OBSERVE_TARGET#ON_SOURCE',  #really needed?
+                    phasecenter = phasecenter,
+                    #stokes = 'I',                  # default, but maybe for polarization?
+                    imsize = imsize,
+                    cell = cell,
+                    spw = spw,
+                    #outframe = 'LSRK',             # default
+                    specmode = specmode,
+                    deconvolver = mydeconvolver,   
+                    scales = myscales,             
+                    #nterms = 1,                    # needed by sdint for mtmfs
+                    start = start, 
+                    width = width, 
+                    nchan = nchan, 
+                    restfreq = restfreq,
+                    gridder = 'mosaic',
+                    weighting = 'briggs',
+                    robust = 0.5,
+                    niter = niter,
+                    #cycleniter = niter,        # bogus if = niter
+                    cyclefactor=2.0,
+                    threshold = threshold,
+                    interactive = interactive,
+                    pbcor = True,
+                    # Masking Parameters below this line 
+                    # --> Should be updated depending on dataset
+                    usemask=usemask,
+                    sidelobethreshold=sidelobethreshold,
+                    noisethreshold=noisethreshold,
+                    lownoisethreshold=lownoisethreshold, 
+                    minbeamfrac=minbeamfrac,
+                    growiterations=growiterations,
+                    negativethreshold=negativethreshold,
+                    mask=mask,
+                    pbmask=pbmask,    # used by all usemasks! perhaps needed for fastnoise-calc!
+                    verbose=True)
+
+
+
+
+
     os.system('rm -rf '+imname) #+'.TCLEAN.*')
-    tclean(vis = myvis,
-           imagename = imname, #+'.TCLEAN',
-           startmodel = startmodel,
-           field = field,
-           intent = 'OBSERVE_TARGET#ON_SOURCE',
-           phasecenter = phasecenter,
-           stokes = 'I',
-           spw = spw,
-           outframe = 'LSRK',
-           specmode = specmode,
-           nterms = 1,
-           imsize = imsize,
-           cell = cell,
-           deconvolver = mydeconvolver,
-           scales = myscales,
-           niter = niter,
-           cycleniter = niter,
-           cyclefactor=2.0,
-           weighting = 'briggs',
-           robust = 0.5,
-           gridder = 'mosaic',
-           pbcor = True,
-           threshold = threshold,
-           interactive = interactive,
-           # Masking Parameters below this line 
-           # --> Should be updated depending on dataset
-           usemask=mymask,
-           sidelobethreshold=sidelobethreshold,
-           noisethreshold=noisethreshold,
-           lownoisethreshold=lownoisethreshold, 
-           minbeamfrac=minbeamfrac,
-           growiterations=growiterations,
-           negativethreshold=negativethreshold,
-           mask=mask,pbmask=pbmask,
-           verbose=True)
+    
+    tclean(**tclean_arg)
+    
+   
 
     print('Exporting final pbcor image to FITS ...')
     #exportfits(imname+'.TCLEAN.image.pbcor', imname+'.TCLEAN.pbcor.fits')
-    exportfits(imname+'.image.pbcor', imname+'.pbcor.fits')
+    exportfits(imname+'.image.pbcor', imname+'image.pbcor.fits')
 
     return True
 
@@ -938,7 +992,7 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     
     # BUNIT from the header
     def getBunit(imName):     
-            myia=iatool() 	
+            myia=iatool()   
             myia.open(str(imName))
             summary = myia.summary()
             myia.close()    
