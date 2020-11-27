@@ -15,13 +15,13 @@ Run under CASA 6.
 
 
 #thesteps=[0,1,2,3,4,5]
-thesteps=[4]
+thesteps=[0,5]
 
 
 
 import os 
 import sys 
-import glob
+#import glob
 
 sys.path.append('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/')               # path to the folder with datacomb.py and ssc_DC.py
 
@@ -31,8 +31,8 @@ pythonversion = sys.version[0]
 if pythonversion=='3':
     from casatasks import version as CASAvers
     if CASAvers()[0]>=6 and CASAvers()[1]>=1:
-        print('Executed in CASA ' +'.'.join(map(str, CASAvers())))    
-#if 'casatasks' in locals():
+        #print('Executed in CASA ' +'.'.join(map(str, CASAvers())))    
+        #if 'casatasks' in locals():
         import datacomb as dc
         #import ssc_DC_2 as ssc     # need to import casatasks therein!
         from casatasks import concat
@@ -53,7 +53,7 @@ if pythonversion=='3':
 elif pythonversion=='2':
     import casadef
     if casadef.casa_version == '5.7.0':
-        print('Executed in CASA ' +casadef.casa_version)
+        #print('Executed in CASA ' +casadef.casa_version)
         execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/datacomb.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
         #execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/ssc_DC_2.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
     else:
@@ -68,15 +68,18 @@ elif pythonversion=='2':
 
 
 # path to input and outputs
-#pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/gmcSkymodel_120L/gmc_120L/'   # path to the folder with the files to be concatenated
-pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/skymodel-c.sim/skymodel-c_120L/'   # path to the folder with the files to be concatenated
+pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/gmcSkymodel_120L/gmc_120L/'   # path to the folder with the files to be concatenated
+#pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/skymodel-c.sim/skymodel-c_120L/'   # path to the folder with the files to be concatenated
 pathtoimage  = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/DC_Ly_tests/'                          # path to the folder where to put the combination and image results
 
 
+### delete garbage from aboprted script ###
+os.system('rm -rf '+pathtoimage + 'TempLattice*')
+
 
 # setup for concat 
-thevis = [pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-02.ms']#,
-#thevis = [pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms']#,
+#thevis = [pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-02.ms']#,
+thevis = [pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms']#,
           #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-02.ms',
           #pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-03.ms',
           #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-03.ms',
@@ -92,8 +95,8 @@ thevis = [pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-02.ms']#,
 weightscale = [1.]#, 1., 1., 1., 1., 1., 1., 1.,
                #0.116, 0.116, 0.116, 0.116]
 
-#concatms     = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
-concatms     = pathtoimage + 'skymodel-c_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
+concatms     = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
+#concatms     = pathtoimage + 'skymodel-c_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
 
 
 
@@ -101,10 +104,10 @@ concatms     = pathtoimage + 'skymodel-c_120L.alma.all_int-weighted.ms'       # 
 ############# input to combination methods ###########
 
 vis       = concatms 
-#sdimage   = pathtoconcat + 'gmc_120L.sd.image'
-sdimage   = pathtoconcat + 'skymodel-c_120L.sd.image'
-#imbase    = pathtoimage + 'skymodel-b_120L'            # path + image base name
-imbase    = pathtoimage + 'skymodel-c_120L'            # path + image base name
+sdimage   = pathtoconcat + 'gmc_120L.sd.image'
+#sdimage   = pathtoconcat + 'skymodel-c_120L.sd.image'
+imbase    = pathtoimage + 'skymodel-b_120L'            # path + image base name
+#imbase    = pathtoimage + 'skymodel-c_120L'            # path + image base name
 
 
     ### ### tclean specific 
@@ -129,9 +132,9 @@ imbase    = pathtoimage + 'skymodel-c_120L'            # path + image base name
 # e.g. cleansetup = '.cube.n1e9.MS.AM'
 
 mode   = 'mfs'    # 'mfs' or 'cube'
-mscale = 'HB'     # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT!)) 
+mscale = 'HB'     # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
 inter  = 'AM'     # 'man' (manual), 'AM' ('auto-multithresh') or 'PB' (primary beam - not yet implemented)
-nit = 0           # max = 9.9 * 10**9 
+nit = 1           # max = 9.9 * 10**9 
 
 #cleansetup = "."+ mode +"."+ mscale +"."+ inter + (".n%.1e").replace("+","")  %(nit)
 cleansetup = '.'+ mscale +'_'+ inter + '_n%.1e' %(nit)
@@ -194,7 +197,7 @@ general_tclean_param = dict(#overwrite  = overwrite,
                            start       = 0, 
                            width       = 1, 
                            nchan       = -1, 
-                           restfreq    = None,
+                           restfreq    = '',
                            threshold   = '0.021Jy',        # SDINT: None 
                            maxscale    = 10.)        # recommendations/explanations 
                            
@@ -322,9 +325,11 @@ if(mystep in thesteps):
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     casalog.post('### ','INFO')
+    print(' ')    
     print('### ')
     print('Step ', mystep, step_title[mystep])
     print('### ')
+    print(' ')
     
     os.system('rm -rf '+concatms)
 
@@ -337,9 +342,12 @@ if(mystep in thesteps):
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     casalog.post('### ','INFO')
+    print(' ')
     print('### ')
     print('Step ', mystep, step_title[mystep])
     print('### ')
+    print(' ')
+    
 
     imname = imbase + cleansetup + tcleansetup
 
@@ -388,9 +396,11 @@ if(mystep in thesteps):
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     casalog.post('### ','INFO')
+    print(' ')
     print('### ')
     print('Step ', mystep, step_title[mystep])
     print('### ')
+    print(' ')
 
     intimage = imbase + cleansetup + '.tclean.image'
     intpb    = imbase + cleansetup + '.tclean.pb'
@@ -424,9 +434,11 @@ if(mystep in thesteps):
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     casalog.post('### ','INFO')
+    print(' ')
     print('### ')
     print('Step ', mystep, step_title[mystep])
     print('### ')
+    print(' ')
 
     for i in range(0,len(sdfac)):
         imname = imbase + cleansetup + SSCsetup + str(SSCfac[i]) 
@@ -466,9 +478,11 @@ if(mystep in thesteps):
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     casalog.post('### ','INFO')
+    print(' ')
     print('### ')
     print('Step ', mystep, step_title[mystep])
     print('### ')
+    print(' ')
 
     ### for CASA 5.7:
     z = general_tclean_param.copy()   
@@ -514,11 +528,11 @@ if(mystep in thesteps):
             #oldnames=glob.glob(imname+'.TCLEAN*')
             #for nam in oldnames:
             #    os.system('mv '+nam+' '+nam.replace('_f'+str(sdfac_h[i])+'.TCLEAN',''))
-            oldnames=glob.glob(imname+'.combined*')
-            for nam in oldnames:
-                os.system('mv '+nam+' '+nam.replace('.combined',''))
+            #oldnames=glob.glob(imname+'.combined*')
+            #for nam in oldnames:
+            #    os.system('mv '+nam+' '+nam.replace('.combined',''))
             
-            #os.system('rename "s/.combined//g" '+imname+'.combined*')
+            ####os.system('rename "s/.combined//g" '+imname+'.combined*')
             
         hybridims.append(imname)
 
@@ -528,13 +542,16 @@ if(mystep in thesteps):
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     casalog.post('### ','INFO')
+    print(' ')
     print('### ')
     print('Step ', mystep, step_title[mystep])
     print('### ')
+    print(' ')
 
     ### for CASA 5.7:
     z = general_tclean_param.copy()   
     z.update(sdint_tclean_param)
+    z.update(special_tclean_param)
     
     for i in range(0,len(sdg)) :
         jointname = imbase + cleansetup + sdintsetup + str(sdg[i]) 
