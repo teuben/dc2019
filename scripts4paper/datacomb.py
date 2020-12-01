@@ -26,7 +26,7 @@ if pythonversion=='3':
         from casatasks import imhead
         from casatasks import sdintimaging
         from casatasks import tclean
-        from casatasks import immath
+        from casatasks import immath, imstat
         from casatasks import imregrid, imtrans
         from casatasks import imsmooth
         from casatasks import feather
@@ -392,6 +392,7 @@ def runWSM(vis,
            minbeamfrac=0.3,
            growiterations=75,
            negativethreshold=0.0,
+           sdmasklev=0.3,           
            mask='', 
            pbmask=0.4,
            interactive=True, 
@@ -443,6 +444,9 @@ def runWSM(vis,
              if usemask='user', must specify mask='maskname.mask' 
              if usemask='pb', can specify pbmask=0.4, or some level.
              default: 'auto-multithresh'
+    sdmasklev - if usemask='user', then use SD image at this level to draw a mask.
+             default: 0.3
+
     interactive - the standard tclean interactive option
              default: True
     
@@ -506,7 +510,31 @@ def runWSM(vis,
                    hdvalue=hdval)
     ### TO DO: MAY NEED TO REMOVE BLANK 
     ### and/or NEGATIVE PIXELS IN SD OBSERVATIONS
-  
+
+
+    ## SETUP mask if usemask='user' and mask=''
+    if usemask=='user' and mask=='':
+        casalog.post("Generating a mask based on SD image", 'INFO', 
+                     origin='runWSM')
+        #get max in SD image
+        maxSD = imstat(scaled_name)['max'][0]
+        sdmasklev=0.3
+        sdmaskval = sdmasklev*maxSD
+        try: immath(imagename=[scaled_name],expr='iif(IM0>'+str(sdmaskval)+',1,0)',outfile='SD.mask')
+        except: print('### SD.mask already exists, will proceed')
+
+        runtclean(myvis,imname+'.setmask',
+                phasecenter=phasecenter, 
+                spw=spw, field=field, imsize=imsize, cell=cell,
+                niter=1,usemask='user',mask='SD.mask',restart=True,interactive=True)
+        os.system('cp -rf '+imname+'.setmask.TCLEAN.mask SD2.mask')
+        os.system('rm -rf '+imname+'.setmask.TCLEAN.pbcor.fits')
+        runtclean(myvis,imname+'.setmask',
+                phasecenter=phasecenter, 
+                spw=spw, field=field, imsize=imsize, cell=cell,
+                niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=True)
+        os.system('cp -rf '+imname+'.setmask.TCLEAN.mask SDint.mask')
+        mask='SDint.mask'  
     ## TCLEAN METHOD WITH START MODEL
     runtclean(myvis,
               imname, 
@@ -722,7 +750,8 @@ def runtclean(vis,
               pbmask=0.4, 
               interactive=True, 
               multiscale=False, 
-              maxscale=0.
+              maxscale=0.,
+              restart=True
               ):
     """
     runtclean (A. Plunkett, NRAO, D. Petry, ESO)
@@ -795,6 +824,10 @@ def runtclean(vis,
     #mymaskname = ''
     if usemask == 'auto-multithresh':
         print('Run with {0} mask'.format(usemask))
+        if os.path.exists(mask):
+           mymaskname = mask
+           print('Run with {0} mask and {1} '.format(mymask,mymaskname))
+        else: print('Run with {0} mask'.format(mymask))        
     elif usemask =='pb':
         print('Run with {0} mask on PB level {1}'.format(usemask,pbmask))
     elif usemask == 'user':
@@ -866,7 +899,8 @@ def runtclean(vis,
                     negativethreshold=negativethreshold,
                     mask=mask,
                     pbmask=pbmask,    # used by all usemasks! perhaps needed for fastnoise-calc!
-                    verbose=True)
+                    verbose=True, 
+                    restart=restart)
 
 
 
