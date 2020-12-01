@@ -1,15 +1,63 @@
 # Testing several TCLEAN techniques
 
-Here we describe three variations of TCLEAN on the same skymodel
+Here we describe variations of TCLEAN on the same skymodel
 simulated mosaic map.
 
-## Imaging script
+## Test multi-scale
+
+### Imaging script
+
+The script is found here:
+[scriptForImaging_modular_v2.py](https://github.com/teuben/dc2019/blob/master/scripts4paper/scriptForImaging_modular_v2.py)
+
+The script called datacomb.py, and uses the multi-scale implemented there.
+
+Int, WSM, WSM+feather | mask | multiscale  | flux | min | max |
+:---------------------|:----------------------:|:----------------------:|:---------------------:|:---------------------:|:--------------------:
+Int | pb| false|1233.9|-1.007|3.347
+Int | pb| true|1992.6|-0.604|2.785
+Int | auto | false|2029.5|-0.908|2.808
+Int| auto|true|1733.7|-1.198|2.664
+WSM| pb| false|9288.4|-0.522|3.300
+WSM+feather |pb|false|7912.8|-0.562|3.311
+WSM| pb|true|9702.4|-0.492|3.307
+WSM+feather| pb|true|7919.0|-0.523|3.306
+WSM| auto|false|10219.6|-0.378|3.390
+WSM+feather| auto|false|7839.9|-0.581|3.334
+WSM |auto|true|9739.2|-0.557|3.197
+WSM+feather| auto|true|7839.4|-0.549|3.175
+WSM+feather| SD | true | 7828.5|-0.529|3.315
+
+In the above table, WSM stands for 'with start model', in other words,
+startmodel='sd.image' in TCLEAN.  The mask `SD' means we make a mask
+based on the SD, use auto-mask to find the additional interferometry
+contribution, and then run the TCLEAN with start model, using that mask.
+
+Next I show TCLEAN interferometry-only images using pb-mask (top row)
+and auto-mask (lower row).  Column 1 uses multiscale=False; column 2
+uses multiscale=True.  These correspond to rows 1-4 in the table above.
+
+mask | no multiscale  | multiscale
+:--------------------:|:---------------------:|:---------------------:
+pbmask | ![pbmask1](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSM.int_pb.TCLEAN.pbcor.fits.cmr.rainforest.png)|![pbmask2](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSM.int_pb_multi.TCLEAN.pbcor.fits.cmr.rainforest.png)
+automask |![automask1](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSM.int_auto.TCLEAN.pbcor.fits.cmr.rainforest.png)|![automask2](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSM.int_auto_multi.TCLEAN.pbcor.fits.cmr.rainforest.png)
+
+Here I show pb-mask (top row) and auto-mask (lower row), for the
+'startmodel' method.  These correspond to rows 5-8 (pb mask) and 9-12 (auto-mask) in the table above. Columns 1 and 3 are the maps resulting from
+TCLEAN, using startmodel='tp.image'.  Columns 2 and 4 show the
+feathered image of columns 1 and 3, respectively.  Column 1  uses
+multiscale=False; and column 3 uses multiscale=True.
+
+mask | no multiscale  | combined  |multiscale  | combined
+:--------------------:|:---------------------:|:---------------------:|:---------------------:|:---------------------:
+pbmask | ![pbmask1](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSMpb.TCLEAN.pbcor.fits.cmr.rainforest.png)|![pbmask2](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSMpb.combined.image.pbcor.fits.cmr.rainforest.png)| ![pbmask3](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSMpb_multi.TCLEAN.pbcor.fits.cmr.rainforest.png)|![pbmask4](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSMpb_multi.combined.image.pbcor.fits.cmr.rainforest.png)
+automask | ![automask1](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSMauto.TCLEAN.pbcor.fits.cmr.rainforest.png)|![automask2](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSMauto.combined.image.pbcor.fits.cmr.rainforest.png)| ![automask3](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSMauto_multi.TCLEAN.pbcor.fits.cmr.rainforest.png)|![automask4](https://github.com/adeleplunkett/myimages/blob/master/modbcompare/skymodel_b.WSMauto_multi.combined.image.pbcor.fits.cmr.rainforest.png)
+
+## Previous TCLEAN tests without multi-scale
+
+### Imaging script
 
 The script is found here: [scriptForImaging_tcleanTest.py](https://github.com/teuben/dc2019/blob/master/scripts4paper/scriptForImaging_tcleanTest.py)
-
-Three TCLEAN variations in the script are:
-
-## Note: Should we also test multi-scale?
 
 ### (1) ``Simple''
 
@@ -169,3 +217,19 @@ tclean image)
 feather image)
 - autothresh39mJy/gmc_120L.WSM.auto.TCLEAN.pbcor.fits (--> automask,
 tclean image)
+
+### Images to test automasking and multiscale, for interferometry only, and startmodel methods, are uploaded [here](https://drive.google.com/file/d/1tiDHs0dJ0njfSDqt8ePYuBgrRHKkUCgK/view?usp=sharing)
+
+Files in startmodel_testautomulti.tgz:
+- skymodel_b.WSM.int_pb.TCLEAN.pbcor.fits
+- skymodel_b.WSM.int_pb_multi.TCLEAN.pbcor.fits
+- skymodel_b.WSM.int_auto.TCLEAN.pbcor.fits
+- skymodel_b.WSM.int_auto_multi.TCLEAN.pbcor.fits
+- skymodel_b.WSMpb.TCLEAN.pbcor.fits
+- skymodel_b.WSMpb.combined.image.pbcor.fits
+- skymodel_b.WSMpb_multi.TCLEAN.pbcor.fits
+- skymodel_b.WSMpb_multi.combined.image.pbcor.fits
+- skymodel_b.WSMauto.TCLEAN.pbcor.fits
+- skymodel_b.WSMauto.combined.image.pbcor.fits
+- skymodel_b.WSMauto_multi.TCLEAN.pbcor.fits
+- skymodel_b.WSMauto_multi.combined.image.pbcor.fits

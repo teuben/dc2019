@@ -25,6 +25,8 @@ turbustat:
 
 
 
+qac:    QAC
+
 QAC:
 	git clone https://github.com/teuben/QAC/
 
@@ -86,3 +88,8 @@ resolve:
 	pip3 install python-casacore
 	(cd ducc ; pip install -e . )
 	(cd resolve ; pip install -e . )
+
+# new 2020 version of WSCLEAN and
+
+wsclean:
+	git clone https://gitlab.com/aroffringa/wsclean

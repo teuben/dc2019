@@ -55,6 +55,7 @@ elif pythonversion=='2':
         sys.exit()
 
 
+
 ##########################################
 
 def runsdintimg(vis, 
@@ -400,6 +401,7 @@ def runWSM(vis,
            maxscale=0.,
            sdfactorh=1.0
            ):
+
     """
     runWSM (A. Plunkett, NRAO)
     a wrapper around the CASA tasks "TCLEAN" and "FEATHER"
@@ -446,7 +448,6 @@ def runWSM(vis,
              default: 'auto-multithresh'
     sdmasklev - if usemask='user', then use SD image at this level to draw a mask.
              default: 0.3
-
     interactive - the standard tclean interactive option
              default: True
     
@@ -529,8 +530,7 @@ def runWSM(vis,
                 niter=1,usemask='user',mask='SD.mask',restart=True,interactive=True)
         os.system('cp -rf '+imname+'.setmask.TCLEAN.mask SD2.mask')
         os.system('rm -rf '+imname+'.setmask.TCLEAN.pbcor.fits')
-        runtclean(myvis,imname+'.setmask',
-                phasecenter=phasecenter, 
+        runtclean(myvis,imname+'.setmask', phasecenter=phasecenter, 
                 spw=spw, field=field, imsize=imsize, cell=cell,
                 niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=True)
         os.system('cp -rf '+imname+'.setmask.TCLEAN.mask SDint.mask')
@@ -753,6 +753,7 @@ def runtclean(vis,
               maxscale=0.,
               restart=True
               ):
+
     """
     runtclean (A. Plunkett, NRAO, D. Petry, ESO)
     a wrapper around the CASA task "TCLEAN,"
@@ -824,15 +825,18 @@ def runtclean(vis,
     #mymaskname = ''
     if usemask == 'auto-multithresh':
         print('Run with {0} mask'.format(usemask))
+        mymask = usemask
         if os.path.exists(mask):
            mymaskname = mask
            print('Run with {0} mask and {1} '.format(mymask,mymaskname))
         else: print('Run with {0} mask'.format(mymask))        
+
     elif usemask =='pb':
         print('Run with {0} mask on PB level {1}'.format(usemask,pbmask))
     elif usemask == 'user':
         if os.path.exists(mask):
            print('Run with {0} mask {1}'.format(usemask,mask))
+
         else:
            print('mask '+mask+' does not exist, or not specified')
            return False
@@ -858,6 +862,7 @@ def runtclean(vis,
     if niter==0:
         casalog.post('You set niter to 0 (zero, the default). Only a dirty image will be created.', 'WARN')
 
+<<<<<<< HEAD
 
 
     tclean_arg=dict(vis = myvis,
@@ -904,9 +909,12 @@ def runtclean(vis,
 
 
 
+    #if os.path.exists(imname+'.TCLEAN.image'):
+    #    casalog.post('Image '+imname+'.TCLEAN already exists.  Running with restart='+str(restart), 'WARN')        
+    ##os.system('rm -rf '+imname+'.TCLEAN.*')
 
-
-    os.system('rm -rf '+imname) #+'.TCLEAN.*')
+    os.system('rm -rf '+imname) #+'.TCLEAN.*')   
+    # if to be switched off add command to delete "*.pbcor.fits"
     
     tclean(**tclean_arg)
     
@@ -915,6 +923,7 @@ def runtclean(vis,
     print('Exporting final pbcor image to FITS ...')
     #exportfits(imname+'.TCLEAN.image.pbcor', imname+'.TCLEAN.pbcor.fits')
     exportfits(imname+'.image.pbcor', imname+'image.pbcor.fits')
+
 
     return True
 

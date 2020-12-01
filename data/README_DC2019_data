@@ -60,6 +60,32 @@ Smaller data in : ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/N346
 
 3) skymodel GMC fractal/powerspectrum (Koda)
 
+The new 2020 link to the DC2019 data is via ftp or http (they are identical)
+
+      ftp://ftp.astro.umd.edu/pub/teuben/DC2019
+      https://ftp.astro.umd.edu/pub/teuben/DC2019
+
+In here you will find the following files:
+
+    skymodel-b.fits                  original skymodel plus two fuzzy "point" sources
+    skymodel-c.fits                  skymodel with a different random seed, same powerlaw as 'b'
+    skymodel-b.sim.tar               MS simulation files from Toshi (large: 7GB)
+    skymodel-c.sim.tar	             MS sim files
+    pointSrc_gaussOnly.sim.tar       MS sim files
+    pointSrc_pointOnly.sim.tar       MS sim files
+    pointSrc_pointSrcGauss.sim.tar   MS sim files
+    qac_bench5.tar.gz                M100 data : 70 channels at 5 km/s for 12m, 7m and TP
+
+Toshi's models are big, but best solved by placing them in dc2019/data as well (or a link)
+Examples:
+
+        gmcSkymodel/gmc_2L/                   an older - kind of wrong - but small < 1GB data for testing
+        skymodel-b.sim/skymodel-b_120L        full 8GB multi-day dataset
+        skymodel-c.sim/skymodel-c_120L        full 8GB multi-day dataset
+
+
+You will find some old links (but same data) here:
+
 http://admit.astro.umd.edu/~teuben/QAC/skymodel.fits
 http://admit.astro.umd.edu/~teuben/QAC/skymodel-a.fits    
 http://admit.astro.umd.edu/~teuben/QAC/skymodel-b.fits    
@@ -84,14 +110,6 @@ here:
 
 ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/skymodel_16k.fits
 ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/tp2vis-sample2.tar.gz
-
-Toshi's models are big, but best solved by placing them in dc2019/data as well (or a link)
-Examples:
-
-        gmcSkymodel/gmc_2L/                   an older - kind of wrong - but small < 1GB data for testing
-        skymodel-b.sim/skymodel-b_120L        full 8GB multi-day dataset
-        skymodel-c.sim/skymodel-c_120L        full 8GB multi-day dataset
-	 
 
 
 4) Gaussian Models (Fomalont)
