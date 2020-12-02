@@ -15,7 +15,7 @@ Run under CASA 6.
 
 
 #thesteps=[0,1,2,3,4,5]
-thesteps=[0,5]
+thesteps=[2,3]
 
 
 
@@ -133,57 +133,17 @@ imbase    = pathtoimage + 'skymodel-b_120L'            # path + image base name
 
 mode   = 'mfs'    # 'mfs' or 'cube'
 mscale = 'HB'     # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
-inter  = 'AM'     # 'man' (manual), 'AM' ('auto-multithresh') or 'PB' (primary beam - not yet implemented)
-nit = 1           # max = 9.9 * 10**9 
+masking  = 'UM'   # 'UM' (user), 'AM' ('auto-multithresh') or 'PB' (primary beam)
+inter = 'nIA'     # interactive ('IA') or non-interactive ('nIA')
+nit = 0        # max = 9.9 * 10**9 
 
 #cleansetup = "."+ mode +"."+ mscale +"."+ inter + (".n%.1e").replace("+","")  %(nit)
-cleansetup = '.'+ mscale +'_'+ inter + '_n%.1e' %(nit)
-cleansetup = cleansetup.replace("+0","")
+cleansetup = '.'+ mscale +'_'+ masking +'_'+ inter +'_'+ str(nit)
 
+#cleansetup = '.'+ mscale +'_'+ masking + '_n%.1e' %(nit)
+#cleansetup = cleansetup.replace("+0","")
 
-#### general tclean parameters:
-#
-#general_tclean_param = dict(#overwrite  = overwrite,
-#                           spw         = '', 
-#                           field       = '', 
-#                           specmode    = mode,      # ! change in variable above dict !        
-#                           imsize      = [], 
-#                           cell        = '', 
-#                           phasecenter = '',             
-#                           start       = 0, 
-#                           width       = 1, 
-#                           nchan       = -1, 
-#                           restfreq    = None,
-#                           threshold   = '',        # SDINT: None 
-#                           maxscale    = 0.)        # recommendations/explanations 
-#                           
-#                           # interactive = True,      # couple to usemak!           
-#                           # multiscale  = False, 
-#
-#
-#### runtclean/WSM specific tclean parameters:
-#
-#special_tclean_param = dict(niter      = nit,      # ! change in variable above dict !
-#                           mask        = '', 
-#                           pbmask      = 0.4,
-#                           #usemask           = 'auto-multithresh',    # couple to interactive!              
-#                           sidelobethreshold = 2.0, 
-#                           noisethreshold    = 4.25, 
-#                           lownoisethreshold = 1.5,               
-#                           minbeamfrac       = 0.3, 
-#                           growiterations    = 75, 
-#                           negativethreshold = 0.0)
-#
-#
-#### SDint specific parameters:
-#
-#sdint_tclean_param = dict(sdpsf   = '',
-#                         #sdgain  = 5,     # own factor! see below!
-#                         dishdia = 12.0)
-#                       
-                       
-                       
-                       
+                     
                        
 ### general tclean parameters:
 
@@ -199,15 +159,8 @@ general_tclean_param = dict(#overwrite  = overwrite,
                            nchan       = -1, 
                            restfreq    = '',
                            threshold   = '0.021Jy',        # SDINT: None 
-                           maxscale    = 10.)        # recommendations/explanations 
-                           
-                           # interactive = True,      # couple to usemak!           
-                           # multiscale  = False, 
-
-
-### runtclean/WSM specific tclean parameters:
-
-special_tclean_param = dict(niter      = nit,      # ! change in variable above dict !
+                           maxscale    = 10.,              # recommendations/explanations 
+                           niter      = nit,               # ! change in variable above dict !
                            mask        = '', 
                            pbmask      = 0.4,
                            #usemask           = 'auto-multithresh',    # couple to interactive!              
@@ -216,7 +169,8 @@ special_tclean_param = dict(niter      = nit,      # ! change in variable above 
                            lownoisethreshold = 1.5,               
                            minbeamfrac       = 0.3, 
                            growiterations    = 75, 
-                           negativethreshold = 0.0)
+                           negativethreshold = 0.0)#, 
+                           #sdmasklev=0.3)   # need to overthink here 
 
 
 ### SDint specific parameters:
@@ -230,31 +184,22 @@ sdint_tclean_param = dict(sdpsf   = '',
                          
                          
 ### naming scheme specific inputs:
-                         
-if inter == 'man':
-    general_tclean_param['interactive'] = True    # parameter combination from sdint
-    special_tclean_param['usemask']     = 'pb'
-if inter == 'AM':
-    general_tclean_param['interactive'] = False   # parameter combination from sdint
-    special_tclean_param['usemask']     = 'auto-multithresh'
-#if inter == 'PB':
-#    general_tclean_param['interactive'] = False
-#   special_tclean_param['usemask']     = 'pb'
+if inter == 'IA':
+    general_tclean_param['interactive'] = True    
+elif inter == 'nIA':
+    general_tclean_param['interactive'] = False    
+	                         
+if masking == 'UM':
+    general_tclean_param['usemask']     = 'user'
+if masking == 'PB':
+    general_tclean_param['usemask']     = 'pb'
+if masking == 'AM':
+    general_tclean_param['usemask']     = 'auto-multithresh'    
 
 if mscale == 'HB':
     general_tclean_param['multiscale'] = False
 if mscale == 'MS':
     general_tclean_param['multiscale'] = True      # automated scale choice dependant on maxscale
-
-
-
-
-
-
-    ##### how to use dicts:
-    ###     tclean_param['gridfunction'] = 'SF'
-    ###     runtclean(**tclean_param)                    
-    ###     
 
 
 
@@ -310,12 +255,13 @@ sdintims   = []
 #### thesteps = []   # define at beginning or outside this script
 
 step_title = {0: 'Concat',
-              1: 'Clean for Feather/Faridani',
-              2: 'Feather', 
-              3: 'Faridani short spacings combination (SSC)',
-              4: 'Hybrid (startmodel clean + Feather)',
-              5: 'SDINT'#,
-              #6: 'TP2VIS'
+              1: 'Prepare the SD-image',
+              2: 'Clean for Feather/Faridani',
+              3: 'Feather', 
+              4: 'Faridani short spacings combination (SSC)',
+              5: 'Hybrid (startmodel clean + Feather)',
+              6: 'SDINT'#,
+              #7: 'TP2VIS'
               }
 
         
@@ -335,9 +281,30 @@ if(mystep in thesteps):
 
     concat(vis = thevis, concatvis = concatms, visweightscale = weightscale)
            
+
+
+mystep = 1    ############# ----- PREPARE SD-IMAGE -----###############
+if(mystep in thesteps):
+    casalog.post('### ','INFO')
+    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    casalog.post('### ','INFO')
+    print(' ')    
+    print('### ')
+    print('Step ', mystep, step_title[mystep])
+    print('### ')
+    print(' ')
+    
+    # axis reordering
+    # make SD+AM mask 
+    # read SD image frequency setup as input for tclean
+    # regrid SD image to tclean 
+    # 
            
 
-mystep = 1    ############----- CLEAN FOR FEATHER/SSC -----############
+
+           
+
+mystep = 2    ############----- CLEAN FOR FEATHER/SSC -----############
 if(mystep in thesteps):
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
@@ -353,7 +320,7 @@ if(mystep in thesteps):
 
     ### for CASA 5.7:
     z = general_tclean_param.copy()   
-    z.update(special_tclean_param)
+    #z.update(special_tclean_param)
 
     if dryrun == True:
         pass
@@ -391,7 +358,7 @@ if(mystep in thesteps):
 
 
 
-mystep = 2    ###################----- FEATHER -----###################
+mystep = 3    ###################----- FEATHER -----###################
 if(mystep in thesteps):
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
@@ -429,7 +396,7 @@ if(mystep in thesteps):
 
 
 
-mystep = 3    ################----- FARIDANI SSC -----#################
+mystep = 4    ################----- FARIDANI SSC -----#################
 if(mystep in thesteps):
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
@@ -473,7 +440,7 @@ if(mystep in thesteps):
 
 
 
-mystep = 4    ###################----- HYBRID -----####################
+mystep = 5    ###################----- HYBRID -----####################
 if(mystep in thesteps):
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
@@ -486,7 +453,7 @@ if(mystep in thesteps):
 
     ### for CASA 5.7:
     z = general_tclean_param.copy()   
-    z.update(special_tclean_param)
+    #z.update(special_tclean_param)
 
     for i in range(0,len(sdfac_h)):
         imname = imbase + cleansetup + hybridsetup #+ str(sdfac_h[i]) 
@@ -537,7 +504,7 @@ if(mystep in thesteps):
         hybridims.append(imname)
 
 
-mystep = 5    ####################----- SDINT -----####################
+mystep = 6    ####################----- SDINT -----####################
 if(mystep in thesteps):
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
@@ -551,7 +518,7 @@ if(mystep in thesteps):
     ### for CASA 5.7:
     z = general_tclean_param.copy()   
     z.update(sdint_tclean_param)
-    z.update(special_tclean_param)
+    #z.update(special_tclean_param)
     
     for i in range(0,len(sdg)) :
         jointname = imbase + cleansetup + sdintsetup + str(sdg[i]) 
@@ -587,7 +554,7 @@ if(mystep in thesteps):
         sdintims.append(jointname)                
                 
                 
-#mystep = 5    ###################----- TP2VIS -----####################
+#mystep = 7    ###################----- TP2VIS -----####################
 #if(mystep in thesteps):
 #    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
 #    print('Step ', mystep, step_title[mystep])
