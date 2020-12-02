@@ -14,6 +14,7 @@ Run under CASA 6.
 
 import os
 import math
+import sys
 
 pythonversion = sys.version[0]
 
@@ -30,7 +31,7 @@ if pythonversion=='3':
         from casatasks import imregrid, imtrans
         from casatasks import imsmooth
         from casatasks import feather
-	    
+        
         from casatools import image as iatool
         from casatools import quanta as qatool
     else:
@@ -288,6 +289,11 @@ def runsdintimg(vis,
     else:
         therf = [restfreq]
 
+    if niter==0:
+        niter = 1
+        casalog.post('You set niter to 0 (zero, the default), but sdintimaging can only produce an output for niter>1. niter = 1 set automatically. ', 'WARN')
+
+
     os.system('rm -rf '+jointname+'.*')
 
 
@@ -521,21 +527,51 @@ def runWSM(vis,
         maxSD = imstat(scaled_name)['max'][0]
         sdmasklev=0.3
         sdmaskval = sdmasklev*maxSD
-        try: immath(imagename=[scaled_name],expr='iif(IM0>'+str(sdmaskval)+',1,0)',outfile='SD.mask')
-        except: print('### SD.mask already exists, will proceed')
+        os.system('rm -rf SD*.mask')     
+        #try: 
+        immath(imagename=[scaled_name],expr='iif(IM0>'+str(round(sdmaskval,6))+',1,0)',outfile='SD.mask')
+        #except: print('### SD.mask already exists, will proceed')
 
-        runtclean(myvis,imname+'.setmask',
+        print('### Creating a mask based on SD mask and auto-mask')
+        print('### Step 1 of 2: load the SD mask into interferometric tclean image data' )
+        print('### Please check the result!')
+        os.system('rm -rf '+imname+'_setmask*')        
+        
+        runtclean(myvis,imname+'_setmask',
                 phasecenter=phasecenter, 
                 spw=spw, field=field, imsize=imsize, cell=cell,
-                niter=1,usemask='user',mask='SD.mask',restart=True,interactive=True)
-        os.system('cp -rf '+imname+'.setmask.TCLEAN.mask SD2.mask')
-        os.system('rm -rf '+imname+'.setmask.TCLEAN.pbcor.fits')
-        runtclean(myvis,imname+'.setmask', phasecenter=phasecenter, 
+                niter=1,usemask='user',mask='SD.mask',restart=True,interactive=False, continueclean=True)
+        print('### Step 2 of 2: add first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
+        print('### Please check the result!')        
+        os.system('cp -rf '+imname+'_setmask.mask SD2.mask')
+        os.system('rm -rf '+imname+'_setmask.image.pbcor.fits')        
+        runtclean(myvis,imname+'_setmask', phasecenter=phasecenter, 
                 spw=spw, field=field, imsize=imsize, cell=cell,
-                niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=True)
-        os.system('cp -rf '+imname+'.setmask.TCLEAN.mask SDint.mask')
+                niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=False, continueclean=True)
+        os.system('cp -rf '+imname+'_setmask.mask SDint.mask')
+        
+        #print('### Creating a mask based on SD mask and auto-mask')
+        #print('### Step 2 of 2: first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
+        #print('### Please check the result!')
+        #runtclean(myvis,imname+'_setmask', phasecenter=phasecenter, 
+        #        spw=spw, field=field, imsize=imsize, cell=cell,
+        #        niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=False, continueclean=True)
+        #os.system('cp -rf '+imname+'_setmask.mask int-AM0.mask')
+        #os.system('rm -rf '+imname+'_setmask.pbcor.fits')                 
+        #print('### Step 1 of 2: load the SD mask into interferometric tclean image data' )
+        #print('### Please check the result!')                  
+        #runtclean(myvis,imname+'_setmask',
+        #        phasecenter=phasecenter, 
+        #        spw=spw, field=field, imsize=imsize, cell=cell,
+        #        niter=1,usemask='user',mask='SD.mask',restart=True,interactive=False, continueclean=True)
+        #os.system('cp -rf '+imname+'_setmask.mask SDint.mask')
+        
+        print('### Done! Created an SDint mask from SD and auto-mask')                
         mask='SDint.mask'  
+        #mask='SD.mask'  
+
     ## TCLEAN METHOD WITH START MODEL
+    print('### Start hybrid clean')                    
     runtclean(myvis,
               imname, 
               startmodel=scaled_name,
@@ -563,7 +599,7 @@ def runWSM(vis,
               interactive=interactive,
               multiscale=multiscale,
               maxscale=maxscale)
-
+    
     ## then FEATHER METHOD 
     highres = imname+'.image'
     pb= imname+'.pb'
@@ -618,8 +654,12 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
 
     # use function for reordering instead of commented code down here 
 
+    print('### Start feather')                    
+
+
+
     # Reorder the axes of the low to match high/pb 
-    mysdimage = reorder_axes(myintimage,mysdimage)
+    mysdimage = reorder_axes(myintimage,mysdimage,'lowres.ro')
 
 
 
@@ -736,7 +776,7 @@ def runtclean(vis,
               start=0, 
               width=1, 
               nchan=-1, 
-              restfreq=None,
+              restfreq='',
               threshold='', 
               niter=0, 
               usemask='auto-multithresh' ,
@@ -751,7 +791,8 @@ def runtclean(vis,
               interactive=True, 
               multiscale=False, 
               maxscale=0.,
-              restart=True
+              restart=True,
+              continueclean = False
               ):
 
     """
@@ -824,7 +865,7 @@ def runtclean(vis,
 
     #mymaskname = ''
     if usemask == 'auto-multithresh':
-        print('Run with {0} mask'.format(usemask))
+        #print('Run with {0} mask'.format(usemask))
         mymask = usemask
         if os.path.exists(mask):
            mymaskname = mask
@@ -838,8 +879,8 @@ def runtclean(vis,
            print('Run with {0} mask {1}'.format(usemask,mask))
 
         else:
-           print('mask '+mask+' does not exist, or not specified')
-           return False
+           print('### WARNING:   mask '+mask+' does not exist, or not specified')
+           #return False
     else:
         print('check the mask options')
         return False
@@ -862,7 +903,6 @@ def runtclean(vis,
     if niter==0:
         casalog.post('You set niter to 0 (zero, the default). Only a dirty image will be created.', 'WARN')
 
-<<<<<<< HEAD
 
 
     tclean_arg=dict(vis = myvis,
@@ -913,8 +953,9 @@ def runtclean(vis,
     #    casalog.post('Image '+imname+'.TCLEAN already exists.  Running with restart='+str(restart), 'WARN')        
     ##os.system('rm -rf '+imname+'.TCLEAN.*')
 
-    os.system('rm -rf '+imname) #+'.TCLEAN.*')   
-    # if to be switched off add command to delete "*.pbcor.fits"
+    if continueclean == False:
+        os.system('rm -rf '+imname+'.*') #+'.TCLEAN.*')   
+        # if to be switched off add command to delete "*.pbcor.fits"
     
     tclean(**tclean_arg)
     
@@ -922,7 +963,7 @@ def runtclean(vis,
 
     print('Exporting final pbcor image to FITS ...')
     #exportfits(imname+'.TCLEAN.image.pbcor', imname+'.TCLEAN.pbcor.fits')
-    exportfits(imname+'.image.pbcor', imname+'image.pbcor.fits')
+    exportfits(imname+'.image.pbcor', imname+'.image.pbcor.fits')
 
 
     return True
@@ -934,7 +975,7 @@ def runtclean(vis,
 
 ######################################
 
-def reorder_axes(template, to_reorder):
+def reorder_axes(template, to_reorder, reordered):
 
     """
     reorder_axes (M. Hoffmann, D. Kunneriath, N. Pingel, L. Moser-Fischer)
@@ -944,8 +985,10 @@ def reorder_axes(template, to_reorder):
              default: None, example: 'INT.image'
     to_reorder - the image whose axes should be reordered
              default: None, example: 'SD.image'
+    reordered - the outputname whose axes have been reordered
+             default: None, example: 'lowres.ro'
 
-    Example: reorder_axes('INT.image', 'SD.image')
+    Example: reorder_axes('INT.image', 'SD.image', 'lowres.ro')
     """
 
     print('##### Check axis order ########')
@@ -992,13 +1035,14 @@ def reorder_axes(template, to_reorder):
              print('No reordering necessary')
              outputname = to_reorder
     else:
-            reordered_image='lowres.ro'
+            reordered_image=reordered
+            os.system('rm -rf '+reordered_image)
             imtrans(imagename=to_reorder,outfile=reordered_image,order=order)
             print('Had to reorder!')
             outputname = reordered_image
     
     ### just testing what happens:        
-    #reordered_image='lowres.ro'
+    #reordered_image=reordered
     #imtrans(imagename=to_reorder,outfile=reordered_image,order=order)
     #print('Had to reorder!')
     #outputname = reordered_image            
@@ -1116,7 +1160,7 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
 
 
     # Reorder the axes of the low to match high/pb 
-    lowres = reorder_axes(highres,lowres)
+    lowres = reorder_axes(highres,lowres,'lowres.ro')
 
 
     # Regrid low res Image to match high res image
