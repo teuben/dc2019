@@ -2,7 +2,8 @@
 
 In preparation and parallel to an appendix we list here
 some mistakes we (and you could) make and hopefully
-help you identifying a wrong path.
+help you identifying a wrong path. This, as well as some
+useful CASA shortcuts you may not have seen before.
 
 Some of the issues we ran into you can find on https://github.com/teuben/dc2019/issues
 
@@ -12,13 +13,14 @@ Perhaps it is useful to write functional forms of the CASA procedures. First
 define a few names for the data objects we use:
 
       vis   = the visibilities
-      sd    = single dish
-      tpms  = pseudo visibilities representing the single dish (tp2vis)
+      sd    = single dish (SD,  but also called total power (TP))
+      tpms  = pseudo visibilities representing the single dish (via tp2vis)
 
       im    = CASA's (noise-flat) .image file
       pb    = CASA's PB (im/pb is CASA's .image.pbcor file)
       psf   = CASA's PSF
       model = CASA's clean components
+      resid = CASA's residual
 
 with these, we can write out data combination procedures as follows:
 
@@ -26,7 +28,7 @@ with these, we can write out data combination procedures as follows:
       f1 = feather(im, sd*pb) / pb     # feather the right way
       f2 = feather(im/pb, sd)          # feather the wrong way
       tpms = tp2vis(sd)
-      (im,pb,psf,model) = clean(vis+tpms)
+      (im,pb,psf,model) = tclean(vis+tpms)
 
 
 
@@ -45,7 +47,7 @@ Under full disclosure, I have not tried all but the first option
 
 ## Cheat Maps
 
-Since we have the Jy/pixel map, we can run **tclean** on visibilities, with
+For models we have the Jy/pixel map, we can run **tclean** on visibilities, with
 **niter=0** and **startmodel=skymodel-b.fits**.
 In a way this would also confirm that the simulator
 works. The resulting difference between
@@ -53,9 +55,11 @@ a properly smoothed skymodel and the **.image.pbcor** map shows interesting
 striped patterns that correllate with the pointing centers. The
 RMS in the difference map for our default sky4 script is about 25-50 mJy/beam.
 Since these are from noiseless simulations, this should also tell us what
-the **threshold=** should be in tclean.  There was no indication that using more
+the **threshold=** should be in tclean.  Perhaps surprising,
+there was no indication that using more
 configurations (which ought to give more UV points) would give better RMS. In
 fact, TPINT was worse than INT. I don't understand this yet.
+
 
 ## Primary Beam
 
@@ -100,7 +104,8 @@ e.g.
 
 ## region= and  box=
 
-Due to curved wcs .... not exactly same flux....   See comments and examples in skymodel.md
+Due to curved wcs .... not exactly same flux....   See comments and examples in skymodel.md,
+but write this up for the final paper here.
 
 ## execfile is evil
 
@@ -110,6 +115,27 @@ uses "A". Multiple passes are needed, or the correct order of loading can help i
 too.
 
 The conclusion is really: use **import**
+
+## Mosaic vs. Single Pointing
+
+The tclean ...=mosaic option in data that has one pointing silently has devastating effects.
+
+## CASA performance tips:
+
+1. If not enough memory, the chanchunks= can be used to deal with smaller chunks of the cube
+in memory. We don't have statistics of the overhead penalty (yet).
+
+2. Is there a penalty for niter=100000 vs. niter=range(0,100000,10000) ?  Yes, it could be,
+since this triggers an extra major cycle, which for large MS files can add an extra I/O
+component to your script.
+
+3. Does tclean scale linearly with the number of channels?
+
+4. Modern laptops can sometimes be faster than your desktop, but once you count in the
+   GHz drop in parallel tclean you may loose that again.
+
+
+
 
 ## CASA bugs
 
@@ -126,3 +152,12 @@ correct RESTFREQ.  It was thus important not to use a commonbeam.
 2. The requirement of having to use **concat()** in simulations vs. real obs.
 Not well described what the cause is.
 
+3. That feather bug
+
+4. not a bug, but be careful with weight and older data. Melissa will have
+a reminder of this as well somewhere in the paper.
+
+5. edge channel:   in combinations some programs need to have their spectral
+axes on the same frame of reference. This can magically result in a first or
+last channel that is not combined properly.  Actually, we never tested if
+channel I and I+1 are thus combined.
