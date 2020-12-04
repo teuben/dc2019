@@ -520,55 +520,64 @@ def runWSM(vis,
 
 
     ## SETUP mask if usemask='user' and mask=''
-    if usemask=='user' and mask=='':
-        casalog.post("Generating a mask based on SD image", 'INFO', 
-                     origin='runWSM')
-        #get max in SD image
-        maxSD = imstat(scaled_name)['max'][0]
-        sdmasklev=0.3
-        sdmaskval = sdmasklev*maxSD
-        os.system('rm -rf SD*.mask')     
-        #try: 
-        immath(imagename=[scaled_name],expr='iif(IM0>'+str(round(sdmaskval,6))+',1,0)',outfile='SD.mask')
-        #except: print('### SD.mask already exists, will proceed')
-
-        print('### Creating a mask based on SD mask and auto-mask')
-        print('### Step 1 of 2: load the SD mask into interferometric tclean image data' )
-        print('### Please check the result!')
-        os.system('rm -rf '+imname+'_setmask*')        
-        
-        runtclean(myvis,imname+'_setmask',
-                phasecenter=phasecenter, 
-                spw=spw, field=field, imsize=imsize, cell=cell,
-                niter=1,usemask='user',mask='SD.mask',restart=True,interactive=False, continueclean=True)
-        print('### Step 2 of 2: add first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
-        print('### Please check the result!')        
-        os.system('cp -rf '+imname+'_setmask.mask SD2.mask')
-        os.system('rm -rf '+imname+'_setmask.image.pbcor.fits')        
-        runtclean(myvis,imname+'_setmask', phasecenter=phasecenter, 
-                spw=spw, field=field, imsize=imsize, cell=cell,
-                niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=False, continueclean=True)
-        os.system('cp -rf '+imname+'_setmask.mask SDint.mask')
-        
-        #print('### Creating a mask based on SD mask and auto-mask')
-        #print('### Step 2 of 2: first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
-        #print('### Please check the result!')
-        #runtclean(myvis,imname+'_setmask', phasecenter=phasecenter, 
-        #        spw=spw, field=field, imsize=imsize, cell=cell,
-        #        niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=False, continueclean=True)
-        #os.system('cp -rf '+imname+'_setmask.mask int-AM0.mask')
-        #os.system('rm -rf '+imname+'_setmask.pbcor.fits')                 
-        #print('### Step 1 of 2: load the SD mask into interferometric tclean image data' )
-        #print('### Please check the result!')                  
-        #runtclean(myvis,imname+'_setmask',
-        #        phasecenter=phasecenter, 
-        #        spw=spw, field=field, imsize=imsize, cell=cell,
-        #        niter=1,usemask='user',mask='SD.mask',restart=True,interactive=False, continueclean=True)
-        #os.system('cp -rf '+imname+'_setmask.mask SDint.mask')
-        
-        print('### Done! Created an SDint mask from SD and auto-mask')                
-        mask='SDint.mask'  
-        #mask='SD.mask'  
+    #if usemask=='user' and mask=='':
+    #    if os.path.exists(+'.SDint.mask') ###HELP!!
+    #    mask = make_SDint_mask(vis, sdreordered, imname, 
+    #                             sdmasklev, 
+    #                             SDint_mask_root, 
+    #                             phasecenter=phasecenter, 
+    #                             spw=        spw, 
+    #                             field=      field, 
+    #                             imsize=     imsize, 
+    #                             cell=       cell)
+        #  casalog.post("Generating a mask based on SD image", 'INFO', 
+        #               origin='runWSM')
+        #  #get max in SD image
+        #  maxSD = imstat(scaled_name)['max'][0]
+        #  sdmasklev=0.3
+        #  sdmaskval = sdmasklev*maxSD
+        #  os.system('rm -rf SD*.mask')     
+        #  #try: 
+        #  immath(imagename=[scaled_name],expr='iif(IM0>'+str(round(sdmaskval,6))+',1,0)',outfile='SD.mask')
+        #  #except: print('### SD.mask already exists, will proceed')
+		#  
+        #  print('### Creating a mask based on SD mask and auto-mask')
+        #  print('### Step 1 of 2: load the SD mask into interferometric tclean image data' )
+        #  print('### Please check the result!')
+        #  os.system('rm -rf '+imname+'_setmask*')        
+        #  
+        #  runtclean(myvis,imname+'_setmask',
+        #          phasecenter=phasecenter, 
+        #          spw=spw, field=field, imsize=imsize, cell=cell,
+        #          niter=1,usemask='user',mask='SD.mask',restart=True,interactive=False, continueclean=True)
+        #  print('### Step 2 of 2: add first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
+        #  print('### Please check the result!')        
+        #  os.system('cp -rf '+imname+'_setmask.mask SD2.mask')
+        #  os.system('rm -rf '+imname+'_setmask.image.pbcor.fits')        
+        #  runtclean(myvis,imname+'_setmask', phasecenter=phasecenter, 
+        #          spw=spw, field=field, imsize=imsize, cell=cell,
+        #          niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=False, continueclean=True)
+        #  os.system('cp -rf '+imname+'_setmask.mask SDint.mask')
+        #############  
+        #  #print('### Creating a mask based on SD mask and auto-mask')
+        #  #print('### Step 2 of 2: first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
+        #  #print('### Please check the result!')
+        #  #runtclean(myvis,imname+'_setmask', phasecenter=phasecenter, 
+        #  #        spw=spw, field=field, imsize=imsize, cell=cell,
+        #  #        niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=False, continueclean=True)
+        #  #os.system('cp -rf '+imname+'_setmask.mask int-AM0.mask')
+        #  #os.system('rm -rf '+imname+'_setmask.pbcor.fits')                 
+        #  #print('### Step 1 of 2: load the SD mask into interferometric tclean image data' )
+        #  #print('### Please check the result!')                  
+        #  #runtclean(myvis,imname+'_setmask',
+        #  #        phasecenter=phasecenter, 
+        #  #        spw=spw, field=field, imsize=imsize, cell=cell,
+        #  #        niter=1,usemask='user',mask='SD.mask',restart=True,interactive=False, continueclean=True)
+        #  #os.system('cp -rf '+imname+'_setmask.mask SDint.mask')
+        #  
+        #  print('### Done! Created an SDint mask from SD and auto-mask')                
+        #  mask='SDint.mask'  
+        #  #mask='SD.mask'  
 
     ## TCLEAN METHOD WITH START MODEL
     print('### Start hybrid clean')                    
@@ -659,7 +668,8 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
 
 
     # Reorder the axes of the low to match high/pb 
-    mysdimage = reorder_axes(myintimage,mysdimage,'lowres.ro')
+    #mysdimage = reorder_axes(myintimage,mysdimage,'lowres.ro')
+    mysdimage = reorder_axes(mysdimage,'lowres.ro')
 
 
 
@@ -973,9 +983,97 @@ def runtclean(vis,
 
 
 
+
+
 ######################################
 
-def reorder_axes(template, to_reorder, reordered):
+
+def get_SD_cube_params(sdcube =''):
+    """
+    This function, originally called 'setup_cube_params(self,sdcube='')',
+    is taken from the SDINT_helper module inside CASA 5.7.
+    _____________________________________________________________________
+
+    Read coordinate system from the SD cube
+    Decide parameters to input into sdintimaging for the INT cube to match. 
+
+    This is a helper method, not currently used in the sdintimaging task.
+    We will add this later (after 6.1), and also remove some parameters from the task level.
+    """
+
+    _ia = iatool()
+    _qa = qatool()
+
+
+    _ia.open(sdcube)
+    csys = _ia.coordsys()
+    shp = _ia.shape()
+    ctypes = csys.axiscoordinatetypes()
+    print("Shape of SD cube : "+str(shp))
+    print("Coordinate ordering : "+str(ctypes))
+    if len(ctypes) !=4 or ctypes[3] != 'Spectral':
+        print("The SD cube needs to have 4 axes, in the RA/DEC/Stokes/Spectral order")
+        _ia.close()
+        return False
+    nchan = shp[3]
+    start = str( csys.referencevalue()['numeric'][3] ) + csys.units()[3]
+    width = str( csys.increment()['numeric'][3]) + csys.units()[3] 
+    ## Number of channels
+    print("nchan = "+str(nchan))
+    ## Start Frequency
+    print("start = " + start  )
+    ## Width
+    print("width = " + width  ) 
+    ## Test for restoringbeams
+    rbeams = _ia.restoringbeam()
+    #if not rbeams.has_key('nChannels') or rbeams['nChannels']!= shp[3]:
+    if not 'nChannels' in rbeams or rbeams['nChannels']!= shp[3]:
+        print("The SD Cube needs to have per-plane restoringbeams")
+        _ia.close()
+        return False
+    else:
+        print("Found " + str(rbeams['nChannels']) + " per-plane restoring beams")
+    print("\n(For specmode='mfs' in sdintimaging, please remember to set 'reffreq' to a value within the freq range of the cube)\n")
+    _ia.close()
+    return {'nchan':nchan, 'start':start, 'width':width}
+
+
+
+
+
+
+
+
+######################################
+
+def reorder_axes(to_reorder, reordered_image):
+
+    """
+    reorder_axes (L. Moser-Fischer)
+    a tool to reorder the axes according to a reference/template image
+
+    to_reorder - the image whose axes should be reordered
+             default: None, example: 'SD.image'
+    reordered - the outputname whose axes have been reordered
+             default: None, example: 'lowres.ro'
+
+    Example: reorder_axes('SD.image', 'lowres.ro')
+    """
+
+    os.system('rm -rf '+reordered_image)
+    imtrans(imagename=to_reorder,
+            outfile=reordered_image,
+            order = ['rig', 'declin', 'stok', 'frequ'])
+
+    return reordered_image
+
+
+
+
+
+######################################
+
+def reorder_axes2(template, to_reorder, reordered):
 
     """
     reorder_axes (M. Hoffmann, D. Kunneriath, N. Pingel, L. Moser-Fischer)
@@ -1049,6 +1147,197 @@ def reorder_axes(template, to_reorder, reordered):
             
     print(outputname)
     return outputname
+
+
+
+
+
+######################################
+
+def make_SDint_mask(vis, SDimage, imname, sdmasklev, SDint_mask_root, 
+                    phasecenter='', spw='', field='', imsize=[], cell='',
+                    specmode='mfs', 
+                    start = 0, width = 1, nchan = -1, restfreq = ''):
+
+    """
+    reorder_axes (M. Hoffmann, D. Kunneriath, N. Pingel, L. Moser-Fischer)
+    a tool to reorder the axes according to a reference/template image
+
+    template - the reference image
+             default: None, example: 'INT.image'
+    to_reorder - the image whose axes should be reordered
+             default: None, example: 'SD.image'
+    reordered - the outputname whose axes have been reordered
+             default: None, example: 'lowres.ro'
+
+    Example: reorder_axes('INT.image', 'SD.image', 'lowres.ro')
+    """
+
+    
+
+    casalog.post("Generating a mask based on SD image", 'INFO', 
+                 origin='make_SDint_mask')
+    #get max in SD image
+    maxSD = imstat(SDimage)['max'][0]
+    sdmasklev=0.3
+    sdmaskval = sdmasklev*maxSD
+    
+    SDoutname = SDint_mask_root + '.SD.mask'
+    finalSDoutname = SDint_mask_root + '.SD-AM.mask'
+    
+    os.system('rm -rf '+SDint_mask_root + '.SD*.mask')     
+    #try: 
+    immath(imagename=[SDimage],expr='iif(IM0>'+str(round(sdmaskval,6))+',1,0)',
+           outfile=SDoutname)
+    #except: print('### SD.mask already exists, will proceed')
+
+    print('### Creating a mask based on SD mask and auto-mask')
+    print('### Step 1 of 2: load the SD mask into interferometric tclean image data' )
+    print('### Please check the result!')
+    os.system('rm -rf '+imname+'_setmask*')        
+    
+    runtclean(vis,imname+'_setmask', 
+            phasecenter=phasecenter, 
+            spw=spw, field=field, imsize=imsize, cell=cell, specmode=specmode,
+            start = start, width = width, nchan = nchan, restfreq = restfreq,
+            niter=1,usemask='user',mask=SDoutname,restart=True,interactive=False, continueclean=True)
+    print('### Step 2 of 2: add first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
+    print('### Please check the result!')        
+    os.system('cp -rf '+imname+'_setmask.mask '+SDint_mask_root+'.SD2.mask')
+    os.system('rm -rf '+imname+'_setmask.image.pbcor.fits')        
+    runtclean(vis,imname+'_setmask',
+            phasecenter=phasecenter, 
+            spw=spw, field=field, imsize=imsize, cell=cell, specmode=specmode,
+            start = start, width = width, nchan = nchan, restfreq = restfreq,
+            niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=False, continueclean=True)
+    os.system('cp -rf '+imname+'_setmask.mask '+finalSDoutname)
+    
+    #print('### Creating a mask based on SD mask and auto-mask')
+    #print('### Step 2 of 2: first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
+    #print('### Please check the result!')
+    #runtclean(myvis,imname+'_setmask', phasecenter=phasecenter, 
+    #        spw=spw, field=field, imsize=imsize, cell=cell,
+    #        niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=False, continueclean=True)
+    #os.system('cp -rf '+imname+'_setmask.mask int-AM0.mask')
+    #os.system('rm -rf '+imname+'_setmask.pbcor.fits')                 
+    #print('### Step 1 of 2: load the SD mask into interferometric tclean image data' )
+    #print('### Please check the result!')                  
+    #runtclean(myvis,imname+'_setmask',
+    #        phasecenter=phasecenter, 
+    #        spw=spw, field=field, imsize=imsize, cell=cell,
+    #        niter=1,usemask='user',mask='SD.mask',restart=True,interactive=False, continueclean=True)
+    #os.system('cp -rf '+imname+'_setmask.mask SDint.mask')
+    
+    print('### Done! Created an SDint mask from SD and auto-mask')                
+    mask=finalSDoutname  
+    #mask='SD.mask'  
+
+    return mask 
+
+
+
+
+
+######################################
+
+def derive_threshold(vis, imname, threshmask,
+                    phasecenter='', spw='', field='', imsize=[], cell='',
+                    specmode='mfs', 
+                    start = 0, width = 1, nchan = -1, restfreq = '', 
+                    overwrite=False, smoothing = 5, 
+                    RMSfactor = 0.5):
+
+    """
+    reorder_axes (M. Hoffmann, D. Kunneriath, N. Pingel, L. Moser-Fischer)
+    a tool to reorder the axes according to a reference/template image
+
+    template - the reference image
+             default: None, example: 'INT.image'
+    to_reorder - the image whose axes should be reordered
+             default: None, example: 'SD.image'
+    reordered - the outputname whose axes have been reordered
+             default: None, example: 'lowres.ro'
+
+    Example: reorder_axes('INT.image', 'SD.image', 'lowres.ro')
+    """
+
+    
+
+    casalog.post("derive_threshold", 'INFO', 
+                 origin='derive_threshold')
+
+    imnameth = imname+'_template'
+
+    if overwrite == True:      # False if used by a combi method to get threshold
+
+        os.system('rm -rf '+imnameth+'*')        
+        
+        runtclean(vis,imnameth, 
+                phasecenter=phasecenter, 
+                spw=spw, field=field, imsize=imsize, cell=cell, specmode=specmode,
+                start = start, width = width, nchan = nchan, restfreq = restfreq,
+                niter=0, interactive=False)
+        #print('### Step 2 of 2: add first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
+        #print('### Please check the result!') 
+
+
+    else: 
+        pass        
+
+    #### get threshold 
+
+    #### continuum
+    if specmode == 'mfs':
+        full_RMS = imstat(imnameth+'.image')['rms'][0]
+        #peak_val = imstat(imnameth+'.image')['max'][0]
+
+    #### cube
+    elif specmode == 'cube':
+        immmoments(imagename=imnameth+'.image', mom=[6], 
+                   outfile=imnameth+'.mom6', chans='' )
+        full_RMS = imstat(imnameth+'.mom6')['rms'][0]
+
+        #immmoments(imagename=imname+'_template.image', mom=[8], 
+        #           outfile=imname+'_template.mom8', chans='' )
+        #peak_val = imstat(imname+'_template.mom8')['max'][0]
+
+    #print(full_RMS)
+    #print(peak_val)
+
+    thresh = full_RMS*RMSfactor
+
+    threshmask1 = threshmask+'_1.mask'
+    os.system('rm -rf '+threshmask+'*.mask')     
+    
+    immath(imagename=[imnameth+'.image'],
+           expr='iif(IM0>'+str(round(thresh,6))+',1,0)',
+           outfile=threshmask1)
+       
+    convfactor = smoothing
+
+    threshmaskconv = threshmask+'_conv.mask'
+    os.system('rm -rf '+threshmaskconv+'*')
+
+    BeamMaj = imhead(imnameth+'.image', mode='get', hdkey='bmaj')['value']
+    BeamMin = imhead(imnameth+'.image', mode='get', hdkey='bmin')['value']
+    BeamPA  = imhead(imnameth+'.image', mode='get', hdkey='bpa' )['value']
+
+    imsmooth(imagename = threshmask1,
+        kernel    = 'gauss',               
+        targetres = False,                                                             
+        major     = str(convfactor*round(BeamMaj, 6))+'arcsec',                                                     
+        minor     = str(convfactor*round(BeamMin, 6))+'arcsec',    
+        pa        = str(round(BeamPA, 3))+'deg',                                       
+        outfile   = threshmaskconv,            
+        overwrite = True)                 
+
+    immath(imagename=[threshmaskconv],
+           expr='iif(IM0>'+str(0.2)+',1,0)',
+           outfile=threshmask+'.mask')
+
+
+    return thresh
+ 
 
 
 
@@ -1160,7 +1449,8 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
 
 
     # Reorder the axes of the low to match high/pb 
-    lowres = reorder_axes(highres,lowres,'lowres.ro')
+    #lowres = reorder_axes(highres,lowres,'lowres.ro')
+    lowres = reorder_axes(mysdimage,'lowres.ro')
 
 
     # Regrid low res Image to match high res image
