@@ -14,8 +14,8 @@ Run under CASA 6.
 
 
 
-#thesteps=[0,1,2,3,4,5]
-thesteps=[2,3]
+#thesteps=[0,1,2,3,4,5,6]
+thesteps=[5]
 
 
 
@@ -104,10 +104,13 @@ concatms     = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       # 
 ############# input to combination methods ###########
 
 vis       = concatms 
-sdimage   = pathtoconcat + 'gmc_120L.sd.image'
-#sdimage   = pathtoconcat + 'skymodel-c_120L.sd.image'
+sdimage_input  = pathtoconcat + 'gmc_120L.sd.image'
+#sdimage_input   = pathtoconcat + 'skymodel-c_120L.sd.image'
 imbase    = pathtoimage + 'skymodel-b_120L'            # path + image base name
 #imbase    = pathtoimage + 'skymodel-c_120L'            # path + image base name
+
+sdimage = sdimage_input
+
 
 
     ### ### tclean specific 
@@ -133,9 +136,9 @@ imbase    = pathtoimage + 'skymodel-b_120L'            # path + image base name
 
 mode   = 'mfs'    # 'mfs' or 'cube'
 mscale = 'HB'     # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
-masking  = 'UM'   # 'UM' (user), 'AM' ('auto-multithresh') or 'PB' (primary beam)
+masking  = 'SD-AM'   # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 inter = 'nIA'     # interactive ('IA') or non-interactive ('nIA')
-nit = 0        # max = 9.9 * 10**9 
+nit = 1        # max = 9.9 * 10**9 
 
 #cleansetup = "."+ mode +"."+ mscale +"."+ inter + (".n%.1e").replace("+","")  %(nit)
 cleansetup = '.'+ mscale +'_'+ masking +'_'+ inter +'_'+ str(nit)
@@ -188,9 +191,14 @@ if inter == 'IA':
     general_tclean_param['interactive'] = True    
 elif inter == 'nIA':
     general_tclean_param['interactive'] = False    
-	                         
+                             
 if masking == 'UM':
     general_tclean_param['usemask']     = 'user'
+if masking == 'SD-AM': 
+    if not os.path.exists(imbase + 'SD-AM.mask'):
+        thesteps.append(1)      
+        thesteps.sort()           # force execution of SDint mask creation (Step 1)
+    general_tclean_param['usemask']     = 'user'   
 if masking == 'PB':
     general_tclean_param['usemask']     = 'pb'
 if masking == 'AM':
@@ -293,13 +301,78 @@ if(mystep in thesteps):
     print('Step ', mystep, step_title[mystep])
     print('### ')
     print(' ')
-    
+  
+  
     # axis reordering
-    # make SD+AM mask 
-    # read SD image frequency setup as input for tclean
-    # regrid SD image to tclean 
+    sdreordered = imbase +'.SD_ro.image'
+    reorder_axes(sdimage_input, sdreordered)
+    
+    # read SD image frequency setup as input for tclean    
+    cube_dict = get_SD_cube_params(sdcube = sdreordered) #out: {'nchan':nchan, 'start':start, 'width':width}
+    #print(cube_dict)
+
+    imname = imbase + cleansetup
+    threshmask = imbase + '.RMS'
+
+    thresh = derive_threshold(vis, imname, threshmask,
+                     phasecenter=general_tclean_param['phasecenter'], 
+                     spw=        general_tclean_param['spw'], 
+                     field=      general_tclean_param['field'], 
+                     imsize=     general_tclean_param['imsize'], 
+                     cell=       general_tclean_param['cell'],
+                     specmode=general_tclean_param['specmode'],
+                     start = general_tclean_param['start'],
+                     width = general_tclean_param['width'],
+                     nchan = general_tclean_param['nchan'],
+                     restfreq = general_tclean_param['restfreq'],
+                     overwrite=False,
+                     smoothing = 5, 
+                     RMSfactor = 0.5)
+                     
+                     
+
+    ##### add to sdmask function 
+    #     # regrid SD image frequency axis to tclean 
+    #     #    for cube mask needed !!!
+    #     print('Regridding lowres image...')
+    #     imregrid(imagename=lowres,
+    #                      template=highres,
+    #                      axes=[0,1,2,3],
+    #                      output='lowres.regrid')    
+    
+    
+       
+    # make SD+AM mask (currently:  cont mode only)
+    
+
+    SDint_mask_root = imbase
+    sdmasklev = 0.3
+    
+    SDint_mask = make_SDint_mask(vis, sdreordered, imname, 
+                                 sdmasklev, 
+                                 SDint_mask_root, 
+                                 phasecenter=general_tclean_param['phasecenter'], 
+                                 spw=        general_tclean_param['spw'], 
+                                 field=      general_tclean_param['field'], 
+                                 imsize=     general_tclean_param['imsize'], 
+                                 cell=       general_tclean_param['cell'],
+                                 specmode=general_tclean_param['specmode'],
+                                 start = general_tclean_param['start'],
+                                 width = general_tclean_param['width'],
+                                 nchan = general_tclean_param['nchan'],
+                                 restfreq = general_tclean_param['restfreq']
+                                 )
+
+    combined_mask = SDint_mask_root + '.SD-AM-RMS.mask'
+    immath(imagename=[SDint_mask, threshmask+'.mask'],
+           expr='iif((IM0+IM1)>'+str(0)+',1,0)',
+           outfile=combined_mask)    
+
+
+
     # 
-           
+    #if masking == 'SD-AM': 
+    #    general_tclean_param['mask']  = SDint_mask   
 
 
            
@@ -317,10 +390,16 @@ if(mystep in thesteps):
     
 
     imname = imbase + cleansetup + tcleansetup
+    
+    
+    if masking == 'SD-AM': 
+        general_tclean_param['mask']  = threshmask+'.mask'
+
 
     ### for CASA 5.7:
     z = general_tclean_param.copy()   
     #z.update(special_tclean_param)
+
 
     if dryrun == True:
         pass
@@ -451,9 +530,17 @@ if(mystep in thesteps):
     print('### ')
     print(' ')
 
+
+    if masking == 'SD-AM': 
+        general_tclean_param['mask']  = combined_mask
+
+
     ### for CASA 5.7:
     z = general_tclean_param.copy()   
     #z.update(special_tclean_param)
+
+
+
 
     for i in range(0,len(sdfac_h)):
         imname = imbase + cleansetup + hybridsetup #+ str(sdfac_h[i]) 
@@ -514,11 +601,21 @@ if(mystep in thesteps):
     print('Step ', mystep, step_title[mystep])
     print('### ')
     print(' ')
+    
+    
+    
+    if masking == 'SD-AM': 
+        general_tclean_param['mask']  = combined_mask
+
+
+
 
     ### for CASA 5.7:
     z = general_tclean_param.copy()   
     z.update(sdint_tclean_param)
     #z.update(special_tclean_param)
+
+
     
     for i in range(0,len(sdg)) :
         jointname = imbase + cleansetup + sdintsetup + str(sdg[i]) 
