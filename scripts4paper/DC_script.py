@@ -15,7 +15,7 @@ Run under CASA 6.
 
 
 #thesteps=[0,1,2,3,4,5,6]
-thesteps=[5]
+thesteps=[6]
 
 
 
@@ -36,6 +36,7 @@ if pythonversion=='3':
         import datacomb as dc
         #import ssc_DC_2 as ssc     # need to import casatasks therein!
         from casatasks import concat
+        from casatasks import imregrid, immath
         from casatasks import casalog
         from importlib import reload  
          
@@ -109,46 +110,34 @@ sdimage_input  = pathtoconcat + 'gmc_120L.sd.image'
 imbase    = pathtoimage + 'skymodel-b_120L'            # path + image base name
 #imbase    = pathtoimage + 'skymodel-c_120L'            # path + image base name
 
-sdimage = sdimage_input
 
 
-
-    ### ### tclean specific 
-    ### startmodel='',  # ---> sdimage in WSM
-    ### 
-    ### ### WSM specific
-    ### sdimage,  ### startmodel 
-    ### 
-    ### ### SDint specific
-    ### sdimage, 
-    ### jointname, ### = imname 
-
-
-
-
-############ names and parameters that should be noted in the file name
+######## names and parameters that should be noted in the file name ######
 
 # structure could be something like:
 #    imname = imbase + cleansetup + combisetup 
-#
-# e.g. cleansetup = '.mfs.n1e2.hogbom.manual'
-# e.g. cleansetup = '.cube.n1e9.MS.AM'
 
-mode   = 'mfs'    # 'mfs' or 'cube'
-mscale = 'HB'     # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
-masking  = 'SD-AM'   # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
-inter = 'nIA'     # interactive ('IA') or non-interactive ('nIA')
-nit = 1        # max = 9.9 * 10**9 
+mode   = 'mfs'        # 'mfs' or 'cube'
+mscale = 'HB'         # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
+masking  = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
+inter = 'nIA'         # interactive ('IA') or non-interactive ('nIA')
+nit = 1               # max = 9.9 * 10**9 
+specsetup =  'INTpar' # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
 
-#cleansetup = "."+ mode +"."+ mscale +"."+ inter + (".n%.1e").replace("+","")  %(nit)
-cleansetup = '.'+ mscale +'_'+ masking +'_'+ inter +'_'+ str(nit)
+# resulting name part looks like
+# cleansetup = '.'+ mode +'_'+ specsetup +'_'+ mscale +'_'+ masking +'_'+ inter +'_n'+ str(nit)
 
-#cleansetup = '.'+ mscale +'_'+ masking + '_n%.1e' %(nit)
-#cleansetup = cleansetup.replace("+0","")
 
-                     
-                       
-### general tclean parameters:
+######### specific inputs for masking  = 'SD-AM', else ignore
+
+smoothing = 5    # smoothing of the threshold mask (by 'smoothing x beam')
+RMSfactor = 0.5  # continuum (not noise but entire image) rms level
+cube_rms = 3     # cube noise (true noise) x this factor
+cont_chans =''   # line free channels for cube rms estimation
+sdmasklev = 0.3  # maximum x this factor = threshold for SD mask
+
+                      
+########## general tclean parameters
 
 general_tclean_param = dict(#overwrite  = overwrite,
                            spw         = '0', 
@@ -161,7 +150,7 @@ general_tclean_param = dict(#overwrite  = overwrite,
                            width       = 1, 
                            nchan       = -1, 
                            restfreq    = '',
-                           threshold   = '0.021Jy',        # SDINT: None 
+                           threshold   = '',        # SDINT: None 
                            maxscale    = 10.,              # recommendations/explanations 
                            niter      = nit,               # ! change in variable above dict !
                            mask        = '', 
@@ -176,42 +165,16 @@ general_tclean_param = dict(#overwrite  = overwrite,
                            #sdmasklev=0.3)   # need to overthink here 
 
 
-### SDint specific parameters:
+########### SDint specific parameters:
 
 sdint_tclean_param = dict(sdpsf   = '',
                          #sdgain  = 5,     # own factor! see below!
                          dishdia = 12.0)
+          
+          
+          
+########### SD factors for all methods:                       
                        
-                       
-                       
-                         
-                         
-### naming scheme specific inputs:
-if inter == 'IA':
-    general_tclean_param['interactive'] = True    
-elif inter == 'nIA':
-    general_tclean_param['interactive'] = False    
-                             
-if masking == 'UM':
-    general_tclean_param['usemask']     = 'user'
-if masking == 'SD-AM': 
-    if not os.path.exists(imbase + 'SD-AM.mask'):
-        thesteps.append(1)      
-        thesteps.sort()           # force execution of SDint mask creation (Step 1)
-    general_tclean_param['usemask']     = 'user'   
-if masking == 'PB':
-    general_tclean_param['usemask']     = 'pb'
-if masking == 'AM':
-    general_tclean_param['usemask']     = 'auto-multithresh'    
-
-if mscale == 'HB':
-    general_tclean_param['multiscale'] = False
-if mscale == 'MS':
-    general_tclean_param['multiscale'] = True      # automated scale choice dependant on maxscale
-
-
-
-
 # feather parameters:
 sdfac = [1.0]
 
@@ -227,9 +190,56 @@ sdg = [1.0]
 ## TP2VIS parameters:
 #tweak = [1.0]
 
+          
+          
+          
+######## collect only the product name?          
+dryrun = False    # False to execute combination, True to gather filenames only
+          
+          
+          
+          
+          
+          
+############# no user interaction needed from here-on ##################      
+          
+          
+          
+          
+          
+          
+                       
+######## automatic setup of parameters and file existance checks ######                         
+                         
+                         
+### naming scheme specific inputs:
+if mode == 'mfs':
+    specsetup =  'INTpar'  # no other mode possible 
+
+if inter == 'IA':
+    general_tclean_param['interactive'] = True    
+elif inter == 'nIA':
+    general_tclean_param['interactive'] = False   
+ 
+if mscale == 'HB':
+    general_tclean_param['multiscale'] = False
+if mscale == 'MS':
+    general_tclean_param['multiscale'] = True      # automated scale choice dependant on maxscale
 
 
-### output of combination methods 
+
+
+############## naming convention ############
+#
+#    imname = imbase + cleansetup + combisetup 
+
+cleansetup = '.'+ mode +'_'+ specsetup +'_'+ mscale +'_'+ masking +'_'+ inter +'_n'+ str(nit)
+
+#cleansetup = '.'+ mscale +'_'+ masking + '_n%.1e' %(nit)
+#cleansetup = cleansetup.replace("+0","")
+
+
+### output of combination methods ('combisetup')
 
 tcleansetup  = '.tclean'
 feathersetup = '.feather_f' #+ str(sdfac)
@@ -238,17 +248,141 @@ hybridsetup  = '.hybrid_f'  #+ str(sdfac_h)
 sdintsetup   = '.sdint_g'   #+ str(sdg)
 #TP2VISsetup  = '.TP2VIS_t'  #+ str(tweak)
 
-### need to modify datacomb.py because of its current output:
-# current output: imnametclean  = imbase + cleansetup + '.TCLEAN.image '
-# current output: imnamefeather = imbase + cleansetup + '.image'
-# current output: imnameSSC     = imbase + cleansetup + '_ssc_f%sTP%s%s.image'   % (f,label,niter_label)
-# current output: imnamehybrid  = imbase + cleansetup + '.combined.image'               
-# current output: imnamesdint   = imbase + cleansetup + '.joint.multiterm.image.tt0' or '.joint.cube.image'
+
+##### intermediate products name for step 1 = gather information - no need to change!
+
+# SD image: axis-reordering and regridding
+sdreordered = imbase +'.SD_ro.image'                 # SD image axis-reordering
+sdroregrid = imbase +'.SD_ro-rg_'+specsetup+'.image' # SD image regridding
+
+imnamethSD  = imbase + cleansetup +'_template'      # dirty image for thershold and mask generation
+threshmask = imbase + '.'+specsetup+ '_RMS'         # thresold mask name
+SDint_mask_root = imbase + '.'+specsetup+ '_SD-AM'  # SD+AM mask name
+combined_mask = SDint_mask_root + '-RMS.mask'       # SD+AM+threshold mask name
+
+
+
+
+
+if masking == 'PB':
+    general_tclean_param['usemask']     = 'pb'
+if masking == 'AM':
+    general_tclean_param['usemask']     = 'auto-multithresh'                   
+if masking == 'UM':
+    general_tclean_param['usemask']     = 'user'
+if masking == 'SD-AM': 
+    if not os.path.exists(combined_mask) or not os.path.exists(threshmask+'.mask'):
+        if 1 in thesteps:
+            pass
+        else:    
+            thesteps.append(1)      
+            thesteps.sort()           # force execution of SDint mask creation (Step 1)
+            print('Need to execute step 1 to generate an image mask')
+    general_tclean_param['usemask']     = 'user'   
+    #general_tclean_param['mask']        = imbase + 'SD-AM.mask' 
+
+
+# masks per combination method
+tclean_mask = threshmask+'.mask'    # 
+hybrid_mask = combined_mask         # 
+sdint_mask  = combined_mask         # 
+
+
+
+if not os.path.exists(sdreordered):
+    if 1 in thesteps:
+        pass
+    else:    
+        thesteps.append(1)      
+        thesteps.sort()           # force execution of SDint mask creation (Step 1)
+        print('Need to execute step 1 to reorder image axes of the SD image')
+
+
+if specsetup == 'SDpar':
+    # read SD image frequency setup as input for tclean    
+    if pythonversion=='3':
+        cube_dict = dc.get_SD_cube_params(sdcube = sdreordered) #out: {'nchan':nchan, 'start':start, 'width':width}
+    else:
+        cube_dict = get_SD_cube_params(sdcube = sdreordered) #out: {'nchan':nchan, 'start':start, 'width':width}
+    general_tclean_param['start'] = cube_dict['start']  
+    general_tclean_param['width'] = cube_dict['width']
+    general_tclean_param['nchan'] = cube_dict['nchan']
+    sdimage = sdreordered  # for SD cube params used
+else:
+    if not os.path.exists(sdroregrid):
+        if 1 in thesteps:
+            pass
+        else:    
+            thesteps.append(1)      
+            thesteps.sort()           # force execution of SDint mask creation (Step 1)
+            print('Need to execute step 1 to regrid SD image')
+    sdimage = sdroregrid  # for INT cube params used
+
+
+
+# common tclean parameters needed for generating a simple dirty image in step 1
+
+mask_tclean_param = dict(phasecenter=general_tclean_param['phasecenter'],
+                         spw=        general_tclean_param['spw'], 
+                         field=      general_tclean_param['field'], 
+                         imsize=     general_tclean_param['imsize'], 
+                         cell=       general_tclean_param['cell'],
+                         specmode=general_tclean_param['specmode'],
+                         start = general_tclean_param['start'],
+                         width = general_tclean_param['width'],
+                         nchan = general_tclean_param['nchan'],
+                         restfreq = general_tclean_param['restfreq']
+                         )
+
+
+if general_tclean_param['threshold'] == '':
+    if not os.path.exists(threshmask + '.mask'):
+        if 1 in thesteps:
+            pass
+        else:    
+            thesteps.append(1)      
+            thesteps.sort()           # force execution of SDint mask creation (Step 1)
+            print('Need to execute step 1 to estimate a thresold')
+    else:
+        if pythonversion=='3':
+            thresh = dc.derive_threshold(vis, imnamethSD , threshmask,
+                         overwrite=False,   # False for read-only
+                         smoothing = smoothing,
+                         RMSfactor = RMSfactor,
+                         cube_rms   = cube_rms,    
+                         cont_chans = cont_chans,
+                         **mask_tclean_param
+                         )
+        else:
+            thresh = derive_threshold(vis, imnamethSD , threshmask,
+                         overwrite=False,   # False for read-only
+                         smoothing = smoothing,
+                         RMSfactor = RMSfactor,
+                         cube_rms   = cube_rms,    
+                         cont_chans = cont_chans,
+                         **mask_tclean_param
+                         )
+
+        general_tclean_param['threshold']  = str(thresh)+'Jy'   
+        
+
+if not os.path.exists(vis):
+    if 0 in thesteps:
+        pass
+    else:    
+        thesteps.append(0)      
+        thesteps.sort()           # force execution of SDint mask creation (Step 1)
+        print('Need to execute step 0 to generate a concatenated ms')
+
+
+
+
+
+
+
 
 
 ####### collect file names for assessment ######
-
-dryrun = False    # False to execute combination, True to gather filenames only
 
 tcleanims  = []
 featherims = []
@@ -256,6 +390,13 @@ SSCims     = []
 hybridims  = []
 sdintims   = []
 #TP2VISims  = []
+
+
+
+
+
+
+
 
 
 # methods for combining agg. bandwidth image with TP image - cube not yet tested/provided
@@ -304,67 +445,71 @@ if(mystep in thesteps):
   
   
     # axis reordering
-    sdreordered = imbase +'.SD_ro.image'
-    reorder_axes(sdimage_input, sdreordered)
-    
-    # read SD image frequency setup as input for tclean    
-    cube_dict = get_SD_cube_params(sdcube = sdreordered) #out: {'nchan':nchan, 'start':start, 'width':width}
-    #print(cube_dict)
+    if pythonversion=='3':
+        dc.reorder_axes(sdimage_input, sdreordered)
+    else:
+        reorder_axes(sdimage_input, sdreordered)
+   
 
-    imname = imbase + cleansetup
-    threshmask = imbase + '.RMS'
+    # derive a simple threshold and make a mask from it 
 
-    thresh = derive_threshold(vis, imname, threshmask,
-                     phasecenter=general_tclean_param['phasecenter'], 
-                     spw=        general_tclean_param['spw'], 
-                     field=      general_tclean_param['field'], 
-                     imsize=     general_tclean_param['imsize'], 
-                     cell=       general_tclean_param['cell'],
-                     specmode=general_tclean_param['specmode'],
-                     start = general_tclean_param['start'],
-                     width = general_tclean_param['width'],
-                     nchan = general_tclean_param['nchan'],
-                     restfreq = general_tclean_param['restfreq'],
-                     overwrite=False,
-                     smoothing = 5, 
-                     RMSfactor = 0.5)
+    if pythonversion=='3':
+        thresh = dc.derive_threshold(vis, imnamethSD , threshmask,
+                     overwrite=True,
+                     smoothing = smoothing,
+                     RMSfactor = RMSfactor,
+                     cube_rms   = cube_rms,    
+                     cont_chans = cont_chans, 
+                     **mask_tclean_param
+                     ) 
+    else:
+        thresh = derive_threshold(vis, imnamethSD , threshmask,
+                     overwrite=True,
+                     smoothing = smoothing,
+                     RMSfactor = RMSfactor,
+                     cube_rms   = cube_rms,    
+                     cont_chans = cont_chans,
+                     **mask_tclean_param
+                     )             
                      
+    general_tclean_param['threshold']  = str(thresh)+'Jy'   
                      
-
-    ##### add to sdmask function 
-    #     # regrid SD image frequency axis to tclean 
-    #     #    for cube mask needed !!!
-    #     print('Regridding lowres image...')
-    #     imregrid(imagename=lowres,
-    #                      template=highres,
-    #                      axes=[0,1,2,3],
-    #                      output='lowres.regrid')    
     
+    # regrid SD image frequency axis to tclean (requires derive_threshold to be run)
+    
+    if specsetup == 'SDpar':
+        sdimage = sdreordered  # for SD cube params used
+    else:
+        print('Regridding SD image...')
+        os.system('rm -rf '+sdroregrid)
+        imregrid(imagename=sdreordered,
+                         template=imnamethSD+'.image',
+                         axes=[0,1,2,3],
+                         output=sdroregrid)    
+        sdimage = sdroregrid  # for INT cube params used
+
     
        
-    # make SD+AM mask (currently:  cont mode only)
+    # make SD+AM mask (requires regridding to be run; currently:  cont mode only)
     
 
-    SDint_mask_root = imbase
-    sdmasklev = 0.3
-    
-    SDint_mask = make_SDint_mask(vis, sdreordered, imname, 
+
+
+
+    if pythonversion=='3':
+        SDint_mask = dc.make_SDint_mask(vis, sdroregrid, imnamethSD, 
                                  sdmasklev, 
-                                 SDint_mask_root, 
-                                 phasecenter=general_tclean_param['phasecenter'], 
-                                 spw=        general_tclean_param['spw'], 
-                                 field=      general_tclean_param['field'], 
-                                 imsize=     general_tclean_param['imsize'], 
-                                 cell=       general_tclean_param['cell'],
-                                 specmode=general_tclean_param['specmode'],
-                                 start = general_tclean_param['start'],
-                                 width = general_tclean_param['width'],
-                                 nchan = general_tclean_param['nchan'],
-                                 restfreq = general_tclean_param['restfreq']
-                                 )
+                                 SDint_mask_root,
+                                 **mask_tclean_param
+                                 ) 
+    else:
+        SDint_mask = make_SDint_mask(vis, sdroregrid, imnamethSD, 
+                                 sdmasklev, 
+                                 SDint_mask_root,
+                                 **mask_tclean_param
+                                 ) 
 
-    combined_mask = SDint_mask_root + '.SD-AM-RMS.mask'
-    immath(imagename=[SDint_mask, threshmask+'.mask'],
+    immath(imagename=[SDint_mask_root+'.mask', threshmask+'.mask'],
            expr='iif((IM0+IM1)>'+str(0)+',1,0)',
            outfile=combined_mask)    
 
@@ -393,7 +538,7 @@ if(mystep in thesteps):
     
     
     if masking == 'SD-AM': 
-        general_tclean_param['mask']  = threshmask+'.mask'
+        general_tclean_param['mask']  = tclean_mask
 
 
     ### for CASA 5.7:
@@ -532,7 +677,7 @@ if(mystep in thesteps):
 
 
     if masking == 'SD-AM': 
-        general_tclean_param['mask']  = combined_mask
+        general_tclean_param['mask']  = hybrid_mask
 
 
     ### for CASA 5.7:
@@ -605,7 +750,7 @@ if(mystep in thesteps):
     
     
     if masking == 'SD-AM': 
-        general_tclean_param['mask']  = combined_mask
+        general_tclean_param['mask']  = sdint_mask
 
 
 
