@@ -8,12 +8,13 @@ style.
 It offers 6 different actions to be selected via the 'thesteps' variable:
 
       0: 'Concat',
-      1: 'Clean for Feather/Faridani'
-      1: 'Feather', 
-      2: 'Faridani short spacings combination (SSC)',
-      3: 'Hybrid (startmodel clean + Feather)',
-      4: 'SDINT',
-      5: 'TP2VIS'
+      1: 'Prepare the SD-image',
+      2: 'Clean for Feather/Faridani'
+      3: 'Feather', 
+      4: 'Faridani short spacings combination (SSC)',
+      5: 'Hybrid (startmodel clean + Feather)',
+      6: 'SDINT',
+      7: 'TP2VIS'
 
 The naming scheme of the output images is the following
 
@@ -22,14 +23,6 @@ The naming scheme of the output images is the following
 - imbase     - a basename you define
 - cleansetup - defined by your tclean parameter choice
 - combisetup - defined by your combination method and parameter choice
-
-
-
-things to check:
-- compare the tclean inputs
-- sdint: switch interactive -->  parameter setup differs at interactive, 
-usemask, cycleniter + additional paramterers not present in the 
-corresponding other version
 
 
 
@@ -66,31 +59,26 @@ With this section, we set up the clean parameters common for all tclean
 instances used in the combination methods including SDINT.
 
        general_tclean_param  - present in all methods
-       special_tclean_param  - only given in runtclean and runWSM
-                                -> to be merged into general_tclean_param
        sdint_tclean_param    - only given in runsdintimg
 
-For these, we have to discuss which parameters should be defined in the 
-backgroud and which should be user defined
-       
 Furthermore, we can generate a meaningful file name "infix" to attach 
 to the imbase, reflecting the relevant clean properties (you define). 
 Currently, mode, mscale, inter, and nit define the infix name: e.g.
 
        mode   = 'mfs'    # 'mfs' or 'cube'
        mscale = 'HB'     # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT!)) 
+       masking  = 'SD-AM'   # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
        inter  = 'AM'     # 'man' (manual), 'AM' ('auto-multithresh') or 'PB' (primary beam - not yet implemented)
        nit = 0           # max = 9.9 * 10**9 
 
-       cleansetup = '.'+ mscale +'_'+ inter + '_n%.1e' %(nit)
-       cleansetup = cleansetup.replace("+0","")
+       cleansetup = '.'+ mscale +'_'+ masking +'_'+ inter +'_'+ str(nit)
 
 gives us 
  
-       cleansetup = '.HB_AM_n0.0e0'
+       cleansetup = '.HB_AM_nIA_n1000'
 
 Further parameters like usemask, interactive, and multiscale depend on 
-the choice of the mscale and inter. 
+the choice of the masking, inter, and mscale. 
 This infix-definition could be made more flexible.
 Maybe introduce a loop over some clean parameters like niter.
 
@@ -129,46 +117,46 @@ If you want to combine several interferometric datasets specify
 'thevis', 'weighscale', 'concatms' and add 0 to your 'thestep'-list 
 
 
-### step 1: tclean only
 
-need to rename the products name after image creation 
--> need to adjust in datacomb.py
+### step 1: SD image and tclean preparation
+1) the axes of the SD image are sorted according to the tclean 
+output standard order (reorder_axes). 
+2) the channel setup of the reordered SD cube is read out (get_SD_cube_params). 
+If wanted, the results are used as inputs for all following tcleans etc (need to implement!).
+3) a dirty image from the concatvis is created and the RMS of the entire image obtained. 
+This is used to define a threshold and from this a clean mask (derive_threshold).
+4) the dirty image is used as template to regrid the reordered SD image (imregrid).
+5) a mask from the reordered-regridded SD image is created and combined 
+with auto-masking results in tclean (make_SDint_mask).
+6) combine theshold and SD mask, because the theshold mask may 
+contain more/different emission peaks than auto-masking (immath).
+
+
+### tclean only
 
        imname = imbase + cleansetup + tcleansetup
        e.g.     skymodel-b_120L.HB_AM_n0.0e0.tclean
 
 
 ### feather
-need to remove intermediate and final products before image creation, 
-else function fails -> need to adjust in datacomb.py
 
       imname = imbase + cleansetup + feathersetup + str(sdfac[i]) 
       e.g.     skymodel-b_120L.HB_AM_n0.0e0.feather_f1.0
 
 
 ### SSC
-not yet present as a module; need to do execfile('SSC_dc.py') 
--> need to import casatasks in SSC_dc.py and integrate it into the datacomb.py
-need to rename the products name after image creation 
--> need to adjust in SSC_dc.py/datacomb.py
 
       imname = imbase + cleansetup + SSCsetup + str(SSCfac[i]) 
       e.g.     skymodel-b_120L.HB_AM_n0.0e0.SSC_f1.0
 
 
 ### hybrid
-need to remove intermediate and final products before image creation, 
-else feather function fails -> need to adjust in datacomb.py
-need to rename the products name after image creation 
--> need to adjust in datacomb.py
 
       imname = imbase + cleansetup + hybridsetup + str(sdfac_h[i]) 
       e.g.     skymodel-b_120L.HB_AM_n0.0e0.hybrid_f1.0
 
 
 ### SDINT 
-need to rename the products name after image creation 
--> need to adjust in datacomb.py
 
       jointname = imbase + cleansetup + sdintsetup + str(sdg[i]) 
       e.g.     skymodel-b_120L.HB_AM_n0.0e0.sdint_g1.0
