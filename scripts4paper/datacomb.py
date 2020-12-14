@@ -15,6 +15,7 @@ Run under CASA 6.
 import os
 import math
 import sys
+import glob
 
 pythonversion = sys.version[0]
 
@@ -345,7 +346,6 @@ def runsdintimg(vis,
 
     #if interactive:
 
-        #sdint_arg['interactive']=True
         #sdint_arg['cycleniter']=100
         #sdint_arg['usemask']='pb'
         #sdint_arg['pbmask']=0.4
@@ -353,7 +353,6 @@ def runsdintimg(vis,
         
     #else: # non-interactive, use automasking
 
-        #sdint_arg['interactive']=False
         #sdint_arg['cycleniter'] = 100000
         #sdint_arg['cyclefactor']=2.0
         #sdint_arg['usemask']='auto-multithresh' #,
@@ -363,12 +362,41 @@ def runsdintimg(vis,
     sdintimaging(**sdint_arg)
 
                  
-                 
+    #oldnames=glob.glob(imname+'.joint.multiterm*')
+    #for nam in oldnames:
+    #    os.system('mv '+nam+' '+nam.replace('.joint.multiterm',''))
+    #oldnames=glob.glob(imname+'*.tt0*')
+    #for nam in oldnames:
+    #    os.system('mv '+nam+' '+nam.replace('.tt0',''))
+    #oldnames=glob.glob(imname+'.joint.cube*')
+    #for nam in oldnames:
+    #    os.system('mv '+nam+' '+nam.replace('.joint.cube',''))
+                          
+
 
     print('Exporting final pbcor image to FITS ...')
-    if mydeconvolver=='mtmfs':
-        exportfits(jointname+'.joint.multiterm.image.tt0.pbcor', jointname+'.joint.multiterm.image.tt0.pbcor.fits')
+    if mydeconvolver=='mtmfs' and niter>0:
+        oldnames=glob.glob(jointname+'.joint.multiterm*')
+        for nam in oldnames:
+            os.system('mv '+nam+' '+nam.replace('.joint.multiterm',''))
+        oldnames=glob.glob(jointname+'*.tt0*')
+        for nam in oldnames:
+            os.system('mv '+nam+' '+nam.replace('.tt0',''))     
+
+        os.system('rm -rf '+jointname+'.int.cube*')
+        os.system('rm -rf '+jointname+'.sd.cube*')
+        os.system('rm -rf '+jointname+'.joint.cube*')
+
+        exportfits(jointname+'.image.pbcor', jointname+'.image.pbcor.fits')
+        
     elif mydeconvolver=='hogbom':
+        os.system('rm -rf '+jointname+'.int.cube*')
+        os.system('rm -rf '+jointname+'.sd.cube*')     
+        
+        oldnames=glob.glob(jointname+'.joint.cube*')
+        for nam in oldnames:
+            os.system('mv '+nam+' '+nam.replace('.joint.cube',''))
+        
         exportfits(jointname+'.joint.cube.image.pbcor', jointname+'.joint.cube.image.pbcor.fits')
 
     return True
@@ -540,7 +568,7 @@ def runWSM(vis,
         #  #try: 
         #  immath(imagename=[scaled_name],expr='iif(IM0>'+str(round(sdmaskval,6))+',1,0)',outfile='SD.mask')
         #  #except: print('### SD.mask already exists, will proceed')
-		#  
+        #  
         #  print('### Creating a mask based on SD mask and auto-mask')
         #  print('### Step 1 of 2: load the SD mask into interferometric tclean image data' )
         #  print('### Please check the result!')
@@ -1065,6 +1093,7 @@ def reorder_axes(to_reorder, reordered_image):
             outfile=reordered_image,
             order = ['rig', 'declin', 'stok', 'frequ'])
 
+    #return True 
     return reordered_image
 
 
@@ -1160,8 +1189,9 @@ def make_SDint_mask(vis, SDimage, imname, sdmasklev, SDint_mask_root,
                     start = 0, width = 1, nchan = -1, restfreq = ''):
 
     """
-    reorder_axes (M. Hoffmann, D. Kunneriath, N. Pingel, L. Moser-Fischer)
-    a tool to reorder the axes according to a reference/template image
+    reorder_axes (A. Plunkett, L. Moser-Fischer)
+    a tool to generate a mask from an SD image and the first auto-masking 
+    step in tclean of an interferometric image
 
     template - the reference image
              default: None, example: 'INT.image'
@@ -1182,35 +1212,36 @@ def make_SDint_mask(vis, SDimage, imname, sdmasklev, SDint_mask_root,
     sdmasklev=0.3
     sdmaskval = sdmasklev*maxSD
     
-    SDoutname = SDint_mask_root + '.SD.mask'
-    finalSDoutname = SDint_mask_root + '.SD-AM.mask'
+    SDoutname1 = SDint_mask_root + '_pre1.mask'
+    SDoutname2 = SDint_mask_root + '_pre2.mask'
+    finalSDoutname = SDint_mask_root + '.mask'
     
-    os.system('rm -rf '+SDint_mask_root + '.SD*.mask')     
+    os.system('rm -rf '+SDint_mask_root + '*mask')     
     #try: 
     immath(imagename=[SDimage],expr='iif(IM0>'+str(round(sdmaskval,6))+',1,0)',
-           outfile=SDoutname)
+           outfile=SDoutname1)
     #except: print('### SD.mask already exists, will proceed')
 
     print('### Creating a mask based on SD mask and auto-mask')
     print('### Step 1 of 2: load the SD mask into interferometric tclean image data' )
     print('### Please check the result!')
-    os.system('rm -rf '+imname+'_setmask*')        
+    os.system('rm -rf '+imname+'*')        
     
-    runtclean(vis,imname+'_setmask', 
+    runtclean(vis,imname, 
             phasecenter=phasecenter, 
             spw=spw, field=field, imsize=imsize, cell=cell, specmode=specmode,
             start = start, width = width, nchan = nchan, restfreq = restfreq,
-            niter=1,usemask='user',mask=SDoutname,restart=True,interactive=False, continueclean=True)
+            niter=1,usemask='user',mask=SDoutname1,restart=True,interactive=False, continueclean=True)
     print('### Step 2 of 2: add first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
     print('### Please check the result!')        
-    os.system('cp -rf '+imname+'_setmask.mask '+SDint_mask_root+'.SD2.mask')
-    os.system('rm -rf '+imname+'_setmask.image.pbcor.fits')        
-    runtclean(vis,imname+'_setmask',
+    os.system('cp -rf '+imname+'.mask '+SDoutname2)
+    os.system('rm -rf '+imname+'.image.pbcor.fits')        
+    runtclean(vis,imname,
             phasecenter=phasecenter, 
             spw=spw, field=field, imsize=imsize, cell=cell, specmode=specmode,
             start = start, width = width, nchan = nchan, restfreq = restfreq,
             niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=False, continueclean=True)
-    os.system('cp -rf '+imname+'_setmask.mask '+finalSDoutname)
+    os.system('cp -rf '+imname+'.mask '+finalSDoutname)
     
     #print('### Creating a mask based on SD mask and auto-mask')
     #print('### Step 2 of 2: first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
@@ -1245,11 +1276,13 @@ def derive_threshold(vis, imname, threshmask,
                     specmode='mfs', 
                     start = 0, width = 1, nchan = -1, restfreq = '', 
                     overwrite=False, smoothing = 5, 
-                    RMSfactor = 0.5):
+                    RMSfactor = 0.5, cube_rms = 3.,   
+                    cont_chans ='2~5' ):
 
     """
-    reorder_axes (M. Hoffmann, D. Kunneriath, N. Pingel, L. Moser-Fischer)
-    a tool to reorder the axes according to a reference/template image
+    reorder_axes (L. Moser-Fischer)
+    a tool to derive a reasonable clean threshold and mask for an 
+    interferometric image
 
     template - the reference image
              default: None, example: 'INT.image'
@@ -1266,7 +1299,9 @@ def derive_threshold(vis, imname, threshmask,
     casalog.post("derive_threshold", 'INFO', 
                  origin='derive_threshold')
 
-    imnameth = imname+'_template'
+    imnameth = imname #+'_template'
+
+
 
     if overwrite == True:      # False if used by a combi method to get threshold
 
@@ -1279,63 +1314,68 @@ def derive_threshold(vis, imname, threshmask,
                 niter=0, interactive=False)
         #print('### Step 2 of 2: add first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
         #print('### Please check the result!') 
-
-
     else: 
         pass        
 
     #### get threshold 
 
-    #### continuum
-    if specmode == 'mfs':
-        full_RMS = imstat(imnameth+'.image')['rms'][0]
-        #peak_val = imstat(imnameth+'.image')['max'][0]
-
-    #### cube
-    elif specmode == 'cube':
-        immmoments(imagename=imnameth+'.image', mom=[6], 
-                   outfile=imnameth+'.mom6', chans='' )
-        full_RMS = imstat(imnameth+'.mom6')['rms'][0]
-
-        #immmoments(imagename=imname+'_template.image', mom=[8], 
-        #           outfile=imname+'_template.mom8', chans='' )
-        #peak_val = imstat(imname+'_template.mom8')['max'][0]
-
-    #print(full_RMS)
-    #print(peak_val)
-
-    thresh = full_RMS*RMSfactor
-
-    threshmask1 = threshmask+'_1.mask'
-    os.system('rm -rf '+threshmask+'*.mask')     
-    
-    immath(imagename=[imnameth+'.image'],
-           expr='iif(IM0>'+str(round(thresh,6))+',1,0)',
-           outfile=threshmask1)
-       
-    convfactor = smoothing
-
-    threshmaskconv = threshmask+'_conv.mask'
-    os.system('rm -rf '+threshmaskconv+'*')
-
-    BeamMaj = imhead(imnameth+'.image', mode='get', hdkey='bmaj')['value']
-    BeamMin = imhead(imnameth+'.image', mode='get', hdkey='bmin')['value']
-    BeamPA  = imhead(imnameth+'.image', mode='get', hdkey='bpa' )['value']
-
-    imsmooth(imagename = threshmask1,
-        kernel    = 'gauss',               
-        targetres = False,                                                             
-        major     = str(convfactor*round(BeamMaj, 6))+'arcsec',                                                     
-        minor     = str(convfactor*round(BeamMin, 6))+'arcsec',    
-        pa        = str(round(BeamPA, 3))+'deg',                                       
-        outfile   = threshmaskconv,            
-        overwrite = True)                 
-
-    immath(imagename=[threshmaskconv],
-           expr='iif(IM0>'+str(0.2)+',1,0)',
-           outfile=threshmask+'.mask')
-
-
+    if not os.path.exists(threshmask + '.mask') and overwrite == False:
+        print('please, execute this function with overwrite = True!')
+        thresh = 0.0
+    else:       
+        #### continuum
+        if specmode == 'mfs':
+            full_RMS = imstat(imnameth+'.image')['rms'][0]
+            #peak_val = imstat(imnameth+'.image')['max'][0]
+            thresh = full_RMS*RMSfactor
+        
+        
+        #### cube
+        elif specmode == 'cube':
+            immmoments(imagename=imnameth+'.image', mom=[6], 
+                       outfile=imnameth+'.mom6', chans=cont_chans)
+            cube_RMS = imstat(imnameth+'.mom6')['rms'][0]
+        
+            thresh = cube_RMS*cube_rms   # 3 sigma level
+        
+            #immmoments(imagename=imname+'_template.image', mom=[8], 
+            #           outfile=imname+'_template.mom8', chans='' )
+            #peak_val = imstat(imname+'_template.mom8')['max'][0]
+        
+        #print(full_RMS)
+        #print(peak_val)
+        
+        
+        threshmask1 = threshmask+'_1.mask'
+        os.system('rm -rf '+threshmask+'*.mask')     
+        
+        immath(imagename=[imnameth+'.image'],
+               expr='iif(IM0>'+str(round(thresh,6))+',1,0)',
+               outfile=threshmask1)
+           
+        convfactor = smoothing
+        
+        threshmaskconv = threshmask+'_conv.mask'
+        os.system('rm -rf '+threshmaskconv+'*')
+        
+        BeamMaj = imhead(imnameth+'.image', mode='get', hdkey='bmaj')['value']
+        BeamMin = imhead(imnameth+'.image', mode='get', hdkey='bmin')['value']
+        BeamPA  = imhead(imnameth+'.image', mode='get', hdkey='bpa' )['value']
+        
+        imsmooth(imagename = threshmask1,
+            kernel    = 'gauss',               
+            targetres = False,                                                             
+            major     = str(convfactor*round(BeamMaj, 6))+'arcsec',                                                     
+            minor     = str(convfactor*round(BeamMin, 6))+'arcsec',    
+            pa        = str(round(BeamPA, 3))+'deg',                                       
+            outfile   = threshmaskconv,            
+            overwrite = True)                 
+        
+        immath(imagename=[threshmaskconv],
+               expr='iif(IM0>'+str(0.2)+',1,0)',  # cut-off value is arbitrary!
+               outfile=threshmask+'.mask')
+        
+        
     return thresh
  
 
