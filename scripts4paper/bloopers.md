@@ -67,7 +67,7 @@ When and where should the primary beam correction be applied? Users
 will normally get a  *noise-flat* **.image** and *flux-flat*
 **.image.pbcor**
 file, but especially in cases like feather and ssc, one has to be careful
-when and where the PB is applied.
+when and where the PB is applied. If using TP data as a start model, you should think about applying the interferometeric (mosaic) PB to it first.
 
 ## Total Power (Single Dish) Map
 
