@@ -25,6 +25,8 @@ We should have PDF's of the following papers
 
 * Rau et al. 2019, AJ: https://ui.adsabs.harvard.edu/abs/2019AJ....158....3R/abstract *A Joint Deconvolution Algorithm to Combine Single-dish and Interferometer Data for Wideband Multiterm and Mosaic Imaging*
 
+* Mason 2020 https://arxiv.org/pdf/2006.06549.pdf *Imaging Spatially Extended Objects with Interferometers: Mosaicking and the Short Spacing Correction*
+
 * ALMA cycle 7 technical handbook (version 1.1)
 
 
