@@ -27,6 +27,8 @@ We should have PDF's of the following papers
 
 * Mason 2020 https://arxiv.org/pdf/2006.06549.pdf *Imaging Spatially Extended Objects with Interferometers: Mosaicking and the Short Spacing Correction*
 
+* Stanimirovic 2002 http://articles.adsabs.harvard.edu/pdf/2002ASPC..278..375S *Short-Spacings Correction from the Single-Dish Perspective*
+
 * ALMA cycle 7 technical handbook (version 1.1)
 
 
