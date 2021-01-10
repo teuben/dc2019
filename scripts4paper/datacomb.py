@@ -28,7 +28,7 @@ if pythonversion=='3':
         from casatasks import imhead
         from casatasks import sdintimaging
         from casatasks import tclean
-        from casatasks import immath, imstat
+        from casatasks import immath, imstat, immoments
         from casatasks import imregrid, imtrans
         from casatasks import imsmooth
         from casatasks import feather
@@ -317,6 +317,7 @@ def runsdintimg(vis,
                    gridder='mosaic',          #mygridder,
                    weighting='briggs',
                    robust = 0.5,
+                   restoringbeam = 'common',   # SD-cube has only one beam - INT-cube needs it, too, else feather etc. fail
                    niter=niter,
                    #cycleniter = niter,        # bogus if = niter
                    cyclefactor=2.0,
@@ -397,7 +398,8 @@ def runsdintimg(vis,
         for nam in oldnames:
             os.system('mv '+nam+' '+nam.replace('.joint.cube',''))
         
-        exportfits(jointname+'.joint.cube.image.pbcor', jointname+'.joint.cube.image.pbcor.fits')
+        #exportfits(jointname+'.joint.cube.image.pbcor', jointname+'.joint.cube.image.pbcor.fits')
+        exportfits(jointname+'.image.pbcor', jointname+'.image.pbcor.fits')
 
     return True
 
@@ -693,6 +695,7 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
 
     print('### Start feather')                    
 
+    os.system('rm -rf lowres.* ')
 
 
     # Reorder the axes of the low to match high/pb 
@@ -900,7 +903,9 @@ def runtclean(vis,
         print(vis+' does not exist')
         return False
 
-
+    
+    #print('')
+    print('Start tclean ...')
     #mymaskname = ''
     if usemask == 'auto-multithresh':
         #print('Run with {0} mask'.format(usemask))
@@ -965,6 +970,7 @@ def runtclean(vis,
                     gridder = 'mosaic',
                     weighting = 'briggs',
                     robust = 0.5,
+                    restoringbeam = 'common',   # SD-cube has only one beam - INT-cube needs it, too, else feather etc. fail
                     niter = niter,
                     #cycleniter = niter,        # bogus if = niter
                     cyclefactor=2.0,
@@ -1058,7 +1064,7 @@ def get_SD_cube_params(sdcube =''):
     if not 'nChannels' in rbeams or rbeams['nChannels']!= shp[3]:
         print("The SD Cube needs to have per-plane restoringbeams")
         _ia.close()
-        return False
+        #return False    <---switched off by DC-team
     else:
         print("Found " + str(rbeams['nChannels']) + " per-plane restoring beams")
     print("\n(For specmode='mfs' in sdintimaging, please remember to set 'reffreq' to a value within the freq range of the cube)\n")
@@ -1070,6 +1076,43 @@ def get_SD_cube_params(sdcube =''):
 
 
 
+######################################
+
+def channel_cutout(old_image, new_image, startchan = None,
+    endchan = None):
+
+    """
+    reorder_axes (L. Moser-Fischer)
+    a tool to reorder the axes according to a reference/template image
+
+    to_reorder - the image whose axes should be reordered
+             default: None, example: 'SD.image'
+    reordered - the outputname whose axes have been reordered
+             default: None, example: 'lowres.ro'
+
+    Example: reorder_axes('SD.image', 'lowres.ro')
+    """
+
+    #print('startchan', startchan, 'endchan', endchan)
+    if startchan==None or endchan==None:
+        print('No channel cutout requested...')
+    elif startchan!=None and endchan!=None: 
+        print('Reduce channel range to '+str(startchan)+'-'+str(endchan))   
+        os.system('rm -rf '+new_image)
+        
+        immath(imagename=old_image,
+               expr='IM0', chans=str(startchan)+'~'+str(endchan),
+               outfile=new_image) 
+            
+        width   = imhead(imagename = old_image, 
+                         mode='get', hdkey='cdelt4')['value']
+        ref_old = imhead(imagename = old_image, 
+                         mode='get', hdkey='crval4')['value'] 
+        ref_new = ref_old + startchan*width  
+        
+        imhead(imagename = new_image, 
+               mode='put', hdkey='crval4', hdvalue=str(ref_new))
+               
 
 
 ######################################
@@ -1222,6 +1265,7 @@ def make_SDint_mask(vis, SDimage, imname, sdmasklev, SDint_mask_root,
            outfile=SDoutname1)
     #except: print('### SD.mask already exists, will proceed')
 
+    print('')
     print('### Creating a mask based on SD mask and auto-mask')
     print('### Step 1 of 2: load the SD mask into interferometric tclean image data' )
     print('### Please check the result!')
@@ -1277,13 +1321,48 @@ def derive_threshold(vis, imname, threshmask,
                     start = 0, width = 1, nchan = -1, restfreq = '', 
                     overwrite=False, smoothing = 5, 
                     RMSfactor = 0.5, cube_rms = 3.,   
-                    cont_chans ='2~5' ):
+                    cont_chans ='2~4'):
 
     """
-    reorder_axes (L. Moser-Fischer)
+    derive_threshold (L. Moser-Fischer)
     a tool to derive a reasonable clean threshold and mask for an 
     interferometric image
 
+    vis - the MS containing the interferometric data
+    imname - the root name of the output images
+    threshmask - the root name of the threshold mask
+    phasecenter - the standard tclean phasecenter parameter
+           e.g. 'J2000 12:00:00 -35.00.00.0000'
+           default: '' - determine from the input MS with aU.pickCellSize   
+    spw - the standard selection parameter spw of tclean
+           default: '' i.e. all SPWs
+    field - the standard selection parameter field of tclean
+           default: '' i.e. all fields
+    imsize - (optional) the standard tclean imsize parameter 
+            should correspond to the imagesize for the most extended
+            interferometer config.
+           default: determine from the input MS with aU.pickCellSize
+    cell - (optional) the standard tclean cell parameter
+            should correspond to the cell size for the most extended
+            interferometer config, i.e. smallest beam / 5.
+           default: determine from the input MS with aU.pickCellSize                    
+    specmode - the standard tclean specmode parameter: supported are msf or cube
+           default: msf 
+    start - the standard tclean start parameter
+             default: 0
+    width - the standard tclean width parameter
+             default: 1
+    nchan - the standard tclean nchan parameter
+             default: -1
+    restfreq - the restfrequency to write to the image for velocity calculations
+             default: None, example: '115.271GHz'
+    overwrite - True: generate new template INT image: False: just derive 
+                threshold values from existing template INT image
+    smoothing - 
+    RMSfactor - 
+    cube_rms - 
+    cont_chans - 
+    
     template - the reference image
              default: None, example: 'INT.image'
     to_reorder - the image whose axes should be reordered
@@ -1332,7 +1411,8 @@ def derive_threshold(vis, imname, threshmask,
         
         #### cube
         elif specmode == 'cube':
-            immmoments(imagename=imnameth+'.image', mom=[6], 
+            os.system('rm -rf '+imnameth+'.mom6')
+            immoments(imagename=imnameth+'.image', moments=[6], 
                        outfile=imnameth+'.mom6', chans=cont_chans)
             cube_RMS = imstat(imnameth+'.mom6')['rms'][0]
         
@@ -1358,9 +1438,27 @@ def derive_threshold(vis, imname, threshmask,
         threshmaskconv = threshmask+'_conv.mask'
         os.system('rm -rf '+threshmaskconv+'*')
         
+        # special treatment for cubes not needed when restoringbeam='common',
+        # which is required for feather etc. to work
+        #
+        # #### continuum
+        # if specmode == 'mfs':
+        #     BeamMaj = imhead(imnameth+'.image', mode='get', hdkey='bmaj')['value']
+        #     BeamMin = imhead(imnameth+'.image', mode='get', hdkey='bmin')['value']
+        #     BeamPA  = imhead(imnameth+'.image', mode='get', hdkey='bpa' )['value']
+        # 
+        # #### cube
+        # elif specmode == 'cube':
+        #     midchan = int(imhead(imnameth+'.image', mode='summary')['perplanebeams']['nChannels']/2)
+        #     BeamMaj = imhead(imnameth+'.image', mode='summary')['perplanebeams']['beams']['*'+str(midchan)]['*0']['major']['value']
+        #     BeamMin = imhead(imnameth+'.image', mode='summary')['perplanebeams']['beams']['*'+str(midchan)]['*0']['minor']['value']
+        #     BeamPA  = imhead(imnameth+'.image', mode='summary')['perplanebeams']['beams']['*'+str(midchan)]['*0']['positionangle']['value']
+ 
         BeamMaj = imhead(imnameth+'.image', mode='get', hdkey='bmaj')['value']
         BeamMin = imhead(imnameth+'.image', mode='get', hdkey='bmin')['value']
         BeamPA  = imhead(imnameth+'.image', mode='get', hdkey='bpa' )['value']
+ 
+ 
         
         imsmooth(imagename = threshmask1,
             kernel    = 'gauss',               
@@ -1478,36 +1576,43 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     if os.path.exists(lowres):
         pass
     else:
-        print(sdimage+' does not exist')
+        print(lowres+' does not exist')
         return False
 
     if os.path.exists(highres):
         pass
     else:
-        print(intimage+' does not exist')
+        print(highres+' does not exist')
         return False
+
+    os.system('rm -rf lowres.*')
 
 
     # Reorder the axes of the low to match high/pb 
     #lowres = reorder_axes(highres,lowres,'lowres.ro')
-    lowres = reorder_axes(mysdimage,'lowres.ro')
-
+    lowres = reorder_axes(lowres,'lowres.ro')
 
     # Regrid low res Image to match high res image
+    lowres_regrid1 = 'lowres.regrid'
+    
     print('Regridding lowres image...')
     imregrid(imagename=lowres,
                      template=highres,
                      axes=[0,1,2,3],
-                     output='lowres.regrid')
+                     output=lowres_regrid1)
+                     
+    lowres_unit = imhead(lowres_regrid1, mode='get', hdkey='Bunit')['value']
 
     # Multiply the lowres image with the highres primary beam response
     print('Multiplying lowres by the highres pb...')
-    immath(imagename=['lowres.regrid',
-                                        pb],
+    immath(imagename=[lowres_regrid1, pb],
                  expr='IM0*IM1',
                  outfile='lowres.multiplied')
 
     lowres_regrid = 'lowres.multiplied'
+
+    imhead(lowres_regrid, mode='put', hdkey='Bunit', hdvalue=lowres_unit)
+
 
     print('')
     print('LR_Bmin: ' + str(getBmin(lowres_regrid)))
@@ -1536,16 +1641,22 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     imsmooth(highres, 'gauss', major, minor, pa, True, outfile=highres + '_conv', overwrite=True)
 
     highres_conv = highres + '_conv'
-
-    # Missing flux
-    print('Computing the obtained flux only by single-dish ...')
-    immath([lowres_regrid, highres_conv], 'evalexpr', 'sub.im', '%s*IM0-IM1' % sdfactor)
-    print('Flux difference has been determined' + '\n')
-    print('Units', getBunit(lowres_regrid))
-
+    
+    # Missing flux    
     sub = 'sub.im'
     sub_bc = 'sub_bc.im'
     combined = combined + '.image'
+
+    #os.system('rm -rf '+highres_conv)
+    os.system('rm -rf '+sub)
+    os.system('rm -rf '+sub_bc)
+    
+    print('Computing the obtained flux only by single-dish ...')
+    immath([lowres_regrid, highres_conv], 'evalexpr', sub, '%s*IM0-IM1' % sdfactor)
+    print('Flux difference has been determined' + '\n')
+    print('Units', getBunit(lowres_regrid))
+    print(lowres_regrid)
+
 
     # Combination 
     if getBunit(lowres_regrid) == 'Jy/beam':
