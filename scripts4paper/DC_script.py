@@ -15,7 +15,7 @@ Run under CASA 6.
 
 
 #thesteps=[0,1,2,3,4,5,6]
-thesteps=[6]
+thesteps=[1,6]
 
 
 
@@ -23,10 +23,9 @@ import os
 import sys 
 #import glob
 
+###### CASA - version check  ######
 sys.path.append('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/')               # path to the folder with datacomb.py and ssc_DC.py
-
 pythonversion = sys.version[0]
-
 
 if pythonversion=='3':
     from casatasks import version as CASAvers
@@ -67,9 +66,15 @@ elif pythonversion=='2':
 
 
 
+# -------------------------------------------------------------------#
+
+
+############ USER INPUT needed - beginning ##############
+
 
 # path to input and outputs
-pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/gmcSkymodel_120L/gmc_120L/'   # path to the folder with the files to be concatenated
+pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/M100-data/'   # path to the folder with the files to be concatenated
+#pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/gmcSkymodel_120L/gmc_120L/'   # path to the folder with the files to be concatenated
 #pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/skymodel-c.sim/skymodel-c_120L/'   # path to the folder with the files to be concatenated
 pathtoimage  = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/DC_Ly_tests/'                          # path to the folder where to put the combination and image results
 
@@ -80,7 +85,8 @@ os.system('rm -rf '+pathtoimage + 'TempLattice*')
 
 # setup for concat 
 #thevis = [pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-02.ms']#,
-thevis = [pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms']#,
+#thevis = [pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms']#,
+thevis = [pathtoconcat + 'M100_Band3_12m_CalibratedData/M100_Band3_12m_CalibratedData.ms']#,
           #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-02.ms',
           #pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-03.ms',
           #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-03.ms',
@@ -96,7 +102,8 @@ thevis = [pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms']#,
 weightscale = [1.]#, 1., 1., 1., 1., 1., 1., 1.,
                #0.116, 0.116, 0.116, 0.116]
 
-concatms     = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
+concatms     = pathtoimage + 'M100-B3.alma.all_int-weighted.ms'       # path and name of concatenated file
+#concatms     = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
 #concatms     = pathtoimage + 'skymodel-c_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
 
 
@@ -105,10 +112,14 @@ concatms     = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       # 
 ############# input to combination methods ###########
 
 vis       = concatms 
-sdimage_input  = pathtoconcat + 'gmc_120L.sd.image'
+#sdimage_input  = pathtoconcat + 'M100_Band3_ACA_ReferenceImages/M100_TP_CO_cube_1550-5.image'
+sdimage_input  = pathtoconcat + 'M100_Band3_ACA_ReferenceImages/M100_TP_CO_cube.bl.image'
+#sdimage_input  = pathtoconcat + 'gmc_120L.sd.image'
 #sdimage_input   = pathtoconcat + 'skymodel-c_120L.sd.image'
-imbase    = pathtoimage + 'skymodel-b_120L'            # path + image base name
+imbase    = pathtoimage + 'M100-B3'            # path + image base name
+#imbase    = pathtoimage + 'skymodel-b_120L'            # path + image base name
 #imbase    = pathtoimage + 'skymodel-c_120L'            # path + image base name
+sdbase    = pathtoimage + 'M100-B3'            # path + sd image base name
 
 
 
@@ -117,12 +128,20 @@ imbase    = pathtoimage + 'skymodel-b_120L'            # path + image base name
 # structure could be something like:
 #    imname = imbase + cleansetup + combisetup 
 
-mode   = 'mfs'        # 'mfs' or 'cube'
+mode   = 'cube'        # 'mfs' or 'cube'
 mscale = 'HB'         # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
 masking  = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 inter = 'nIA'         # interactive ('IA') or non-interactive ('nIA')
-nit = 1               # max = 9.9 * 10**9 
+nit = 0               # max = 9.9 * 10**9 
+
 specsetup =  'INTpar' # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
+######### if "SDpar", want to use just a channel-cut-out of the SD image? , 
+# else set to None (None automatically for 'INTpar'
+startchan = 30 #None #30 # start-value of the SD image channel range you want to cut out 
+endchan = 34 #None #34   #   end-value of the SD image channel range you want to cut out
+
+
+
 
 # resulting name part looks like
 # cleansetup = '.'+ mode +'_'+ specsetup +'_'+ mscale +'_'+ masking +'_'+ inter +'_n'+ str(nit)
@@ -131,25 +150,28 @@ specsetup =  'INTpar' # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user
 ######### specific inputs for masking  = 'SD-AM', else ignore
 
 smoothing = 5    # smoothing of the threshold mask (by 'smoothing x beam')
-RMSfactor = 0.5  # continuum (not noise but entire image) rms level
+RMSfactor = 0.5  # continuum rms level (not noise from emission-free regions but entire image)
 cube_rms = 3     # cube noise (true noise) x this factor
 cont_chans =''   # line free channels for cube rms estimation
 sdmasklev = 0.3  # maximum x this factor = threshold for SD mask
+
+
+
 
                       
 ########## general tclean parameters
 
 general_tclean_param = dict(#overwrite  = overwrite,
-                           spw         = '0', 
-                           field       = '0~68', 
+                           spw         = '0~2', #'0', 
+                           field       = '', #'0~68', 
                            specmode    = mode,      # ! change in variable above dict !        
-                           imsize      = [1120], 
-                           cell        = '0.21arcsec',    # arcsec
-                           phasecenter = 'J2000 12:00:00 -35.00.00.0000',             
-                           start       = 0, 
-                           width       = 1, 
-                           nchan       = -1, 
-                           restfreq    = '',
+                           imsize      = 550, #800, #[1120], 
+                           cell        = '0.5arcsec', #'0.21arcsec',    # arcsec
+                           phasecenter = 'J2000 12h22m54.9 +15d49m15', #'J2000 12:00:00 -35.00.00.0000',             
+                           start       = '1550km/s', #'1400km/s', #0, 
+                           width       = '5km/s', #1, 
+                           nchan       = 5, #70, #-1, 
+                           restfreq    = '115.271202GHz', #'',
                            threshold   = '',        # SDINT: None 
                            maxscale    = 10.,              # recommendations/explanations 
                            niter      = nit,               # ! change in variable above dict !
@@ -200,12 +222,12 @@ dryrun = False    # False to execute combination, True to gather filenames only
           
           
           
+############### USER INPUT - end ##################          
+#### no user interaction needed from here-on ######  
           
-############# no user interaction needed from here-on ##################      
-          
-          
-          
-          
+                  
+# -------------------------------------------------------------------#
+
           
           
                        
@@ -249,15 +271,26 @@ sdintsetup   = '.sdint_g'   #+ str(sdg)
 #TP2VISsetup  = '.TP2VIS_t'  #+ str(tweak)
 
 
+
+
+
+
 ##### intermediate products name for step 1 = gather information - no need to change!
 
 # SD image: axis-reordering and regridding
-sdreordered = imbase +'.SD_ro.image'                 # SD image axis-reordering
-sdroregrid = imbase +'.SD_ro-rg_'+specsetup+'.image' # SD image regridding
+sdreordered = sdbase +'.SD_ro.image'                 # SD image axis-reordering
+
+if startchan!=None and endchan!=None and specsetup == 'SDpar':
+    sdbase = sdbase + '_ch'+str(startchan)+'-'+str(endchan)
+
+sdreordered_cut = sdbase +'.SD_ro.image'                 # SD image axis-reordering
+#print('sdreordered_cut', sdreordered_cut)
+sdroregrid = sdbase +'.SD_ro-rg_'+specsetup+'.image' # SD image regridding
+
 
 imnamethSD  = imbase + cleansetup +'_template'      # dirty image for thershold and mask generation
 threshmask = imbase + '.'+specsetup+ '_RMS'         # thresold mask name
-SDint_mask_root = imbase + '.'+specsetup+ '_SD-AM'  # SD+AM mask name
+SDint_mask_root = sdbase + '.'+specsetup+ '_SD-AM'  # SD+AM mask name
 combined_mask = SDint_mask_root + '-RMS.mask'       # SD+AM+threshold mask name
 
 
@@ -289,26 +322,26 @@ sdint_mask  = combined_mask         #
 
 
 
-if not os.path.exists(sdreordered):
-    if 1 in thesteps:
-        pass
-    else:    
-        thesteps.append(1)      
-        thesteps.sort()           # force execution of SDint mask creation (Step 1)
-        print('Need to execute step 1 to reorder image axes of the SD image')
-
 
 if specsetup == 'SDpar':
-    # read SD image frequency setup as input for tclean    
-    if pythonversion=='3':
-        cube_dict = dc.get_SD_cube_params(sdcube = sdreordered) #out: {'nchan':nchan, 'start':start, 'width':width}
-    else:
-        cube_dict = get_SD_cube_params(sdcube = sdreordered) #out: {'nchan':nchan, 'start':start, 'width':width}
-    general_tclean_param['start'] = cube_dict['start']  
-    general_tclean_param['width'] = cube_dict['width']
-    general_tclean_param['nchan'] = cube_dict['nchan']
-    sdimage = sdreordered  # for SD cube params used
-else:
+    if not os.path.exists(sdreordered_cut):
+        if 1 in thesteps:
+            pass
+        else:    
+            thesteps.append(1)      
+            thesteps.sort()           # force execution of SDint mask creation (Step 1)
+            print('Need to execute step 1 to reorder image axes of the SD image')
+    elif os.path.exists(sdreordered_cut):
+        # read SD image frequency setup as input for tclean    
+        if pythonversion=='3':
+            cube_dict = dc.get_SD_cube_params(sdcube = sdreordered_cut) #out: {'nchan':nchan, 'start':start, 'width':width}
+        else:
+            cube_dict = get_SD_cube_params(sdcube = sdreordered_cut) #out: {'nchan':nchan, 'start':start, 'width':width}
+        general_tclean_param['start'] = cube_dict['start']  
+        general_tclean_param['width'] = cube_dict['width']
+        general_tclean_param['nchan'] = cube_dict['nchan']
+        sdimage = sdreordered_cut  # for SD cube params used
+elif specsetup == 'INTpar':
     if not os.path.exists(sdroregrid):
         if 1 in thesteps:
             pass
@@ -316,7 +349,8 @@ else:
             thesteps.append(1)      
             thesteps.sort()           # force execution of SDint mask creation (Step 1)
             print('Need to execute step 1 to regrid SD image')
-    sdimage = sdroregrid  # for INT cube params used
+    elif os.path.exists(sdroregrid):
+        sdimage = sdroregrid  # for INT cube params used
 
 
 
@@ -449,10 +483,31 @@ if(mystep in thesteps):
         dc.reorder_axes(sdimage_input, sdreordered)
     else:
         reorder_axes(sdimage_input, sdreordered)
-   
+
+    # make a a channel-cut-out from the SD image?
+    if sdreordered!=sdreordered_cut:
+        if pythonversion=='3':
+            dc.channel_cutout(sdreordered, sdreordered_cut, startchan = startchan,
+                              endchan = endchan)
+        else:
+            channel_cutout(sdreordered, sdreordered_cut, startchan = startchan,
+                              endchan = endchan)
+
+
+    # read SD image frequency setup as input for tclean    
+    if specsetup == 'SDpar':
+        if pythonversion=='3':
+            cube_dict = dc.get_SD_cube_params(sdcube = sdreordered_cut) #out: {'nchan':nchan, 'start':start, 'width':width}
+        else:
+            cube_dict = get_SD_cube_params(sdcube = sdreordered) #out: {'nchan':nchan, 'start':start, 'width':width}
+        general_tclean_param['start'] = cube_dict['start']  
+        general_tclean_param['width'] = cube_dict['width']
+        general_tclean_param['nchan'] = cube_dict['nchan']
+        sdimage = sdreordered_cut  # for SD cube params used   
+
+
 
     # derive a simple threshold and make a mask from it 
-
     if pythonversion=='3':
         thresh = dc.derive_threshold(vis, imnamethSD , threshmask,
                      overwrite=True,
@@ -478,11 +533,12 @@ if(mystep in thesteps):
     # regrid SD image frequency axis to tclean (requires derive_threshold to be run)
     
     if specsetup == 'SDpar':
-        sdimage = sdreordered  # for SD cube params used
+        sdimage = sdreordered_cut  # for SD cube params used
     else:
+        print('')
         print('Regridding SD image...')
         os.system('rm -rf '+sdroregrid)
-        imregrid(imagename=sdreordered,
+        imregrid(imagename=sdreordered_cut,
                          template=imnamethSD+'.image',
                          axes=[0,1,2,3],
                          output=sdroregrid)    
@@ -497,13 +553,13 @@ if(mystep in thesteps):
 
 
     if pythonversion=='3':
-        SDint_mask = dc.make_SDint_mask(vis, sdroregrid, imnamethSD, 
+        SDint_mask = dc.make_SDint_mask(vis, sdimage, imnamethSD, 
                                  sdmasklev, 
                                  SDint_mask_root,
                                  **mask_tclean_param
                                  ) 
     else:
-        SDint_mask = make_SDint_mask(vis, sdroregrid, imnamethSD, 
+        SDint_mask = make_SDint_mask(vis, sdimage, imnamethSD, 
                                  sdmasklev, 
                                  SDint_mask_root,
                                  **mask_tclean_param
