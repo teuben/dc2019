@@ -1,6 +1,6 @@
 # DC_script
 
-The **DC_script** uses the **datacomb** module to conviniently combine 
+The **DC_script** uses the **datacomb** module to conveniently combine 
 your data. The DC_script's goal is to provide a homogeneous input to all 
 combination methods (e.g. clean parameters) and a homogeneous output 
 style.
