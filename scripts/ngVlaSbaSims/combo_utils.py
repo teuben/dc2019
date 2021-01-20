@@ -11,21 +11,34 @@
 #  v2 - Aug 2020 - improve and fix aperture flux routine
 #               (circular regions; add an outer annulus option;
 #                fix bug causing the master image to be overwritten at times)
+#  v3 - 20jan21 - make it work in py3 and py2
 #
 # NOTE: do not do this:
 # import combo_utils as cu
 #  it will generate a global namespace conflict in CASA
 #  call it something sillier and more distinctive.
 #
+# Desired stuff:#
+# *get total flux v radius (not normalized)
+# *specify reference image for peak finding
+# *easily call for a single, given peak
 #################################
 
 # CASA stuff-
-from taskinit import *
-from imhead_cli import imhead_cli as imhead
-from immath_cli import immath_cli as immath
-from imregrid_cli import imregrid_cli as imregrid
-from rmtables_cli import rmtables_cli as rmtables
-from feather_cli import feather_cli as feather
+try:
+    from taskinit import *
+except:
+    exec(open("/users/bmason/casapy/newTaskInit.py").read())
+    #execfile("/users/bmason/casapy/newTaskInit.py")
+
+try:
+    from imhead_cli import imhead_cli as imhead
+    from immath_cli import immath_cli as immath
+    from imregrid_cli import imregrid_cli as imregrid
+    from rmtables_cli import rmtables_cli as rmtables
+    from feather_cli import feather_cli as feather
+except:
+    print("Welcome to python 3! result CASA *_cli imports failed.")
 
 # Python stuff-
 import analysisUtils as au
@@ -37,7 +50,7 @@ def fix_image_calib(sd_image,sd_img_fixed,cal_factor=1.0,beam_factor=1.0):
     """
     Rescale image brightness (cal_factor) and BMAJ,BMIN (beam_factor)
     in a CASA image sd_image (any CASA image). output file to 
-    sd_img_fixed.
+    sd_img_fixed. Both factors are multiplicative.
     """
 
     immath(imagename=[sd_image],expr='IM0*'+str(cal_factor),outfile=sd_img_fixed)
@@ -70,7 +83,7 @@ def convert_angle(angle,to_unit='arcsec'):
     elif (from_unit == 'arcsec'):
         from_angle = angle['value'] / (np.degrees(1) * 3600.0)
     else:
-        print " *** ERROR: Unrecognized unit in convert_angle "+angle['unit']
+        print(" *** ERROR: Unrecognized unit in convert_angle "+angle['unit'])
         raise Exception("Unknown unit.")
     if (to_unit == 'rad'):
         to_angle = from_angle
@@ -81,7 +94,7 @@ def convert_angle(angle,to_unit='arcsec'):
     elif (to_unit == 'arcmin'): 
         to_angle = from_angle * np.degrees(1) * 60.0
     else:
-        print " *** ERROR: Unrecognized unit in convert_angle "+ to_unit
+        print(" *** ERROR: Unrecognized unit in convert_angle "+ to_unit)
         raise Exception("Unknown unit.")
 
     new_angle = {'unit': to_unit, 'value': to_angle}
@@ -114,7 +127,7 @@ def feather_one(sd_map,int_map,int_pb,tag=''):
     return [outfile_pbcord,outfile_uncorr]
 
 
-def make_clnMod_fromImg(sd_map,int_map,tag='',clean_up=True):
+def make_clnMod_fromImg(sd_map,int_map,pb_map='',tag='',clean_up=True):
     """ 
 
     Take sd_map and regrid it into pixel coordinates of int_map, converting from
@@ -125,11 +138,16 @@ def make_clnMod_fromImg(sd_map,int_map,tag='',clean_up=True):
 
     tag is an optional string that will be included in the outpu file name
 
+    If optional pb_map [RECOMMENDED] is provided, then apply the PB before
+    making model. pb_map should be in same pixel & coordinate basis as int_map
+
     Returns the name of the output file.
 
     Note: sd_map and int_map can be of any provenance as long as the SB units
     are Jy/bm. Results have only been validated for the case that the sd_map
     pixels are larger than the int_map pixels however.
+
+    You should probably multiply the result by the INT PB before using it in TCLEAN
 
     """
 
@@ -145,11 +163,11 @@ def make_clnMod_fromImg(sd_map,int_map,tag='',clean_up=True):
 
     flux_conversion = (rad_to_arcsec*np.abs(sd_header['incr'][0]))*(rad_to_arcsec*np.abs(sd_header['incr'][1])) / (twopi_over_eightLnTwo * sd_header['restoringbeam']['major']['value'] * sd_header['restoringbeam']['minor']['value'])
 
-    print "===================="
-    print "THESE SHOULD BE ARCSEC:"+sd_header['restoringbeam']['major']['unit']+" "+sd_header['restoringbeam']['minor']['unit']
-    print "THESE SHOULD BE RADIANS: "+sd_header['axisunits'][0]+" "+sd_header['axisunits'][1]
-    print "if not the unit conversions were wrong...."
-    print "===================="
+    print("====================")
+    print("THESE SHOULD BE ARCSEC:"+sd_header['restoringbeam']['major']['unit']+" "+sd_header['restoringbeam']['minor']['unit'])
+    print("THESE SHOULD BE RADIANS: "+sd_header['axisunits'][0]+" "+sd_header['axisunits'][1])
+    print("if not the unit conversions were wrong....")
+    print("====================")
 
     flux_string = "(IM0 * %f)" % flux_conversion
 
@@ -157,6 +175,18 @@ def make_clnMod_fromImg(sd_map,int_map,tag='',clean_up=True):
     immath(imagename=regridded_sd_map,expr=flux_string,outfile=out_sd_map,mode='evalexpr')
     new_unit = 'Jy/pixel'
     imhead(imagename=out_sd_map,mode='put',hdkey='BUNIT',hdvalue=new_unit)
+
+    if (len(pb_map) > 0):
+        rmtables('placeholder.im')
+        try:
+            immath(imagename=[out_sd_map],mode='evalexpr',expr='IM0*1.0',outfile='placeholder.im')
+        except:
+            print(" Problem creating placeholder table ")
+        else:
+            rmtables(out_sd_map)
+            immath(imagename=['placeholder.im',pb_map],expr='IM0*IM1',outfile=out_sd_map)
+        finally:
+            rmtables('placeholder.im')
 
     # clean up after self-
     rmtables(regridded_sd_map)
@@ -206,7 +236,7 @@ def calc_fidelity(inimg,refimg,pbimg='',psfimg='',fudge_factor=1.0,scale_factor=
                respect to the formed image inimg and the weight being inimg*refimg
 
       f2b = 1 - sum( refimg .* abs(inimg-refimg) ) / sum( refimg .* refimg)
-         --> this is the original (ngVLA science requirememts, Nov. 2017) and better-behaved 
+q        --> this is the original (ngVLA science requirememts, Nov. 2017) and better-behaved 
                ngVLA fidelity definition, with the fraction taken with respect to the model (refimg),
                and the weight being refimg^2
 
@@ -217,7 +247,8 @@ def calc_fidelity(inimg,refimg,pbimg='',psfimg='',fudge_factor=1.0,scale_factor=
       In all of the above "i" is a pixel index, .* and .^ are element- (pixel-) wise operations,
        and sums are over pixels
 
-      Various ALMA-adopted fidelity measures are also reported, and the correlation coefficient
+      Various ALMA-adopted fidelity measures are also reported (above 0.1%, 1%, 3%, 10%), 
+      and the correlation coefficient
 
 
     HISTORY: 
@@ -336,11 +367,11 @@ def calc_fidelity(inimg,refimg,pbimg='',psfimg='',fudge_factor=1.0,scale_factor=
         immath(imagename=[inimg,smo_ref_img_regridded],mode='evalexpr',expr='iif(abs(IM0) > abs(IM1),abs(IM0),abs(IM1))',outfile=betafile)
         # 19sep19 - change to the actual F_3 contrib ie put abs() back in
         rmtables(outfile)
-        print " Writing fidelity error image: "+outfile
+        print(" Writing fidelity error image: "+outfile)
         immath(imagename=[inimg,smo_ref_img_regridded,weightfile,betafile],expr='IM3*IM2*abs(IM0-IM1)/sum(IM3*IM3*IM2)',outfile=outfile)
         # 19sep19 - add fractional error (rel to beta) to output
         rmtables(outfile+'.frac')
-        print " Writing fractional error image: "+outfile+'.frac'
+        print(" Writing fractional error image: "+outfile+'.frac')
         immath(imagename=[inimg,smo_ref_img_regridded,weightfile,betafile],expr='IM2*(IM0-IM1)/IM3',outfile=outfile+'.frac')
         if clean_up:
             rmtables(weightfile)
@@ -364,12 +395,12 @@ def calc_fidelity(inimg,refimg,pbimg='',psfimg='',fudge_factor=1.0,scale_factor=
 
     #gi2 = (np.abs(ii) > 1e-3 * mm.max()) | (np.abs(mm) > 1e-3 * mm.max())  
 
-    print "*************************************"
-    print 'image: ',inimg,'reference image:',refimg
-    print "Eq1  / Eq2  / Eq2b  / Eq3 / corrCoeff "
-    print f_eq1, f_eq2, f_eq2b, f_eq3,corco
-    print ' ALMA: ',fa_0p1,fa_1,fa_3,fa_10
-    print "*************************************"
+    print("*************************************")
+    print('image: ',inimg,'reference image:',refimg)
+    print("Eq1  / Eq2  / Eq2b  / Eq3 / corrCoeff ")
+    print(f_eq1, f_eq2, f_eq2b, f_eq3,corco)
+    print(' ALMA: ',fa_0p1,fa_1,fa_3,fa_10)
+    print("*************************************")
 
     fidelity_results = {'f1': f_eq1, 'f2': f_eq2, 'f2b': f_eq2b, 'f3': f_eq3, 'falma': [fa_0p1, fa_1, fa_3, fa_10]}
 
@@ -412,10 +443,10 @@ def sum_region_fluxes(imvals,peak_indices,radius=4.0):
     # radius to extract in pixels - 
     rr = radius
     for k in range(fluxes.size):
-        i_low = peak_indices[k][0] - np.round(rr)
-        i_high = peak_indices[k][0] + np.round(rr)
-        j_low = peak_indices[k][1] - np.round(rr)
-        j_high = peak_indices[k][1] + np.round(rr)
+        i_low = (peak_indices[k][0] - np.round(rr)).astype(np.int32)
+        i_high = (peak_indices[k][0] + np.round(rr)).astype(np.int32)
+        j_low = (peak_indices[k][1] - np.round(rr)).astype(np.int32)
+        j_high = (peak_indices[k][1] + np.round(rr)).astype(np.int32)
         x_flux[k] = peak_indices[k][0]
         y_flux[k] = peak_indices[k][1]
         if i_low < 0:
@@ -438,11 +469,11 @@ def sum_region_fluxes(imvals,peak_indices,radius=4.0):
         subimage[mask] = 0.0
         fluxes[k] = subimage.sum()
         pixcount[k] = np.sum(mask)
-        #print k,fluxes[k]
+        #print(k,fluxes[k])
     
     return fluxes,x_flux,y_flux,pixcount
 
-def compare_fluxes(img1="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.autoDev2.image",img2="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.skymodel.flat",mask1="",mask2="",search_size = 2.0, thresh = 4.5, search_img=1,maxrad=50.0,minrad=1.0,radstep=1.0,doAnnuli=False,flipMask=False,dumbTest=False):
+def compare_fluxes(img1="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.autoDev2.image",img2="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.skymodel.flat",mask1="",mask2="",search_size = 2.0, thresh = 4.5, search_img=1,maxrad=50.0,minrad=1.0,radstep=1.0,doAnnuli=False,flipMask=False):
     """
     img1,img2: casa images to compare
     search_size: width of search region in beams (beam is takem from chosen search image)
@@ -460,7 +491,7 @@ def compare_fluxes(img1="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.autoDev2.imag
 
     """
 
-    #print "THRESH ", thresh
+    #print("THRESH ", thresh)
     if (search_img == 1):
         main_img = img1
         aux_img = img2
@@ -468,7 +499,7 @@ def compare_fluxes(img1="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.autoDev2.imag
         main_img = img2
         aux_img = img1
 
-    print " main image = ",main_img
+    print(" main image = ",main_img)
         
     ia=iatool()
 
@@ -479,7 +510,7 @@ def compare_fluxes(img1="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.autoDev2.imag
     # how to trim the freq axis--
     #img_shape = (ia.shape())[0:3]
     main_img_shape = ia.shape()
-    print main_img_shape
+    print(main_img_shape)
     imvals=np.squeeze(ia.getchunk())
     immask=np.squeeze(ia.getchunk(getmask=True))
     ia.close()
@@ -496,8 +527,8 @@ def compare_fluxes(img1="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.autoDev2.imag
     bmaj =  convert_angle(hdr['restoringbeam']['major'],'arcsec')
     bmin =  convert_angle(hdr['restoringbeam']['minor'],'arcsec')
     beam_fwhm = ( bmaj['value'] * bmin['value'] )**0.5
-    print "beam: "+ str(beam_fwhm) + " " + bmaj['unit']
-    print "mean pix: "+ str(mean_cell) + " " + cd1['unit']
+    print("beam: "+ str(beam_fwhm) + " " + bmaj['unit'])
+    print("mean pix: "+ str(mean_cell) + " " + cd1['unit'])
 
     # secondary image characteristics
     ia.open(aux_img)
@@ -506,7 +537,7 @@ def compare_fluxes(img1="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.autoDev2.imag
     # how to trim the freq axis--
     #img_shape = (ia.shape())[0:3]
     aux_img_shape = ia.shape()
-    print aux_img_shape
+    print(aux_img_shape)
     auxvals=np.squeeze(ia.getchunk())
     auxmask=np.squeeze(ia.getchunk(getmask=True))
     ia.close()
@@ -516,7 +547,7 @@ def compare_fluxes(img1="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.autoDev2.imag
     #aux_bmin_str = str(aux_hdr['restoringbeam']['minor']['value'] * fudge_factor)+aux_hdr['restoringbeam']['minor']['unit']
     #aux_bpa_str =  str(aux_hdr['restoringbeam']['positionangle']['value'])+aux_hdr['restoringbeam']['positionangle']['unit']
     #aux_beam_fwhm = ( aux_hdr['restoringbeam']['major']['value'] * aux_hdr['restoringbeam']['minor']['value'] )**0.5
-    #print beam_fwhm
+    #print(beam_fwhm)
 
     # create joint mask and zero out fluxes in either
     #  that are not in the joint mask
@@ -526,16 +557,13 @@ def compare_fluxes(img1="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.autoDev2.imag
     imvals[~totmask] = 0.0
     auxvals[~totmask]=0.0
 
-    if dumbTest:
-        return imvals, auxvals, immask, auxmask
-
     # size of peak search region in pixels - 
-    pix_search_size = search_size * (beam_fwhm / mean_cell)
-    print "PIX SEARCH SIZE"
-    print pix_search_size
+    pix_search_size = (search_size * (beam_fwhm / mean_cell)).astype(np.int32)
+    print("PIX SEARCH SIZE")
+    print(pix_search_size)
     peak_indices = find_peaks(inimg=main_img,search_size = pix_search_size, thresh = thresh)    
-    print "PIX INDICES"
-    print peak_indices
+    print("PIX INDICES")
+    print(peak_indices)
     # radii in pixels
     radii = np.arange(minrad,maxrad,radstep)*beam_fwhm / mean_cell
     flux_vs_rad = np.array([])
@@ -545,8 +573,8 @@ def compare_fluxes(img1="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.autoDev2.imag
         mainInner,xx,yy,main_inner_count = sum_region_fluxes(imvals,peak_indices,radius=i)
         auxInner, dumx,dumy,aux_inner_count = sum_region_fluxes(auxvals,peak_indices,radius=i)
         if (doAnnuli):
-            mainOuter,xx,yy,main_outer_count = sum_region_fluxes(imvals,peak_indices,radius= i+np.round(beam_fwhm/mean_cell))
-            auxOuter, dumx,dumy,aux_outer_count = sum_region_fluxes(auxvals,peak_indices,radius=i+np.round(beam_fwhm/mean_cell))
+            mainOuter,xx,yy,main_outer_count = sum_region_fluxes(imvals,peak_indices,radius= i+2.5*beam_fwhm/mean_cell)
+            auxOuter, dumx,dumy,aux_outer_count = sum_region_fluxes(auxvals,peak_indices,radius=i+2.5*beam_fwhm/mean_cell)
             main_flux = 2.0* mainInner - mainOuter * main_inner_count / (2*main_inner_count - main_outer_count)
             aux_flux = 2.0* auxInner - auxOuter * aux_inner_count / (2*aux_inner_count - aux_outer_count)
         else:
@@ -566,42 +594,42 @@ def find_peaks(inimg="./ngvla_30dor/ngvla_30dor.ngvla-core-revC.skymodel.flat",s
    as MAD of the image as a whole)
 
   """
-  print "THRESH ", thresh
+  print("THRESH ", thresh)
   ia=iatool()
   ia.open(inimg)
   imvals=np.squeeze(ia.getchunk())
   # somewhat confusingly, the mask is True where pixels are good, and False where bad.
   immask=np.squeeze(ia.getchunk(getmask=True))
   ia.close()
-  print imvals.shape
+  print(imvals.shape)
 
   # compute some stats excluding NaN's - 
   #imvals2 = imvals[~np.isnan(imvals)]
   imvals2 = imvals[np.isfinite(imvals) & immask]
   pix_mean = imvals2.mean()
   #pix_sd = np.std(imvals2)
-  print "MEDIAN"
+  print("MEDIAN")
   pix_median = np.median(imvals2)
   # note: by default this is normalized so that the std dev of
   #  a gaussian is 1.0
   pix_mad = au.MAD(imvals2)
 
   neighborhood = np.ones([np.round(search_size),np.round(search_size)],dtype=np.bool)
-  print neighborhood.shape
+  print(neighborhood.shape)
 
-  print "MAX Filter"
+  print("MAX Filter")
   is_local_max = maximum_filter(imvals,footprint=neighborhood)==imvals
 
   # this is a boolean array, same dims as imvals. True where you have a local max
   #  that's over the threshold specified here - 
   #highest_peaks = is_local_max & np.asarray(np.asarray(imvals > pix_median + 5.0*pix_mad))
   # so is this - 
-  print is_local_max.shape
+  print(is_local_max.shape)
   highest_peaks = is_local_max & (imvals > (pix_median + thresh*pix_mad))
-  print highest_peaks.shape,pix_median,thresh,pix_mad
+  print(highest_peaks.shape,pix_median,thresh,pix_mad)
   # this gives the indices where the value is TRUE - 
   peak_indices = np.argwhere(highest_peaks)
-  print peak_indices.shape
+  print(peak_indices.shape)
 
   return peak_indices
 
