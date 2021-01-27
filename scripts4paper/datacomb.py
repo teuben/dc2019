@@ -35,6 +35,7 @@ if pythonversion=='3':
         
         from casatools import image as iatool
         from casatools import quanta as qatool
+        from casatools import table as tbtool
     else:
         print('###################################################')
         print('Your CASA version does not support sdintimaging.')
@@ -95,6 +96,22 @@ def runsdintimg(vis,
     """
     runsdintimg (D. Petry, ESO)
     a wrapper around the CASA task "sdintimaging"
+    Currently, it provides 'cube' and 'mfs' as spectral modes - 'mtmfs'
+    might be implemented later.
+    
+    steps:
+    - check if SD image has a beam
+    - if not present, create perplanebeams in SD image
+    - derive multiscale sizes for 'multiscale=True'
+    - clean parameter definition as known from tclean (analoguously to 'runtclean')
+    --- important fixed parameters you should be aware of: 
+    restoring beam = common, nterms=1 (to get mfs from mtmfs),
+    weighting='briggs', robust = 0.5, gridder = 'mosaic'
+    - tidy up file names and rename to a uniform output-naming style 
+    - exportfits pcbor 
+    
+      
+   
 
     vis - the MS containing the interferometric data
     sdimage - the Single Dish image
@@ -442,11 +459,20 @@ def runWSM(vis,
     runWSM (A. Plunkett, NRAO)
     a wrapper around the CASA tasks "TCLEAN" and "FEATHER"
     in order to run TCLEAN with a single dish start model, then combine with FEATHER
+   
+    steps:
+    - check brightness units of SD image 
+    - if needed, convert SD image to Jy/pix
+    - call 'runtclean' with with SD image as startmodel
+    - call 'runfeather'
+
+
 
     vis - the MS containing the interferometric data
     sdimage - the Single Dish image
              Note that in case you are creating a cube, this image must be a cube
              with the same spectral grid as the one you are trying to create.
+             ---- DEPRECATED HERE??? -----    
     imname - the imagename of the output images
     spw - the standard selection parameter spw of tclean
            default: '' i.e. all SPWs
@@ -533,7 +559,8 @@ def runWSM(vis,
     toJyPerPix = CellSizeArcsec**2/(1.1331*SingleDishResolutionArcsec**2)
     SDEfficiency = 1.0 #--> Scaling factor
     fluxExpression = "(IM0 * {0:f} / {1:f})".format(toJyPerPix,SDEfficiency)
-    scaled_name = mysdimage.split('/')[-1]+'.Jyperpix'
+    #scaled_name = mysdimage.split('/')[-1]+'.Jyperpix'
+    scaled_name = mysdimage+'.Jyperpix'
 
     os.system('rm -rf '+scaled_name)
     immath(imagename=mysdimage,
@@ -654,6 +681,15 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
     """
     runfeather (A. Plunkett, NRAO)
     a wrapper around the CASA task "FEATHER,"
+
+    steps:
+    - outsourced?: reorder axes of SD image 
+    - outsourced?: regrid reordered SD image 
+    - regrid reordered SD image * INT primary beam = PB attenuated SD image 
+    - feather INT image with PB attenuated SD image 
+    - PB correct feather output
+    - exportfits pbcor
+
 
     intimage - the interferometry image
              default: None, example: 'imagename.image'
@@ -840,6 +876,17 @@ def runtclean(vis,
     runtclean (A. Plunkett, NRAO, D. Petry, ESO)
     a wrapper around the CASA task "TCLEAN,"
 
+
+    steps:
+    - return mask setup
+    - derive multiscale sizes for 'multiscale=True'
+    - clean parameter definition as known from tclean (analoguously to 'runsdintimg')
+    --- important fixed parameters you should be aware of: 
+    restoring beam = common, gridder = 'mosaic',
+    weighting='briggs', robust = 0.5
+    - exportfits pcbor 
+
+
     vis - the MS containing the interferometric data
     imname - the root name of the output images
     startmodel - start model for cleaning
@@ -880,13 +927,12 @@ def runtclean(vis,
              default: 'auto-multithresh'
     interactive - the standard tclean interactive option
              default: True
-    
     multiscale - if False (default) use hogbom cleaning, otherwise multiscale
-       
     maxscale - for multiscale cleaning, use scales up to this value (arcsec)
              Recommended value: 10 arcsec
              default: 0.
-
+    restart - True (default): Re-use existing images. False: Increment imagename
+    continueclean - True: same as 'restart', False(default): Delete old version
 
     Example: runtclean('gmc_120L.alma.all_int-weighted.ms', 
                 'gmc_120L', phasecenter='J2000 12:00:00 -35.00.00.0000', 
@@ -989,7 +1035,7 @@ def runtclean(vis,
                     mask=mask,
                     pbmask=pbmask,    # used by all usemasks! perhaps needed for fastnoise-calc!
                     verbose=True, 
-                    restart=restart)
+                    restart=restart)  # should switch off bc default
 
 
 
@@ -1016,6 +1062,72 @@ def runtclean(vis,
 
 
 
+    
+
+######################################
+
+def visHistory(vis, origin='applycal', search='version',includeVis=False):
+    """
+    Taken from analysisUtils.py (state: Jan 19th, 2021), modified by 
+    Lydia Moser-Fischer to get the CASA version used for the calibration of the ms.
+    Use search='ms.hifa' to detect pipeline calibration (need to verify for cycle 2 data)!
+    
+    -------------------------
+    
+    Print the history information from a measurement set.
+    origin: if specified, only print messages from this (task) origin
+    search: if specified, only print messages containing this string
+    includeVis: if True, then include the basename of the vis parameter is the search string
+    Example: to see the flux scale that was set:
+      au.visHistory('uid___A002_Xd1ff61_X5cd_target.ms','setjy','field,fluxde,spw',includeVis=True)
+    -Todd Hunter
+    
+    """
+    if (not os.path.exists(vis)):
+        print("Dataset not found")
+        return
+    mytb = tbtool()                                # modified
+    mytb.open(vis+'/HISTORY')
+    messages = mytb.getcol('MESSAGE')
+    origins = mytb.getcol('ORIGIN')
+    mytb.close()
+    msg = []
+    myorigins = []
+    for i in range(len(messages)):
+        newmessages = messages[i].split('\n')
+        msg += newmessages
+        myorigins += [origins[i]]*len(newmessages)
+    # msg is now longer than origins
+    origins = myorigins
+    if type(search) == str:
+        searches = search.split(',')
+    else:
+        searches = search
+    if includeVis:
+        searches.append(os.path.basename(vis))
+        searches.append(os.path.basename(vis).replace('_target',''))
+    for i in range(len(msg)):
+        if (search == '' and origin == ''):
+            print(msg[i])
+        elif (search == ''): # origin is set
+            if (origins[i]==origin):
+                print(msg[i])
+        else: # search is set
+            for search in searches:
+                if msg[i].find(search)>=0:
+                    if origin == '' or origin == origins[i]:
+                        print(msg[i])
+                        return msg[i].split(' ')     # added
+                        break
+    if search != '':
+        print("Searched %d messages" % (len(msg)))
+        
+        
+        
+        
+        
+
+
 
 
 
@@ -1024,8 +1136,9 @@ def runtclean(vis,
 
 def get_SD_cube_params(sdcube =''):
     """
-    This function, originally called 'setup_cube_params(self,sdcube='')',
-    is taken from the SDINT_helper module inside CASA 5.7.
+    Taken from the SDINT_helper module inside CASA 5.7 (originally called 
+    'setup_cube_params(self,sdcube='')', state: Dec, 2020), 
+    modified by Lydia Moser-Fischer
     _____________________________________________________________________
 
     Read coordinate system from the SD cube
@@ -1064,7 +1177,7 @@ def get_SD_cube_params(sdcube =''):
     if not 'nChannels' in rbeams or rbeams['nChannels']!= shp[3]:
         print("The SD Cube needs to have per-plane restoringbeams")
         _ia.close()
-        #return False    <---switched off by DC-team
+        #return False                                # switched off by DC-team
     else:
         print("Found " + str(rbeams['nChannels']) + " per-plane restoring beams")
     print("\n(For specmode='mfs' in sdintimaging, please remember to set 'reffreq' to a value within the freq range of the cube)\n")
@@ -1082,15 +1195,32 @@ def channel_cutout(old_image, new_image, startchan = None,
     endchan = None):
 
     """
-    reorder_axes (L. Moser-Fischer)
-    a tool to reorder the axes according to a reference/template image
-
-    to_reorder - the image whose axes should be reordered
+    channel_cutout (L. Moser-Fischer)
+    a tool to cut out a range of channels from a cube. 
+    In contrast to pure IMMATH, this procedure updates the reference frequency of the new cube.
+    IMMATH sets perplane beam eventhough the input image has a common beam.
+    This procedure fixes the per plane beams in the new cube to a common beam 
+    again.
+    
+    steps:
+    - check if channels are set
+    - cut out channel range with immath
+    - update reference frequency in new cube
+    - merge perplanebeams to a common beam 
+    
+    
+    old_image - the image cube whose channel should be extracted
              default: None, example: 'SD.image'
-    reordered - the outputname whose axes have been reordered
-             default: None, example: 'lowres.ro'
+    new_image - the outputname for the extracted channels
+             default: None, example: 'SD_ch3-15.image'
+    startchan - first channel to be included (format: int)
+             default: None, example: 3
+    endchan - last channel to be included (format: int)     
+             default: None, example: 15
 
-    Example: reorder_axes('SD.image', 'lowres.ro')
+    Example: channel_cutout('SD.image', 'SD_ch3-15.image', startchan = 3, endchan = 15)
+    
+    
     """
 
     #print('startchan', startchan, 'endchan', endchan)
@@ -1112,16 +1242,85 @@ def channel_cutout(old_image, new_image, startchan = None,
         
         imhead(imagename = new_image, 
                mode='put', hdkey='crval4', hdvalue=str(ref_new))
-               
+        
+        #if perplanebeams, then smooth
+        check_beam=imhead(new_image, mode='summary')
+        if 'perplanebeams' in check_beam.keys():
+            imsmooth(imagename = new_image,
+                kernel    = 'commonbeam',                                                     
+                outfile   = new_image+'_1',            
+                overwrite = True)       
+                        
+            os.system('rm -rf '+new_image)
+            os.system('cp -r '+new_image+'_1 ' +new_image)
+        else:
+            pass        
 
 
+
+
+
+
+######################################
+
+def regrid_SD(old_image, new_image, template_image):
+
+    """
+    regrid_SD (L. Moser-Fischer)
+    (maybe rename to 'regrid_image' - need to check if 'SD only' is mandatory)
+    IMREGRID alone does not fix any perplanebeam issues
+    - need to smooth to common beam.
+    
+    steps:
+    - regrid image
+    - merge perplanebeams to a common beam 
+
+    
+    old_image - the image to be be regridded
+             default: None, example: 'SD.image'
+    new_image - the outputname of the regridded image
+             default: None, example: 'SD.reg'
+    template_image - the template image to regrid the input image to
+             default: None, example: 'INT.image'             
+
+    Example: regrid_SD('SD.image', 'SD.reg', 'INT.image' )
+    """
+
+
+    imregrid(imagename=old_image,
+                     template=template_image,
+                     axes=[0,1,2,3],
+                     output=new_image)  
+
+
+    #if perplanebeams, then smooth
+    check_beam=imhead(new_image, mode='summary')
+    if 'perplanebeams' in check_beam.keys():
+        imsmooth(imagename = new_image,
+            kernel    = 'commonbeam',                                                     
+            outfile   = new_image+'_1',            
+            overwrite = True)       
+                    
+        os.system('rm -rf '+new_image)
+        os.system('cp -r '+new_image+'_1 ' +new_image)
+    else:
+        pass       
+    
+            
+            
+            
+            
+            
 ######################################
 
 def reorder_axes(to_reorder, reordered_image):
 
     """
     reorder_axes (L. Moser-Fischer)
-    a tool to reorder the axes according to a reference/template image
+    a tool to reorder the axes according to a fixed order defined here
+
+    steps:
+    - simple imtrans
 
     to_reorder - the image whose axes should be reordered
              default: None, example: 'SD.image'
@@ -1148,8 +1347,17 @@ def reorder_axes(to_reorder, reordered_image):
 def reorder_axes2(template, to_reorder, reordered):
 
     """
-    reorder_axes (M. Hoffmann, D. Kunneriath, N. Pingel, L. Moser-Fischer)
+    reorder_axes2 (M. Hoffmann, D. Kunneriath, N. Pingel, L. Moser-Fischer)
     a tool to reorder the axes according to a reference/template image
+    Replaced by clearer reorder_axes function 
+
+    steps:
+    - read axes information of template and image to reorder
+    - compare axis units and list 'to_reorder' axes according to template's order of units
+    - apply the new axis order list to the image to be reordered if the new 
+      order deviates from the standard order 
+
+
 
     template - the reference image
              default: None, example: 'INT.image'
@@ -1232,18 +1440,64 @@ def make_SDint_mask(vis, SDimage, imname, sdmasklev, SDint_mask_root,
                     start = 0, width = 1, nchan = -1, restfreq = ''):
 
     """
-    reorder_axes (A. Plunkett, L. Moser-Fischer)
+    make_SDint_mask (A. Plunkett, L. Moser-Fischer)
     a tool to generate a mask from an SD image and the first auto-masking 
     step in tclean of an interferometric image
 
-    template - the reference image
-             default: None, example: 'INT.image'
-    to_reorder - the image whose axes should be reordered
-             default: None, example: 'SD.image'
-    reordered - the outputname whose axes have been reordered
-             default: None, example: 'lowres.ro'
+    steps:
+    - create mask from SD image at a user given fraction of the peak flux
+    - call 'runtclean' with relevant inputs to create the wanted grid/raster 
+       and niter=1 to load the SD mask into a clean mask
+    - rerun 'runtclean' with same parameters except from usemask='auto-multithresh', mask=''
+       to add the auto-detected compact emission regions (smoothed out in SD image) 
+       to the existing clean mask
+    - rename clean mask to wanted output name (root)
 
-    Example: reorder_axes('INT.image', 'SD.image', 'lowres.ro')
+
+
+    vis - the MS containing the interferometric data
+    sdimage - the Single Dish image
+             Note that in case you are creating a cube, this image must be a cube
+             with the same spectral grid as the one you are trying to create.
+    imname - the root name of the output images
+    sdmasklev - if usemask='user', then use SD image at this level to draw a mask.
+             typically: 0.3
+    SDint_mask_root - the root name of the output mask, extention '.mask' will 
+             be added automatically             
+    phasecenter - the standard tclean phasecenter parameter
+           e.g. 'J2000 12:00:00 -35.00.00.0000'
+           default: '' - determine from the input MS with aU.pickCellSize   
+    spw - the standard selection parameter spw of tclean
+           default: '' i.e. all SPWs
+    field - the standard selection parameter field of tclean
+           default: '' i.e. all fields
+    imsize - (optional) the standard tclean imsize parameter 
+            should correspond to the imagesize for the most extended
+            interferometer config.
+           default: determine from the input MS with aU.pickCellSize
+    cell - (optional) the standard tclean cell parameter
+            should correspond to the cell size for the most extended
+            interferometer config, i.e. smallest beam / 5.
+           default: determine from the input MS with aU.pickCellSize                    
+    specmode - the standard tclean specmode parameter: supported are msf or cube
+           default: 'msf'
+    start - the standard tclean start parameter
+             default: 0
+    width - the standard tclean width parameter
+             default: 1
+    nchan - the standard tclean nchan parameter
+             default: -1
+    restfreq - the restfrequency to write to the image for velocity calculations
+             default: '', example: '115.271GHz'
+
+       
+    Example: make_SDint_mask('gmc_120L.alma.all_int-weighted.ms',
+                'gmc_120L.sd.image', 'gmc_120L.get_mask', 0.3, 'INT-SD', 
+                phasecenter='J2000 12:00:00 -35.00.00.0000', 
+                spw='0', field='0~68', imsize=[1120,1120], cell='0.21arcsec', 
+                specmode='cube', start= '1550km/s', width= '5km/s', 
+                nchan= 10, restfreq = '115.271202GHz')                    
+                    
     """
 
     
@@ -1252,7 +1506,7 @@ def make_SDint_mask(vis, SDimage, imname, sdmasklev, SDint_mask_root,
                  origin='make_SDint_mask')
     #get max in SD image
     maxSD = imstat(SDimage)['max'][0]
-    sdmasklev=0.3
+    #sdmasklev=sdmasklev
     sdmaskval = sdmasklev*maxSD
     
     SDoutname1 = SDint_mask_root + '_pre1.mask'
@@ -1278,14 +1532,14 @@ def make_SDint_mask(vis, SDimage, imname, sdmasklev, SDint_mask_root,
             niter=1,usemask='user',mask=SDoutname1,restart=True,interactive=False, continueclean=True)
     print('### Step 2 of 2: add first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
     print('### Please check the result!')        
-    os.system('cp -rf '+imname+'.mask '+SDoutname2)
+    os.system('cp -r '+imname+'.mask '+SDoutname2)
     os.system('rm -rf '+imname+'.image.pbcor.fits')        
     runtclean(vis,imname,
             phasecenter=phasecenter, 
             spw=spw, field=field, imsize=imsize, cell=cell, specmode=specmode,
             start = start, width = width, nchan = nchan, restfreq = restfreq,
             niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=False, continueclean=True)
-    os.system('cp -rf '+imname+'.mask '+finalSDoutname)
+    os.system('cp -r '+imname+'.mask '+finalSDoutname)
     
     #print('### Creating a mask based on SD mask and auto-mask')
     #print('### Step 2 of 2: first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
@@ -1327,10 +1581,24 @@ def derive_threshold(vis, imname, threshmask,
     derive_threshold (L. Moser-Fischer)
     a tool to derive a reasonable clean threshold and mask for an 
     interferometric image
+    
+    steps: 
+    - create dirty image if needed, 
+    - get an RMS (continuum: RMS of full image (!including emission), 
+    cube: RMS of moment 6 (RMS) map - right choice of cont_chans makes this 
+    the true RMS of the cube!), 
+    - create threshold by applying a user defined factor to the RMS (different 
+    for continuum and cube due to different RMS definition),
+    - make mask from threshold
+    - smooth mask by Gaussian with "smoothing"*beam_major and "smoothing"*beam_minor axes
+    - turn smoothed mask into a 1,0-mask
+    
+    
 
     vis - the MS containing the interferometric data
     imname - the root name of the output images
-    threshmask - the root name of the threshold mask
+    threshmask - the root name of the threshold mask, extention '.mask' will 
+             be added automatically             
     phasecenter - the standard tclean phasecenter parameter
            e.g. 'J2000 12:00:00 -35.00.00.0000'
            default: '' - determine from the input MS with aU.pickCellSize   
@@ -1358,19 +1626,28 @@ def derive_threshold(vis, imname, threshmask,
              default: None, example: '115.271GHz'
     overwrite - True: generate new template INT image: False: just derive 
                 threshold values from existing template INT image
-    smoothing - 
-    RMSfactor - 
-    cube_rms - 
-    cont_chans - 
+    smoothing factor - smooth thresholdmask to multiples beamsizes (smoothing*beamaxis) 
+            to avoid unphysical mask shapes (too few pixels, straight lines, sharp corners)
+    RMSfactor - to apply to a continuum RMS of the full image to define a threshold at which 
+            as much emission as possible/reasonable is contained; user needs to play with it
+            typically: 0.5
+    cube_rms - factor to apply to a a cube RMS to define a threshold. channels
+            If cont_chans is set to line-free channels, this factor can be used
+            to set the threshold as 3sigma, 10sigma, etc level) 
+    cont_chans - define the line-free channels here to get a pure noise RMS of a cube 
     
-    template - the reference image
-             default: None, example: 'INT.image'
-    to_reorder - the image whose axes should be reordered
-             default: None, example: 'SD.image'
-    reordered - the outputname whose axes have been reordered
-             default: None, example: 'lowres.ro'
-
-    Example: reorder_axes('INT.image', 'SD.image', 'lowres.ro')
+                                    
+    Example: derive_threshold('gmc_120L.alma.all_int-weighted.ms',
+                'gmc_120L.get_mask', 'gmc_120L.threshmask',
+                phasecenter='J2000 12:00:00 -35.00.00.0000', 
+                spw='0', field='0~68', imsize=[1120,1120], cell='0.21arcsec', 
+                specmode='cube', start= '1550km/s', width= '5km/s', 
+                nchan= 55, restfreq = '115.271202GHz', 
+                overwrite=False, smoothing = 5, 
+                RMSfactor = 0.5, cube_rms = 3.,   
+                cont_chans ='2~13;44~54')                
+                  
+                    
     """
 
     
@@ -1485,19 +1762,35 @@ def derive_threshold(vis, imname, threshmask,
 def ssc(highres=None, lowres=None, pb=None, combined=None, 
         sdfactor=1.0):
     """
-        ssc (P. Teuben, N. Pingel, L. Moser-Fischer)
-        an implementation of Faridani's short spacing combination method
-        https://bitbucket.org/snippets/faridani/pRX6r
-        https://onlinelibrary.wiley.com/doi/epdf/10.1002/asna.201713381
+    ssc (P. Teuben, N. Pingel, L. Moser-Fischer)
+    an implementation of Faridani's short spacing combination method
+    https://bitbucket.org/snippets/faridani/pRX6r
+    https://onlinelibrary.wiley.com/doi/epdf/10.1002/asna.201713381
 
-        highres  - high resolution (interferometer) image
-        lowres   - low resolution (single dish (SD)/ total power (TP)) image
-        pb       - high resolution (interferometer) primary beam image 
-        combined - output image name 
-        sdfactor - scaling factor for the SD/TP contribution
+    steps:
+    - helper functions for header information (beam, etc.)
+    - outsourced?: reorder axes of SD image 
+    - outsourced?: regrid reordered SD image 
+    - regrid reordered SD image * INT primary beam = PB attenuated SD image 
+    - fix brightness unit of PB attenuated SD image
+    - smooth INT image to resolution of PB attenuated SD image = SD convolved INT image
+    - PB attenuated SD image - SD convolved INT image = INT subtracted SD image
+    - define weightfactor = INT beam area / SD beam area
+    - if SD in Jy/beam: INT image + INT subtracted SD image * weightfactor = combined image
+    - if SD in Kelvin:  INT image + INT subtracted SD image = combined image
+    - PB correct SSC output
+    - exportfits pbcor and nopbcorr
+   
 
-        Example: ssc(highres='INT.image', lowres='SD.image', pb='INT.pb',
-                     combined='INT_SD_1.7.image', sdfactor=1.7)
+
+    highres  - high resolution (interferometer) image
+    lowres   - low resolution (single dish (SD)/ total power (TP)) image
+    pb       - high resolution (interferometer) primary beam image 
+    combined - output image name 
+    sdfactor - scaling factor for the SD/TP contribution
+
+    Example: ssc(highres='INT.image', lowres='SD.image', pb='INT.pb',
+                 combined='INT_SD_1.7.image', sdfactor=1.7)
 
     """
 
