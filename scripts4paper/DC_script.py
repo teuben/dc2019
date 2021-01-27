@@ -15,16 +15,25 @@ Run under CASA 6.
 
 
 #thesteps=[0,1,2,3,4,5,6]
-thesteps=[1,6]
+thesteps=[1,5]
 
-
+# step_title = {0: 'Concat',
+#               1: 'Prepare the SD-image',
+#               2: 'Clean for Feather/Faridani',
+#               3: 'Feather', 
+#               4: 'Faridani short spacings combination (SSC)',
+#               5: 'Hybrid (startmodel clean + Feather)',
+#               6: 'SDINT'#,
+#               #7: 'TP2VIS'
+#               }
 
 import os 
 import sys 
 #import glob
 
 ###### CASA - version check  ######
-sys.path.append('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/')               # path to the folder with datacomb.py and ssc_DC.py
+datacombpath='/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/'
+sys.path.append(datacombpath)               # path to the folder with datacomb.py and ssc_DC.py
 pythonversion = sys.version[0]
 
 if pythonversion=='3':
@@ -54,7 +63,7 @@ elif pythonversion=='2':
     import casadef
     if casadef.casa_version == '5.7.0':
         #print('Executed in CASA ' +casadef.casa_version)
-        execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/datacomb.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
+        execfile(datacombpath+'datacomb.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
         #execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/ssc_DC_2.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
     else:
         print('###################################################')
@@ -137,8 +146,8 @@ nit = 0               # max = 9.9 * 10**9
 specsetup =  'INTpar' # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
 ######### if "SDpar", want to use just a channel-cut-out of the SD image? , 
 # else set to None (None automatically for 'INTpar'
-startchan = 30 #None #30 # start-value of the SD image channel range you want to cut out 
-endchan = 34 #None #34   #   end-value of the SD image channel range you want to cut out
+startchan = 30  #None  # start-value of the SD image channel range you want to cut out 
+endchan   = 39  #None  #   end-value of the SD image channel range you want to cut out
 
 
 
@@ -165,12 +174,12 @@ general_tclean_param = dict(#overwrite  = overwrite,
                            spw         = '0~2', #'0', 
                            field       = '', #'0~68', 
                            specmode    = mode,      # ! change in variable above dict !        
-                           imsize      = 550, #800, #[1120], 
+                           imsize      = 560, #800, #[1120], 
                            cell        = '0.5arcsec', #'0.21arcsec',    # arcsec
                            phasecenter = 'J2000 12h22m54.9 +15d49m15', #'J2000 12:00:00 -35.00.00.0000',             
                            start       = '1550km/s', #'1400km/s', #0, 
                            width       = '5km/s', #1, 
-                           nchan       = 5, #70, #-1, 
+                           nchan       = 10, #70, #-1, 
                            restfreq    = '115.271202GHz', #'',
                            threshold   = '',        # SDINT: None 
                            maxscale    = 10.,              # recommendations/explanations 
@@ -255,7 +264,8 @@ if mscale == 'MS':
 #
 #    imname = imbase + cleansetup + combisetup 
 
-cleansetup = '.'+ mode +'_'+ specsetup +'_'+ mscale +'_'+ masking +'_'+ inter +'_n'+ str(nit)
+cleansetup_nonit = '.'+ mode +'_'+ specsetup +'_'+ mscale +'_'+ masking +'_'+ inter
+cleansetup = cleansetup_nonit +'_n'+ str(nit)
 
 #cleansetup = '.'+ mscale +'_'+ masking + '_n%.1e' %(nit)
 #cleansetup = cleansetup.replace("+0","")
@@ -288,7 +298,7 @@ sdreordered_cut = sdbase +'.SD_ro.image'                 # SD image axis-reorder
 sdroregrid = sdbase +'.SD_ro-rg_'+specsetup+'.image' # SD image regridding
 
 
-imnamethSD  = imbase + cleansetup +'_template'      # dirty image for thershold and mask generation
+imnamethSD  = imbase + cleansetup_nonit +'_template'      # dirty image for thershold and mask generation
 threshmask = imbase + '.'+specsetup+ '_RMS'         # thresold mask name
 SDint_mask_root = sdbase + '.'+specsetup+ '_SD-AM'  # SD+AM mask name
 combined_mask = SDint_mask_root + '-RMS.mask'       # SD+AM+threshold mask name
@@ -370,7 +380,7 @@ mask_tclean_param = dict(phasecenter=general_tclean_param['phasecenter'],
 
 
 if general_tclean_param['threshold'] == '':
-    if not os.path.exists(threshmask + '.mask'):
+    if not os.path.exists(threshmask + '.mask') or not os.path.exists(imnamethSD + '.image'):
         if 1 in thesteps:
             pass
         else:    
@@ -466,7 +476,7 @@ if(mystep in thesteps):
            
 
 
-mystep = 1    ############# ----- PREPARE SD-IMAGE -----###############
+mystep = 1    ############# ----- PREPARE SD-IMAGE and MASKS-----###############
 if(mystep in thesteps):
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
@@ -538,15 +548,15 @@ if(mystep in thesteps):
         print('')
         print('Regridding SD image...')
         os.system('rm -rf '+sdroregrid)
-        imregrid(imagename=sdreordered_cut,
-                         template=imnamethSD+'.image',
-                         axes=[0,1,2,3],
-                         output=sdroregrid)    
+        if pythonversion=='3':
+            dc.regrid_SD(sdreordered_cut, sdroregrid, imnamethSD+'.image')
+        else:
+            regrid_SD(sdreordered_cut, sdroregrid, imnamethSD+'.image')  
         sdimage = sdroregrid  # for INT cube params used
 
     
        
-    # make SD+AM mask (requires regridding to be run; currently:  cont mode only)
+    # make SD+AM mask (requires regridding to be run; currently)
     
 
 
