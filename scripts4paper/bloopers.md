@@ -134,8 +134,17 @@ component to your script.
 4. Modern laptops can sometimes be faster than your desktop, but once you count in the
    GHz drop in parallel tclean you may loose that again.
 
+## perchanweightdensity
 
+CASA 5.6 added a new keyword, perchanweightdensity=True, where the previous version
+effectively used False.
 
+https://help.almascience.org/kb/articles/how-does-the-new-perchanweightdensity-parameter-in-casa-effect-my-alma-data
+
+The QAC bench64 showed that perchanweightdensity=True did not improve for multi-core, but the old default did.
+The whole  multi-core performance issue, OpenMP vs. MPI , is still an open question, not for the paper, but we
+do want to keep track of this open issue here. CASA team finds abut 6 cores is the sweet spot. They use
+MPI, as OpenMP is not *certified*
 
 ## CASA bugs
 
