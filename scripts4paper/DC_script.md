@@ -54,6 +54,26 @@ and skip thesteps=[0].
       sdbase    = pathtoimage + 'skymodel-b_120L_TP'         # path + sd image base name
 
 
+## USER INPUTS:  TP2VIS related setup
+
+TPpointingTemplate is an ALMA 12m dataset used in the combination, listobsOutput 
+holds the information that listobs produces, TPpointinglist contains the antenna 
+pointings read out from the listobsOutput. If these are not provided the user can 
+use his own pointing list. 
+
+      TPpointingTemplate = a12m[0]        
+      listobsOutput  = imbase+'.12m.log'
+      TPpointinglist = imbase+'.12m.ptg'
+      TPpointinglistAlternative = 'user-defined.ptg'   
+ 
+For transforming the SD image into visibilities, TP2VIS needs the rms in the SD images 
+for setting the weights. Therefore, one has to specify a range of emission-free pixels 
+in a continuum SD image, or a range of emission-free channels in the SD cube.
+
+      TPnoiseRegion = '10,30,10,30'  # emission free box in unregridded continuum SD image!
+      TPnoiseChannels = '2~5'        # emission free channels in unregridded and un-cut SD cube!
+
+
 ##  USER INPUTS: setup of the clean parameters
 
 With this section, we set up the clean parameters common for all tclean 
@@ -224,7 +244,9 @@ Requires restoringbeam='common'! perplanebeam-problems
 
 
 ### step 7: TP2VIS
-not yet activated.
+
+      imname = imbase + cleansetup + TP2VISsetup + str(TPfac[i]) 
+      e.g.     skymodel-b_120L.HB_AM_n0.0e0.TP2VIS_t1.0
 
 
 ## after combination loops
