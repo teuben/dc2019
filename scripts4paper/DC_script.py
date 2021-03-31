@@ -15,7 +15,7 @@ Run under CASA 6.
 
 
 #thesteps=[0,1,2,3,4,5,6]
-thesteps=[1,5]
+thesteps=[7]
 
 # step_title = {0: 'Concat',
 #               1: 'Prepare the SD-image',
@@ -23,8 +23,8 @@ thesteps=[1,5]
 #               3: 'Feather', 
 #               4: 'Faridani short spacings combination (SSC)',
 #               5: 'Hybrid (startmodel clean + Feather)',
-#               6: 'SDINT'#,
-#               #7: 'TP2VIS'
+#               6: 'SDINT',
+#               7: 'TP2VIS'
 #               }
 
 import os 
@@ -33,7 +33,9 @@ import sys
 
 ###### CASA - version check  ######
 datacombpath='/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/'
+TP2VISpath='/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/'
 sys.path.append(datacombpath)               # path to the folder with datacomb.py and ssc_DC.py
+sys.path.append(TP2VISpath)               # path to the folder with datacomb.py and ssc_DC.py
 pythonversion = sys.version[0]
 
 if pythonversion=='3':
@@ -42,14 +44,22 @@ if pythonversion=='3':
         #print('Executed in CASA ' +'.'.join(map(str, CASAvers())))    
         #if 'casatasks' in locals():
         import datacomb as dc
+        import tp2vis as t2v
         #import ssc_DC_2 as ssc     # need to import casatasks therein!
         from casatasks import concat
         from casatasks import imregrid, immath
         from casatasks import casalog
         from importlib import reload  
+
+        from casatasks import exportfits
+        from casatasks import imstat, immoments
+        from casatools import table as tbtool
+        import numpy as np
          
         #reload(ssc)
         reload(dc)
+        reload(t2v)
+        
     else:
         print('###################################################')
         print('Your CASA version does not support sdintimaging.')
@@ -61,9 +71,10 @@ if pythonversion=='3':
 
 elif pythonversion=='2':
     import casadef
-    if casadef.casa_version == '5.7.0':
+    if casadef.casa_version == '5.7.0' or casadef.casa_version == '5.7.2':
         #print('Executed in CASA ' +casadef.casa_version)
         execfile(datacombpath+'datacomb.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
+        execfile(TP2VISpath+'tp2vis.py', globals())                   # path to the folder swith datacomb.py and ssc_DC.py
         #execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/ssc_DC_2.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
     else:
         print('###################################################')
@@ -82,9 +93,9 @@ elif pythonversion=='2':
 
 
 # path to input and outputs
-pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/M100-data/'   # path to the folder with the files to be concatenated
+#pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/M100-data/'   # path to the folder with the files to be concatenated
 #pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/gmcSkymodel_120L/gmc_120L/'   # path to the folder with the files to be concatenated
-#pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/skymodel-c.sim/skymodel-c_120L/'   # path to the folder with the files to be concatenated
+pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/skymodel-c.sim/skymodel-c_120L/'   # path to the folder with the files to be concatenated
 pathtoimage  = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/DC_Ly_tests/'                          # path to the folder where to put the combination and image results
 
 
@@ -93,42 +104,69 @@ os.system('rm -rf '+pathtoimage + 'TempLattice*')
 
 
 # setup for concat 
-#thevis = [pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-02.ms']#,
-#thevis = [pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms']#,
-thevis = [pathtoconcat + 'M100_Band3_12m_CalibratedData/M100_Band3_12m_CalibratedData.ms']#,
-          #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-02.ms',
-          #pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-03.ms',
-          #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-03.ms',
-          #pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-04.ms',
-          #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-04.ms',
-          #pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-05.ms',
-          #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-05.ms',
-          #pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-20.ms',
-          #pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-21.ms',
-          #pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-22.ms',
-          #pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-23.ms']
 
+#a12m=[#pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms',
+      #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-02.ms',
+      #pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-03.ms',
+      #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-03.ms',
+      #pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-04.ms',
+      #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-04.ms',
+      #pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-05.ms',
+      #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-05.ms']
+      
+#a7m =[#pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-20.ms',
+      #pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-21.ms',
+      #pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-22.ms',
+      #pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-23.ms']
+
+#thevis = a12m
+#thevis = thevis.extend(a7m)
+
+#thevis = [pathtoconcat + 'M100_Band3_12m_CalibratedData/M100_Band3_12m_CalibratedData.ms']#,
+
+thevis = [pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-02.ms']#,
+a12m = thevis
+
+
+#weight12m = [1., 1., 1., 1., 1., 1., 1.]
+#weight7m = [0.116, 0.116, 0.116, 0.116]
+#
+#weightscale = weight12m
+#weightscale = weightscale.expand(weight7m)
+#
 weightscale = [1.]#, 1., 1., 1., 1., 1., 1., 1.,
                #0.116, 0.116, 0.116, 0.116]
 
-concatms     = pathtoimage + 'M100-B3.alma.all_int-weighted.ms'       # path and name of concatenated file
+#concatms     = pathtoimage + 'M100-B3.alma.all_int-weighted.ms'       # path and name of concatenated file
 #concatms     = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
-#concatms     = pathtoimage + 'skymodel-c_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
+concatms     = pathtoimage + 'skymodel-c_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
 
 
 
 
 ############# input to combination methods ###########
 
-vis       = concatms 
+vis       = concatms
 #sdimage_input  = pathtoconcat + 'M100_Band3_ACA_ReferenceImages/M100_TP_CO_cube_1550-5.image'
-sdimage_input  = pathtoconcat + 'M100_Band3_ACA_ReferenceImages/M100_TP_CO_cube.bl.image'
+#sdimage_input  = pathtoconcat + 'M100_Band3_ACA_ReferenceImages/M100_TP_CO_cube.bl.image'
 #sdimage_input  = pathtoconcat + 'gmc_120L.sd.image'
-#sdimage_input   = pathtoconcat + 'skymodel-c_120L.sd.image'
-imbase    = pathtoimage + 'M100-B3'            # path + image base name
+sdimage_input   = pathtoconcat + 'skymodel-c_120L.sd.image'
+#imbase    = pathtoimage + 'M100-B3'            # path + image base name
 #imbase    = pathtoimage + 'skymodel-b_120L'            # path + image base name
-#imbase    = pathtoimage + 'skymodel-c_120L'            # path + image base name
-sdbase    = pathtoimage + 'M100-B3'            # path + sd image base name
+imbase    = pathtoimage + 'skymodel-c_120L'            # path + image base name
+#sdbase    = pathtoimage + 'M100-B3'            # path + sd image base name
+sdbase    = pathtoimage + 'skymodel-c_120L.sd'            # path + sd image base name
+
+
+
+# TP2VIS related:
+TPpointingTemplate = a12m[0]
+listobsOutput  = imbase+'.12m.log'
+TPpointinglist = imbase+'.12m.ptg'
+TPpointinglistAlternative = 'user-defined.ptg' 
+
+TPnoiseRegion = '150,200,150,200'  # in unregridded SD image (i.e. sdreordered = sdbase +'.SD_ro.image')
+TPnoiseChannels = '2~5'        # in unregridded and un-cut SD cube (i.e. sdreordered = sdbase +'.SD_ro.image')!
 
 
 
@@ -137,11 +175,11 @@ sdbase    = pathtoimage + 'M100-B3'            # path + sd image base name
 # structure could be something like:
 #    imname = imbase + cleansetup + combisetup 
 
-mode   = 'cube'        # 'mfs' or 'cube'
+mode   = 'mfs'        # 'mfs' or 'cube'
 mscale = 'HB'         # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
 masking  = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 inter = 'nIA'         # interactive ('IA') or non-interactive ('nIA')
-nit = 0               # max = 9.9 * 10**9 
+nit = 100               # max = 9.9 * 10**9 
 
 specsetup =  'INTpar' # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
 ######### if "SDpar", want to use just a channel-cut-out of the SD image? , 
@@ -170,13 +208,14 @@ sdmasklev = 0.3  # maximum x this factor = threshold for SD mask
                       
 ########## general tclean parameters
 
+# skymodel
 general_tclean_param = dict(#overwrite  = overwrite,
-                           spw         = '0~2', #'0', 
-                           field       = '', #'0~68', 
+                           spw         = '0', 
+                           field       = '0~68', 
                            specmode    = mode,      # ! change in variable above dict !        
-                           imsize      = 560, #800, #[1120], 
-                           cell        = '0.5arcsec', #'0.21arcsec',    # arcsec
-                           phasecenter = 'J2000 12h22m54.9 +15d49m15', #'J2000 12:00:00 -35.00.00.0000',             
+                           imsize      = [1120], 
+                           cell        = '0.21arcsec',    # arcsec
+                           phasecenter = 'J2000 12:00:00 -35.00.00.0000',             
                            start       = '1550km/s', #'1400km/s', #0, 
                            width       = '5km/s', #1, 
                            nchan       = 10, #70, #-1, 
@@ -194,6 +233,32 @@ general_tclean_param = dict(#overwrite  = overwrite,
                            growiterations    = 75, 
                            negativethreshold = 0.0)#, 
                            #sdmasklev=0.3)   # need to overthink here 
+ 
+## M100                           
+#general_tclean_param = dict(#overwrite  = overwrite,
+#                           spw         = '', #'0~2', #'0', 
+#                           field       = '', #'0~68', 
+#                           specmode    = mode,      # ! change in variable above dict !        
+#                           imsize      = 560, #800, #[1120], 
+#                           cell        = '0.5arcsec', #'0.21arcsec',    # arcsec
+#                           phasecenter = 'J2000 12h22m54.9 +15d49m15', #'J2000 12:00:00 -35.00.00.0000',             
+#                           start       = '1550km/s', #'1400km/s', #0, 
+#                           width       = '5km/s', #1, 
+#                           nchan       = 10, #70, #-1, 
+#                           restfreq    = '115.271202GHz', #'',
+#                           threshold   = '',        # SDINT: None 
+#                           maxscale    = 10.,              # recommendations/explanations 
+#                           niter      = nit,               # ! change in variable above dict !
+#                           mask        = '', 
+#                           pbmask      = 0.4,
+#                           #usemask           = 'auto-multithresh',    # couple to interactive!              
+#                           sidelobethreshold = 2.0, 
+#                           noisethreshold    = 4.25, 
+#                           lownoisethreshold = 1.5,               
+#                           minbeamfrac       = 0.3, 
+#                           growiterations    = 75, 
+#                           negativethreshold = 0.0)#, 
+#                           #sdmasklev=0.3)   # need to overthink here                            
 
 
 ########### SDint specific parameters:
@@ -219,7 +284,8 @@ sdfac_h = [1.0]
 sdg = [1.0]
 
 ## TP2VIS parameters:
-#tweak = [1.0]
+#TPfac = [1.0]        #M100
+TPfac = [1000000.]     #sky-c
 
           
           
@@ -278,7 +344,7 @@ feathersetup = '.feather_f' #+ str(sdfac)
 SSCsetup     = '.SSC_f'     #+ str(SSCfac)
 hybridsetup  = '.hybrid_f'  #+ str(sdfac_h)
 sdintsetup   = '.sdint_g'   #+ str(sdg)
-#TP2VISsetup  = '.TP2VIS_t'  #+ str(tweak)
+TP2VISsetup  = '.TP2VIS_t'  #+ str(TPfac)
 
 
 
@@ -329,7 +395,7 @@ if masking == 'SD-AM':
 tclean_mask = threshmask+'.mask'    # 
 hybrid_mask = combined_mask         # 
 sdint_mask  = combined_mask         # 
-
+TP2VIS_mask = combined_mask         # 
 
 
 
@@ -433,7 +499,7 @@ featherims = []
 SSCims     = []
 hybridims  = []
 sdintims   = []
-#TP2VISims  = []
+TP2VISims  = []
 
 
 
@@ -453,8 +519,8 @@ step_title = {0: 'Concat',
               3: 'Feather', 
               4: 'Faridani short spacings combination (SSC)',
               5: 'Hybrid (startmodel clean + Feather)',
-              6: 'SDINT'#,
-              #7: 'TP2VIS'
+              6: 'SDINT',
+              7: 'TP2VIS'
               }
 
         
@@ -540,8 +606,7 @@ if(mystep in thesteps):
     general_tclean_param['threshold']  = str(thresh)+'Jy'   
                      
     
-    # regrid SD image frequency axis to tclean (requires derive_threshold to be run)
-    
+    # regrid SD image frequency axis to tclean (requires derive_threshold to be run)    
     if specsetup == 'SDpar':
         sdimage = sdreordered_cut  # for SD cube params used
     else:
@@ -557,11 +622,6 @@ if(mystep in thesteps):
     
        
     # make SD+AM mask (requires regridding to be run; currently)
-    
-
-
-
-
     if pythonversion=='3':
         SDint_mask = dc.make_SDint_mask(vis, sdimage, imnamethSD, 
                                  sdmasklev, 
@@ -578,12 +638,6 @@ if(mystep in thesteps):
     immath(imagename=[SDint_mask_root+'.mask', threshmask+'.mask'],
            expr='iif((IM0+IM1)>'+str(0)+',1,0)',
            outfile=combined_mask)    
-
-
-
-    # 
-    #if masking == 'SD-AM': 
-    #    general_tclean_param['mask']  = SDint_mask   
 
 
            
@@ -609,7 +663,6 @@ if(mystep in thesteps):
 
     ### for CASA 5.7:
     z = general_tclean_param.copy()   
-    #z.update(special_tclean_param)
 
 
     if dryrun == True:
@@ -623,26 +676,6 @@ if(mystep in thesteps):
         else:
             runtclean(vis, imname, startmodel='', **z)    # in CASA 5.7
         
-        #dc.runtclean(vis, imname, startmodel='',spw='', field='', specmode='mfs', 
-        #            imsize=[], cell='', phasecenter='',
-        #            start=0, width=1, nchan=-1, restfreq=None,
-        #            threshold='', niter=0, usemask='auto-multithresh' ,
-        #            sidelobethreshold=2.0, noisethreshold=4.25, lownoisethreshold=1.5, 
-        #            minbeamfrac=0.3, growiterations=75, negativethreshold=0.0,
-        #            mask='', pbmask=0.4, interactive=True, 
-        #            multiscale=False, maxscale=0.)
-
-        #os.system('for f in '+imbase+cleansetup+'.TCLEAN*; \
-         #          do mv "$f" "${f/.TCLEAN./.}" \
-          #         done')   # rename output to our convention 
-        #os.system('for f in '+imbase+cleansetup+'.TCLEAN*; do mv "$f" "$(echo $f | sed 's/^.TCLEAN././g')"; done')
-        
-        #oldnames=glob.glob(imname+'.TCLEAN*')
-        #for nam in oldnames:
-        #    os.system('mv '+nam+' '+nam.replace('.TCLEAN',''))
-        #
-        ##os.system('rename "s/.TCLEAN//g" '+imname+'.TCLEAN*')
-
 
     tcleanims.append(imname)
 
@@ -666,9 +699,7 @@ if(mystep in thesteps):
         
         imname = imbase + cleansetup + feathersetup + str(sdfac[i]) 
         
-        #os.system('rm -rf '+pathtoimage+'lowres*')
-        #os.system('rm -rf '+imname+'.image.pbcor.fits')
-                
+             
         if dryrun == True:
             pass
         else:
@@ -679,7 +710,6 @@ if(mystep in thesteps):
                 runfeather(intimage, intpb, sdimage, sdfactor = sdfac[i],
                           featherim = imname)
                                       
-            #dc.runfeather(intimage,intpb, sdimage, featherim='featherim')
 
         featherims.append(imname)
 
@@ -714,16 +744,7 @@ if(mystep in thesteps):
                     lowres=sdimage, pb=imbase+cleansetup+tcleansetup+'.pb',
                     sdfactor = SSCfac[i], combined=imname) 
                     
-                    
-            #ssc(pathtoimage,highres=imbase+cleansetup+tcleansetup+'.image.pbcor', 
-            #    lowres=sdimage, f = SSCfac[i]) 
-
-            #os.system('for file in '+imbase+cleansetup+'_ssc_f'+str(SSCfac[i])+'TP* \
-            #           do mv "$file" "${file//_ssc_f'+str(SSCfac[i])+'TP/'+SSCsetup + str(SSCfac[i])+'}" \
-            #           done')   # rename output to our convention 
-
-            #os.system('rename "s/'+tcleansetup+'_ssc_f'+str(SSCfac[i])+'TP/'+SSCsetup + str(SSCfac[i])+'/g" '+imbase+cleansetup+tcleansetup+'_ssc_f'+str(SSCfac[i])+'TP*')
-
+                   
         SSCims.append(imname)
 
 
@@ -748,16 +769,11 @@ if(mystep in thesteps):
 
     ### for CASA 5.7:
     z = general_tclean_param.copy()   
-    #z.update(special_tclean_param)
-
-
 
 
     for i in range(0,len(sdfac_h)):
         imname = imbase + cleansetup + hybridsetup #+ str(sdfac_h[i]) 
 
-        #os.system('rm -rf '+pathtoimage+'lowres*')
-        #os.system('rm -rf '+imname+'.image.pbcor.fits')
         
         if dryrun == True:
             pass
@@ -770,34 +786,10 @@ if(mystep in thesteps):
             if pythonversion=='3':
                 dc.runWSM(vis, sdimage, imname, sdfactorh = sdfac_h[i],
                       **z)
-                      #**general_tclean_param, **special_tclean_param)
             else:
                 runWSM(vis, sdimage, imname, sdfactorh = sdfac_h[i],
                       **z)
-            
-            #dc.runWSM(vis, sdimage, imname, spw='', field='', specmode='mfs', 
-            #            imsize=[], cell='', phasecenter='',
-            #            start=0, width=1, nchan=-1, restfreq=None,
-            #            threshold='',niter=0,usemask='auto-multithresh' ,
-            #            sidelobethreshold=2.0,noisethreshold=4.25,lownoisethreshold=1.5, 
-            #            minbeamfrac=0.3,growiterations=75,negativethreshold=0.0,
-            #            mask='', pbmask=0.4,interactive=True, 
-            #            multiscale=False, maxscale=0.)
-
-
-            #os.system('for file in '+imbase+cleansetup+'.combined* \
-            #           do mv "$file" "${file//.combined/'+hybridsetup + str(sdfac_h[i])+'}" \
-            #           done')   # rename output to our convention 
-            
-            
-            #oldnames=glob.glob(imname+'.TCLEAN*')
-            #for nam in oldnames:
-            #    os.system('mv '+nam+' '+nam.replace('_f'+str(sdfac_h[i])+'.TCLEAN',''))
-            #oldnames=glob.glob(imname+'.combined*')
-            #for nam in oldnames:
-            #    os.system('mv '+nam+' '+nam.replace('.combined',''))
-            
-            ####os.system('rename "s/.combined//g" '+imname+'.combined*')
+           
             
         hybridims.append(imname)
 
@@ -824,7 +816,6 @@ if(mystep in thesteps):
     ### for CASA 5.7:
     z = general_tclean_param.copy()   
     z.update(sdint_tclean_param)
-    #z.update(special_tclean_param)
 
 
     
@@ -839,35 +830,106 @@ if(mystep in thesteps):
             if pythonversion=='3':
                 dc.runsdintimg(vis, sdimage, jointname, sdgain = sdg[0],
                    **z)
-                   #**general_tclean_param, **sdint_tclean_param)
             else:
                 runsdintimg(vis, sdimage, jointname, sdgain = sdg[0],
                    **z)
-                   
-                   
-                                           
-            #dc.runsdintimg(vis, sdimage, jointname, spw='', field='', specmode='mfs', sdpsf='',
-            #            threshold=None, sdgain=5, imsize=[], cell='', phasecenter='', dishdia=12.0,
-            #            start=0, width=1, nchan=-1, restfreq=None, interactive=True, 
-            #            multiscale=False, maxscale=0.)                
-
-            #os.system('for file in '+imbase+cleansetup+'.combined* \
-            #           do mv "$file" "${file//.combined/'+hybridsetup + str(sdfac_h[i])+'}" \
-            #           done')   # rename output to our convention 
-
-            #os.system('rename "s/.joint.multiterm//g" '+jointname+'.joint.multiterm.*')
-            #os.system('rename "s/.tt0//g" '+jointname+'.*.tt0*')
-            #os.system('rename "s/.joint.cube//g" '+jointname+'.joint.cube.*')
 
         sdintims.append(jointname)                
                 
                 
-#mystep = 7    ###################----- TP2VIS -----####################
-#if(mystep in thesteps):
-#    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
-#    print('Step ', mystep, step_title[mystep])
+mystep = 7    ###################----- TP2VIS -----####################
+if(mystep in thesteps):
+    casalog.post('### ','INFO')
+    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    casalog.post('### ','INFO')
+    print(' ')
+    print('### ')
+    print('Step ', mystep, step_title[mystep])
+    print('### ')
+    print(' ')
 
 
+    # inputs: concatms, sdreordered, a12m[0]
+    # get 12m pointings to simulate TP observation as interferometric
+
+
+    
+    # if a12m[0] exists:        
+
+    
+    if a12m!=[]:    # if 12m-data exists ...
+        if pythonversion=='3':
+            dc.ms_ptg(TPpointingTemplate, outfile=TPpointinglist, uniq=True)
+        else:
+            ms_ptg(TPpointingTemplate, outfile=TPpointinglist, uniq=True)
+
+    else:
+        TPpointinglist = TPpointinglistAlternative    
+    
+
+    imTP = sdreordered
+    TPresult= sdreordered.replace('.image','.ms')
+    imname1 = imbase + cleansetup + TP2VISsetup  # first plot
+      
+      
+    # works!  
+    #if pythonversion=='3':
+    #    dc.create_TP2VIS_ms(imTP=imTP, TPresult=TPresult,
+    #        TPpointinglist=TPpointinglist, mode='mfs',  
+    #        vis=vis, imname=imname1, TPnoiseRegion=TPnoiseRegion)  # in CASA 6.x
+    #else:
+    #    create_TP2VIS_ms(imTP=imTP, TPresult=TPresult,
+    #        TPpointinglist=TPpointinglist, mode='mfs', 
+    #        vis=vis, imname=imname1, TPnoiseRegion=TPnoiseRegion)      # in CASA 5.7
+          
+
+    
+
+
+    if masking == 'SD-AM': 
+        general_tclean_param['mask']  = TP2VIS_mask
+
+
+
+    # tclean segmentation fault -
+    # maybe due to different numbers of spw in INT and SD ms-files
+    # we can expect TP.ms to have only one spw
+    # put relevant INT data range (i.e SD range) on one spw
+
+    transvis = vis+'_LSRK' #'_1spw'
+
+    # works!
+    #if pythonversion=='3':
+    #    dc.transform_INT_to_SD_freq_spec(TPresult, imTP, vis, 
+    #        transvis, datacolumn='DATA', outframe='LSRK')  # in CASA 6.x
+    #else:
+    #    transform_INT_to_SD_freq_spec(TPresult=TPresult, imTP=imTP, vis=vis, 
+    #        transvis=transvis, datacolumn='DATA', outframe='LSRK')      # in CASA 5.7
+    #      
+
+
+    ### for CASA 5.7:
+    z = general_tclean_param.copy()   
+    #z.update(sdint_tclean_param)
+    #z.update(special_tclean_param)
+    
+    for i in range(0,len(TPfac)) :
+        imname = imbase + cleansetup + TP2VISsetup + str(TPfac[i]) + '_CD'
+        
+        vis=transvis #!
+        
+        if dryrun == True:
+            pass
+        else:
+            if pythonversion=='3':
+                dc.runtclean_TP2VIS_INT(TPresult, TPfac[i], vis, imname,
+                    RMSfactor=RMSfactor, cube_rms=cube_rms, cont_chans = cont_chans, **z)   # in CASA 6.x
+            else:
+                runtclean_TP2VIS_INT(TPresult, TPfac[i], vis, imname,
+                    RMSfactor=RMSfactor, cube_rms=cube_rms, cont_chans = cont_chans, **z)   # in CASA 5.7
+        
+        TP2VISims.append(imname)
+    
 
 
 # delete tclean TempLattices
@@ -913,216 +975,3 @@ os.system('rm -rf '+pathtoimage + 'TempLattice*')
 
 
 
-
-
-#
-#
-#sdint default
-#
-#
-#    +usedata                 = 'sdint'                 # Output image type(int, sd, sdint)
-#    +   sdimage              = ''                      # Input single dish image
-#    +   sdpsf                = ''                      # Input single dish PSF image
-#    +   sdgain               = 1.0                     # A factor or gain to adjust single dish flux scale
-#    +   dishdia              = 100.0                   # Effective dish diameter
-#    +vis                     = ''                      # Name of input visibility file(s)
-#selectdata              = True                    # Enable data selection parameters
-#   field                = ''                      # field(s) to select
-#       +spw                  = ''                      # spw(s)/channels to select
-#   timerange            = ''                      # Range of time to select from data
-#   uvrange              = ''                      # Select data within uvrange
-#   antenna              = ''                      # Select data based on antenna/baseline
-#   scan                 = ''                      # Scan number range
-#   observation          = ''                      # Observation ID range
-#   intent               = ''                      # Scan Intent(s)
-#datacolumn              = 'corrected'             # Data column to image(data,corrected)
-#    +imagename               = ''                      # Pre-name of output images
-#    +imsize                  = []                      # Number of pixels
-#    +cell                    = []                      # Cell size
-#    +phasecenter             = ''                      # Phase center of the image
-#stokes                  = 'I'                     # Stokes Planes to make
-#projection              = 'SIN'                   # Coordinate projection
-#startmodel              = ''                      # Name of starting model image
-#    +specmode                = 'mfs'                   # Spectral definition mode (mfs,cube,cubedata, cubesource)
-#    +   reffreq              = ''                      # Reference frequency
-#nchan                   = -1                      # Number of channels in the output image
-#start                   = ''                      # First channel (e.g. start=3,start='1.1GHz',start='15343km/s')
-#width                   = ''                      # Channel width (e.g. width=2,width='0.1MHz',width='10km/s')
-#outframe                = 'LSRK'                  # Spectral reference frame in which to interpret 'start' and 'width'
-#veltype                 = 'radio'                 # Velocity type (radio, z, ratio, beta, gamma, optical)
-#restfreq                = []                      # List of rest frequencies
-#interpolation           = 'linear'                # Spectral interpolation (nearest,linear,cubic)
-#chanchunks              = 1                       # Number of channel chunks
-#perchanweightdensity    = True                    # whether to calculate weight density per channel in Briggs style
-#                                                  # weighting or not
-#gridder                 = 'standard'              # Gridding options (standard, wproject, widefield, mosaic, awproject)
-#   vptable              = ''                      # Name of Voltage Pattern table
-#   pblimit              = 0.2                     # PB gain level at which to cut off normalizations
-#deconvolver             = 'hogbom'                # Minor cycle algorithm
-#                                                  # (hogbom,clark,multiscale,mtmfs,mem,clarkstokes)
-#restoration             = True                    # Do restoration steps (or not)
-#   restoringbeam        = []                      # Restoring beam shape to use. Default is the PSF main lobe
-#   pbcor                = False                   # Apply PB correction on the output restored image
-#    +weighting               = 'natural'               # Weighting scheme (natural,uniform,briggs, briggsabs[experimental])
-#   uvtaper              = []                      # uv-taper on outer baselines in uv-plane
-#niter                   = 0                       # Maximum number of iterations
-#usemask                 = 'user'                  # Type of mask(s) for deconvolution: user, pb, or auto-multithresh
-#   mask                 = ''                      # Mask (a list of image name(s) or region file(s) or region string(s)
-#                                                  # )
-#   pbmask               = 0.0                     # primary beam mask
-#fastnoise               = True                    # True: use the faster (old) noise calculation. False: use the new
-#                                                  # improved noise calculations
-#restart                 = True                    # True : Re-use existing images. False : Increment imagename
-#savemodel               = 'none'                  # Options to save model visibilities (none, virtual, modelcolumn)
-#calcres                 = True                    # Calculate initial residual image
-#calcpsf                 = True                    # Calculate PSF
-#parallel                = False                   # Run major cycles in parallel
-#
-#
-#
-#runsdintimg(
-#vis, 
-#sdimage, 
-#jointname, 
-#spw='', 
-#field='', 
-#specmode='mfs', 
-#sdpsf='',
-#threshold=None, 
-#sdgain=5, 
-#imsize=[], 
-#cell='', 
-#phasecenter='', 
-#dishdia=12.0,
-#start=0, 
-#width=1, 
-#nchan=-1, 
-#restfreq=None, 
-#interactive=True, 
-#multiscale=False, 
-#maxscale=0.)
-#                
-#                
-#       sdintimaging( ^vis=myvis,
-#                     ^sdimage=mysdimage,
-#                     ^sdpsf=mysdpsf,
-#                     ^dishdia=dishdia,
-#                     ^sdgain=sdgain,
-#                     usedata='sdint',
-#                     ^imagename=jointname,
-#                     ^imsize=imsize,
-#                     ^cell=cell,
-#                     ^phasecenter=phasecenter,
-#                     weighting='briggs',
-#                     robust = 0.5,
-#                     ^specmode=specmode,
-#                     gridder=mygridder,
-#                     pblimit=0.2,                #default
-#                     pbcor=True,
-#                     interpolation='linear',    #default
-#                     wprojplanes=1,             # default & irrelevant
-#                     ^deconvolver=mydeconvolver,
-#                     scales=myscales,
-#                     nterms=1,                  # for mtmfs
-#                     niter=10000000,
-#                     ^spw=spw,
-#                     ^start=start,
-#                     ^width=width,
-#                     ^nchan = numchan, 
-#                     ^field = field,
-#                     ^threshold=threshold,
-#                     ^restfreq=therf,
-#                     perchanweightdensity=False,
-#                     ^*#interactive=True,
-#                     *#cycleniter=100,
-#                     *#usemask='pb',
-#                     #pbmask=0.4,
-#                 )
-#
-#        sdintimaging(vis=myvis,
-#                     sdimage=mysdimage,
-#                     sdpsf=mysdpsf,
-#                     dishdia=dishdia,
-#                     sdgain=sdgain,
-#                     usedata='sdint',
-#                     *#imagename=jointname,
-#                     imsize=imsize,
-#                     cell=cell,
-#                     phasecenter=phasecenter,
-#                     weighting='briggs',
-#                     robust = 0.5,
-#                     specmode=specmode,
-#                     *#gridder=mygridder, # mosaic
-#                     pblimit=0.2, 
-#                     pbcor=True,
-#                     interpolation='linear',
-#                     wprojplanes=1,
-#                     deconvolver=mydeconvolver,
-#                     scales=myscales,
-#                     nterms=1,
-#                     niter=10000000,
-#                     spw=spw,
-#                     start=start,
-#                     width=width,
-#                     nchan = numchan, 
-#                     field = field,
-#                     threshold=threshold,
-#                     restfreq=therf,
-#                     perchanweightdensity=False,
-#                     *#interactive=False,
-#                     *#cycleniter = 100000, 
-#                     #cyclefactor=2.0,           # = 1.0 default
-#                     *#usemask='auto-multithresh',
-#                     #sidelobethreshold=2.0,
-#                     #noisethreshold=4.25,
-#                     #lownoisethreshold=1.5, 
-#                     #minbeamfrac=0.3,
-#                     #growiterations=75,
-#                     #negativethreshold=0.0
-#                 )
-#
-#
-#
-#
-#    tclean(^vis = myvis,
-#         ^*#imagename = imname+'.TCLEAN',
-#         ^#startmodel = startmodel,
-#         ^field = field,
-#         #intent = 'OBSERVE_TARGET#ON_SOURCE',
-#         ^phasecenter = phasecenter,
-#         #stokes = 'I',                  # default
-#         spw = spw,
-#         #outframe = 'LSRK',             # DEFAULT
-#         ^specmode = specmode,
-#         nterms = 1,
-#         ^imsize = imsize,
-#         ^cell = cell,
-#         deconvolver = mydeconvolver,
-#         scales = myscales,
-#         ^*#niter = niter,
-#         *#cycleniter = niter,
-#         *#cyclefactor=2.0,
-#         weighting = 'briggs',
-#         robust = 0.5,
-#         *#gridder = 'mosaic',
-#         pbcor = True,
-#         ^threshold = threshold,
-#         ^*#interactive = interactive,
-#         ++++# Masking Parameters below this line 
-#         ++++# --> Should be updated depending on dataset
-#         ^*#usemask=mymask,
-#         *#sidelobethreshold=sidelobethreshold,
-#         *#noisethreshold=noisethreshold,
-#         *#lownoisethreshold=lownoisethreshold, 
-#         *#minbeamfrac=minbeamfrac,
-#         *#growiterations=growiterations,
-#         *#negativethreshold=negativethreshold,
-#         ^mask=mask,
-#         ^*#pbmask=pbmask,
-#         verbose=True
-#         )
-#                ^start=0, width=1, nchan=-1, restfreq=None,
-#                ^multiscale=False, maxscale=0.):
-#
-#
-#
