@@ -16,13 +16,21 @@ import os
 import math
 import sys
 import glob
+import numpy as np
 
 pythonversion = sys.version[0]
+
+TP2VISpath='/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/'
+sys.path.append(TP2VISpath)               # path to the folder with datacomb.py and ssc_DC.py
+
 
 if pythonversion=='3':
     from casatasks import version as CASAvers
     if CASAvers()[0]>=6 and CASAvers()[1]>=1:
         print('Executed in CASA ' +'.'.join(map(str, CASAvers()))) 
+        import tp2vis as t2v
+        from importlib import reload  
+        reload(t2v)
         from casatasks import casalog
         from casatasks import exportfits
         from casatasks import imhead
@@ -32,6 +40,9 @@ if pythonversion=='3':
         from casatasks import imregrid, imtrans
         from casatasks import imsmooth
         from casatasks import feather
+        from casatasks import mstransform
+        from casatasks import listobs
+        from casatasks import concat
         
         from casatools import image as iatool
         from casatools import quanta as qatool
@@ -46,8 +57,9 @@ if pythonversion=='3':
 
 elif pythonversion=='2':
     import casadef
-    if casadef.casa_version == '5.7.0':
+    if casadef.casa_version == '5.7.0' or casadef.casa_version == '5.7.2':
         print('Executed in CASA ' +casadef.casa_version)
+        execfile(TP2VISpath+'tp2vis.py', globals())                   # path to the folder swith datacomb.py and ssc_DC.py
         #print("Warning: datacomb assuming not in casa6")
     else:
         print('###################################################')
@@ -942,13 +954,27 @@ def runtclean(vis,
 
     """
 
-
-    if os.path.exists(vis):
-        myvis = vis 
-    else:
-        print(vis+' does not exist')
-        return False
-
+    if type(vis) is str:
+        if os.path.exists(vis):
+            myvis = vis 
+        else:
+            print(vis+' does not exist')
+            return False
+            
+    if isinstance(vis, list):
+        acceptinput=True
+        for i in range(0,len(vis)):
+            if os.path.exists(vis[i]):
+                #myvis = vis 
+                pass 
+            else:
+                acceptinput=False 
+                print(vis[i]+' does not exist')
+        if acceptinput==False:
+            return False             
+        else:
+            myvis = vis 
+            
     
     #print('')
     print('Start tclean ...')
@@ -990,7 +1016,7 @@ def runtclean(vis,
         mydeconvolver = 'hogbom'
 
     if niter==0:
-        casalog.post('You set niter to 0 (zero, the default). Only a dirty image will be created.', 'WARN')
+        casalog.post('You set niter to 0 (zero, the default). Only a dirty image will be created.', 'WARN', origin='runtclean')
 
 
 
@@ -1682,6 +1708,7 @@ def derive_threshold(vis, imname, threshmask,
         #### continuum
         if specmode == 'mfs':
             full_RMS = imstat(imnameth+'.image')['rms'][0]
+            print('full_RMS', full_RMS)
             #peak_val = imstat(imnameth+'.image')['max'][0]
             thresh = full_RMS*RMSfactor
         
@@ -2003,4 +2030,537 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     #os.system('rm -rf '+combined+'.pbcor')
     
     return True
+
+
+
+
+
+
+
+######################################
+
+def listobs_ptg(TPpointingTemplate, 
+        listobsOutput, 
+        TPpointinglist):
+    """
+    listobs_ptg (L. Moser-Fischer)
+    based on Jin Koda's approach to get 12m pointings from listobs()
+    https://github.com/tp2vis/distribute
+
+    TPpointingTemplate - an ALMA 12m data set (before concat?) (ending on *.ms)
+    listobsOutput - file name to store the listobs-output      (ending on *.log)
+    TPpointinglist - final pointing list for TP2VIS            (ending on *.ptg)
+
+    Example: ssc(highres='INT.image', lowres='SD.image', pb='INT.pb',
+                 combined='INT_SD_1.7.image', sdfactor=1.7)
+
+    """
+
+    os.system('rm -rf '+listobsOutput)
+    os.system('rm -rf '+TPpointinglist)     
+    listobs(TPpointingTemplate, listfile=listobsOutput)
+    pointings=[]
+    with open(listobsOutput, 'r') as f1:
+        data = f1.readlines()
+        for line in data:
+            if re.search('J2000', line):                     # look for first target entry and             
+                words = line.split()
+                epoch=words[-3]
+                decl=words[-4]
+                ra=words[-5].split('*')[-1]
+                pointings.append(epoch+' '+ra+' '+decl)
+    
+    np.savetxt(TPpointinglist, pointings, fmt='%.40s')
+
+
+
+def ms_ptg(msfile, outfile=None, uniq=True):
+    """ 
+    Taken from the Quick Array Combinations (QAC) module, state: March, 2021, 
+    originally called qac_ms_ptg in
+    https://github.com/teuben/QAC/blob/master/src/qac.py
+
+    modified by Lydia Moser-Fischer
+
+    # NOTE: seems to expect a target-only data set!
+    _____________________________________________________________________
+
+    get the ptg's from an MS into a list and/or ascii ptg file
+    'J2000 19h00m00.00000 -030d00m00.000000',...
+    This is a little trickier than it sounds, because the FIELD table has more entries than
+    you will find in the FIELD_ID column (often central coordinate may be present as well,
+    if it's not part of the observing fields, and locations of the Tsys measurements
+    For 7m data there may also be some jitter amongst each "field" (are multiple SB used?)
+    Note that the actual POINTING table is empty for the 12m and 7m data
+    # @todo: should get the observing frequency and antenna size, so we also know the PB size
+    #
+    # @todo: what if DELAY_DIR, PHASE_DIR and REFERENCE_DIR are not the same???
+    
+    """
+
+    def hms(val):
+        """
+        Decimal value to 3-element tuple of hour, min, sec. Just calls dms/15
+        from https://github.com/teuben/QAC/blob/master/src/utils/constutils.py
+        """
+        return dms(val/15.0)
+    
+    def dms(val):
+        """
+        Decimal value to 3-element tuple of deg, min, sec.
+        from https://github.com/teuben/QAC/blob/master/src/utils/constutils.py
+
+        """
+        if type(val) == type(np.array([1,2,3])):
+            val_abs = np.abs(val)
+            d = np.floor(val_abs)
+            m = np.floor((val_abs - d)*60.0)
+            s = ((val_abs - d - m/60.0))*3600.0
+            d *= +2.0*(val >= 0.0) - 1.0
+        else:
+            val_abs = abs(val)
+            d = math.floor(val_abs)
+            m = math.floor((val_abs - d)*60.0)
+            s = ((val_abs - d - m/60.0))*3600.0
+            d *= +2.0*(val >= 0.0) - 1.0
+        return (d, m, s)
+
+
+    def sixty_string(inp_val,hms=False,colons=False):
+        """
+        Convert a numeric vector to a string. Again, QA should do this.
+        from https://github.com/teuben/QAC/blob/master/src/utils/constutils.py
+        """    
+        if hms==True:
+            out_str = "%02dh%02dm%05.3fs" % (inp_val[0], inp_val[1], inp_val[2])
+        elif colons==True:
+            out_str = "%+02d:%02d:%05.3f" % (inp_val[0], inp_val[1], inp_val[2])
+        else:
+            out_str = "%+02dd%02dm%05.3fs" % (inp_val[0], inp_val[1], inp_val[2])
+        return out_str
+
+
+
+
+
+    mytb = tbtool()                                # modified
+
+    if uniq:
+        mytb.open('%s' % msfile)
+        field_id = list(set(mytb.getcol("FIELD_ID")))
+        mytb.close()
+    #li = [a[i] for i in b]
+    mytb.open('%s/FIELD' % msfile)
+    #col = 'DELAY_DIR'
+    #col = 'PHASE_DIR'
+    col = 'REFERENCE_DIR'
+    # get all the RA/DEC fields
+    ptr0 = mytb.getcol(col)[0,0,:]
+    ptr1 = mytb.getcol(col)[1,0,:]
+    n1 = len(ptr0)
+    if uniq:
+        # narrow this down to those present in the visibility data
+        ptr0 = [ptr0[i] for i in field_id]
+        ptr1 = [ptr1[i] for i in field_id]
+    n2 = len(ptr0)
+    print("%d/%d fields are actually used in %s" % (n2,n1,msfile))
+    mytb.close()
+    #
+    pointings = []
+    for i in range(len(ptr0)):
+        ra  = ptr0[i] * 180.0 / math.pi
+        dec = ptr1[i] * 180.0 / math.pi
+        if ra < 0:   # don't allow negative HMS
+            ra = ra + 360.0
+        ra_string = sixty_string(hms(ra),hms=True)
+        dec_string = sixty_string(dms(dec),hms=False)
+        pointings.append('J2000 %s %s' % (ra_string, dec_string))
+    if outfile != None:
+        fp = open(outfile,"w")
+        for p in pointings:
+            fp.write("%s\n" %p)
+        fp.close()
+    return pointings
+
+    #-end of qac_ms_ptg()
+
+
+
+
+def create_TP2VIS_ms(imTP=None, TPresult=None,
+    TPpointinglist=None, mode='mfs', vis=None, imname=None, TPnoiseRegion=None
+    ):
+    """ 
+    create_TP2VIS_ms (L. Moser-Fischer)
+    tool to turn SD image into visibilities
+    
+    steps:
+    - get rms from SD image/cube
+    - make SD visibilities with tp2vis
+    - tp2vispl - plots weights of the TP and of the INT data
+    _____________________________________________________________________
+
+    mode - specmode
+    imTP - SD image (reordered, but not regridded)
+    TPresult - output name of the TP visibilities (*.ms)
+    TPpointinglist - 12m pointing list (ALMA, *.ptg) 
+    vis - INT ms-file to compare TP ms-file to
+    inmame - output praefix for weightplot
+
+    """
+
+    # define region/channel range in your input TP image/cube to derive the rms
+    specmode=mode
+    
+    #### continuum
+    if specmode == 'mfs':
+        cont_RMS = imstat(imTP, box=TPnoiseRegion)['rms']#[0]
+        #peak_val = imstat(imnameth+'.image')['max'][0]
+        #thresh = full_RMS*RMSfactor
+        rms = cont_RMS
+    
+    
+    #### cube
+    elif specmode == 'cube':
+        TPmom6=imTP.replace('.image','.mom6')
+        os.system('rm -rf '+TPmom6)
+        immoments(imagename=imTP, moments=[6], 
+                   outfile=TPmom6, chans=TPnoiseChannels)
+        cube_RMS = imstat(TPmom6)['rms'][0]
+        rms = cube_RMS
+    
+        #thresh = cube_RMS*cube_rms   # 3 sigma level
+    
+    print('rms in image:', rms)
+
+    os.system('rm -rf '+TPresult)    
+
+    if pythonversion=='3':
+        t2v.tp2vis(imTP,TPresult,TPpointinglist,nvgrp=5,rms=rms)# winpix=3)  # in CASA 6.x
+    else:
+        tp2vis(imTP,TPresult,TPpointinglist,nvgrp=5,rms=rms)# winpix=3)      # in CASA 5.7
+
+
+    #### weights-plot for INT and unscaled TP
+
+    if pythonversion=='3':
+        t2v.tp2vispl([TPresult, vis],outfig=imname+'_weightplot.png')  # in CASA 6.x
+    else:
+        tp2vispl([TPresult, vis],outfig=imname+'_weightplot.png')      # in CASA 5.7
+        # use '_' instead of '.', because runtclean deletes all imname+'.*' !          
+          
+
+
+def transform_INT_to_SD_freq_spec(TPresult, imTP, vis, 
+    transvis, datacolumn='DATA', outframe='LSRK'
+    ):
+    """ 
+    transform_INT_to_SD_freq_spec (L. Moser-Fischer)
+    tool to transform the INT data to the same reference frame
+    and same frequency range as the SD cube has
+    
+    else tclean with TP.ms and INT.ms together causes trouble. 
+
+    steps:
+    - use get_SD_cube_params to derive the frequency range covered by the SD cube
+    - mstransform fo given datacolumn to SD cube's freq-range and reference frame
+
+    _____________________________________________________________________
+
+    imTP - SD image (reordered, but not regridded)
+    TPresult - name of the TP visibilities (*.ms)  (actually ....this part of the script
+    is not really used anymore  ---- need to modify)
+    vis - input name of the INT visibilities (*.ms)
+    transvis - output name of the INT visibilities (*.ms)
+    datacolumn - data from which column to use (typilcay CASA parameter) 
+    outframe - reference frame of the transvis output
+
+
+    """
+
+
+    # tclean segmentation fault -
+    # maybe due to different numbers of spw in INT and SD ms-files
+    # we can expect TP.ms to have only one spw
+    # put relevant INT data range (i.e SD range) in one spw
+
+    mytb = tbtool()                                # modified
+    mytb.open(TPresult+'/SPECTRAL_WINDOW', nomodify=False)
+    # expect only one spw
+    bandwidth = mytb.getcell("TOTAL_BANDWIDTH",0)
+    min_freq = min(mytb.getcell("CHAN_FREQ",0)/10**9)  # in GHz
+    max_freq = max(mytb.getcell("CHAN_FREQ",0)/10**9)  # in GHz
+    freq_width = mytb.getcell("CHAN_WIDTH",0)[0]/10**9
+    mytb.putcell("TOTAL_BANDWIDTH",0, abs(bandwidth))
+    mytb.flush()
+    bandwidth2 = mytb.getcell("TOTAL_BANDWIDTH",0)/10**9
+    mytb.close()
+    
+    print(' ')
+    print('min_freq, max_freq', 'freq_width', 'bandwidth', '|max-min|',
+           min_freq, max_freq, freq_width, bandwidth2, abs(abs(max_freq-min_freq)+abs(freq_width)))
+    print(' ')
+
+    cube_dict = get_SD_cube_params(sdcube = imTP) #out: {'nchan':nchan, 'start':start, 'width':width}
+
+    edges=[float(cube_dict['start'].replace('Hz','')), float(cube_dict['start'].replace('Hz',''))+(cube_dict['nchan'])*float(cube_dict['width'].replace('Hz',''))]
+    im_min_freq = min(edges)/10**9 # one width smaller than from ms-table for width<0
+    im_max_freq = max(edges)/10**9 # one width smaller than from ms-table for width>0
+
+    print('im_min_freq, im_max_freq', im_min_freq, im_max_freq)
+    print(' ')                      
+    
+    
+    os.system('rm -rf '+transvis)
+                
+    mstransform(vis=vis,
+                outputvis=transvis,
+                datacolumn=datacolumn,
+                regridms=True,
+                outframe=outframe,
+                #field='',
+                spw = str(im_min_freq)+'~'+str(im_max_freq)+'GHz', # general_tclean_param['spw'], 
+                combinespws=True
+                ) 
+
+
+def runtclean_TP2VIS_INT(TPresult, TPfac, 
+    #imTP=imTP, 
+    #vis=vis, 
+    #transvis=transvis, 
+    vis, 
+    imname, 
+    startmodel='',
+    spw='', 
+    field='', 
+    specmode='mfs', 
+    imsize=[], 
+    cell='', 
+    phasecenter='',
+    start=0, 
+    width=1, 
+    nchan=-1, 
+    restfreq='',
+    threshold='', 
+    niter=0, 
+    usemask='auto-multithresh' ,
+    sidelobethreshold=2.0, 
+    noisethreshold=4.25, 
+    lownoisethreshold=1.5, 
+    minbeamfrac=0.3, 
+    growiterations=75, 
+    negativethreshold=0.0,
+    mask='', 
+    pbmask=0.4, 
+    interactive=True, 
+    multiscale=False, 
+    maxscale=0.,
+    restart=True,
+    continueclean = False,
+    RMSfactor=1.0,
+    cube_rms=3.0,
+    cont_chans ='2~4'
+    ):
+    
+    """ 
+    runtclean_TP2VIS_INT (L. Moser-Fischer)
+    
+    tclean with TP.ms and INT.ms together
+
+    steps:
+    - make copy of TP.ms and scale it with tp2viswt (multiply with TPfac)
+    - tp2vispl - plot of weights for scaled copy of TP and of the INT data
+    - concat scaled TP data and INT data
+    - tclean dirty image of concat data
+    - derive new threshold
+    - tclean with given niter and new threshold
+    - correct for beam ratios (true PSF vs. Gaussian restoring) with tp2vistweak
+    - export
+    
+    _____________________________________________________________________
+
+    TPfac - factor to apply to the visibility weights of the TP visibilities
+    TPresult - name of the TP visibilities (*.ms)
+    
+    from vis to continueclean analoguous to runtclean
+
+    next 3 parameters as defined as in derive_threshold:
+   
+    RMSfactor - to apply to a continuum RMS of the full image to define a threshold at which 
+            as much emission as possible/reasonable is contained; user needs to play with it
+            typically: 0.5
+    cube_rms - factor to apply to a a cube RMS to define a threshold. channels
+            If cont_chans is set to line-free channels, this factor can be used
+            to set the threshold as 3sigma, 10sigma, etc level) 
+    cont_chans - define the line-free channels here to get a pure noise RMS of a cube 
+        
+
+    """
+
+    os.system('rm -rf '+imname+'*')
+    
+    # need to redo TPresult, since each loop modifies it (tp2viswt)!
+    
+    TPresultTPfac= TPresult.replace('.ms','_TPfac'+str(TPfac)+'.ms')
+    os.system('rm -rf '+TPresultTPfac)            
+    
+    os.system('cp -rf '+TPresult+' '+TPresultTPfac)
+    
+    if pythonversion=='3':
+        t2v.tp2viswt(TPresultTPfac,mode='multiply',value=TPfac)  # in CASA 6.x
+    else:
+        tp2viswt(TPresultTPfac,mode='multiply',value=TPfac)      # in CASA 5.7
+        
+                             
+    #print ' '
+    #print 'Generating corrected weight-plot for ' +msname+ ' with ' +TPresult
+    #print ' '
+   
+    
+    if pythonversion=='3':
+        t2v.tp2vispl([TPresultTPfac, vis],outfig=imname+'_weightplot.png')  # in CASA 6.x
+    else:
+        tp2vispl([TPresultTPfac, vis],outfig=imname+'_weightplot.png')      # in CASA 5.7
+        # use '_' instead of '.', because runtclean deletes all imname+'.*' !          
+    
+    
+    #print ' '
+    #print 'Combining ' +str([msname,TPresult])
+    #print ' '
+    
+    
+    #### careful ... sometimes not working in clean:
+    TPconcatTPfac= vis.replace('.ms','_TPfac'+str(TPfac)+'.ms')
+    os.system('rm -rf '+TPconcatTPfac)            
+    
+    concat(vis=[vis,TPresultTPfac], concatvis=TPconcatTPfac, copypointing=False)    
+    myvis = TPconcatTPfac
+
+    ####myvis = [TPresultTPfac, vis]
+    listobs(TPresultTPfac)
+    listobs(vis)
+    
+    if specmode=='cube':
+    	specmode_used ='cubedata'
+    if specmode=='mfs':
+    	specmode_used ='mfs'    	
+    
+    
+    TP2VIS_arg = dict( 
+                  startmodel=startmodel,
+                  spw=spw, 
+                  field=field, 
+                  specmode=specmode_used,
+                  imsize=imsize, 
+                  cell=cell,
+                  phasecenter=phasecenter, 
+                  start=start,
+                  width=width,
+                  nchan=nchan,
+                  restfreq=restfreq,
+                  threshold=threshold,
+                  niter=0,
+                  usemask=usemask,
+                  sidelobethreshold=sidelobethreshold,  
+                  noisethreshold=noisethreshold,
+                  lownoisethreshold=lownoisethreshold,
+                  minbeamfrac=minbeamfrac,
+                  growiterations=growiterations,
+                  negativethreshold=negativethreshold,         
+                  mask=mask,              
+                  pbmask=pbmask,
+                  interactive=interactive,
+                  multiscale=multiscale,
+                  maxscale=maxscale,
+                  restart=restart,
+                  continueclean = continueclean)    
+        
+    
+    # make dirty image to correct for beam area
+
+    runtclean(myvis, imname+'_dirty', **TP2VIS_arg)
+    
+
+    # define region/channel range in your input TP image/cube to derive the rms
+    specmode=specmode
+    TPINTim = imname+'_dirty.image'
+    
+    #### continuum
+    if specmode == 'mfs':
+        cont_RMS = imstat(TPINTim)['rms'][0]
+        #peak_val = imstat(imnameth+'.image')['max'][0]
+        #thresh = full_RMS*RMSfactor
+        thresh = cont_RMS*RMSfactor
+    
+    
+    #### cube
+    elif specmode == 'cube':
+        TPINTmom6=TPINTim.replace('.image','.mom6')
+        os.system('rm -rf '+TPINTmom6)
+        immoments(imagename=TPINTim, moments=[6], 
+                   outfile=TPINTmom6, chans=cont_chans)
+        cube_RMS = imstat(TPINTmom6)['rms'][0]
+        thresh = cube_RMS*cube_rms
+    
+        #thresh = cube_RMS*cube_rms   # 3 sigma level
+
+
+
+
+    # make clean image for the given niter
+
+    print(' ')
+    print('### Threshold from purely INT data was ', TP2VIS_arg['threshold']) 
+   
+    TP2VIS_arg['niter'] = niter
+    TP2VIS_arg['threshold'] = str(thresh)+'Jy'
+
+    print('### Threshold from TP+INT data is ', TP2VIS_arg['threshold'])    
+    print(' ')
+
+    runtclean(myvis, imname, **TP2VIS_arg)
+ 
+ 
+    # tclean(vis=['M100-B3.alma.all_int-weighted.ms', 
+    # 'M100-B3.SD_ro_TPfac1.0.ms'], selectdata=True, 
+    #field='', spw='', 
+    #imagename='M100-B3.cube_INTpar_HB_SD-AM_nIA_n0.TP2VIS_t1.0_dirty', 
+    #imsize=560, cell='0.5arcsec', phasecenter='J2000 12h22m54.9 +15d49m15', 
+    #specmode='cube', reffreq='', nchan=10, start='1550km/s', width='5km/s', 
+    #restfreq='115.271202GHz', gridder='mosaic', 
+    #pblimit=0.2, deconvolver='hogbom', restoringbeam='common', 
+    #pbcor=True, weighting='briggs', robust=0.5, niter=0, 
+    #threshold='0.055674938585244874Jy', cyclefactor=2.0, 
+    #interactive=False, usemask='user', 
+    #mask='M100-B3.INTpar_SD-AM-RMS.mask', pbmask=0.4)  ==> segmantation fault (core dumped)!
+    
+    
+    # concat vis and TPms and use concatfile for tclean
+    # 2021-03-02 13:16:52   WARN    MSConcat::copySpwAndPol Negative or zero total bandwidth in SPW 0 of MS to be appended.
+    # Start tclean ...
+    # Run with user mask /vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/DC_Ly_tests/M100-B3.INTpar_SD-AM-RMS.mask
+    # 2021-03-02 13:16:57   WARN    concat::::casa  You set niter to 0 (zero, the default). Only a dirty image will be created.
+    # 2021-03-02 13:16:59   WARN    MSTransformRegridder::combineSpwsCore   SPW 4 cannot be combined with SPW 3. Non-matching ref. frame.
+    # 2021-03-02 13:16:59   SEVERE  MSTransformRegridder::combineSpwsCore   Error combining SpWs
+    
+    os.system('rm -rf '+imname+'.tweak.image.pbcor.fits')            
+    os.system('rm -rf '+imname+'.image.pbcor.fits')            
+
+
+    if niter!=0:
+        if pythonversion=='3':
+            t2v.tp2vistweak(imname+'_dirty', imname, mask='\'' + imname +'.image' + '\'' + '>0.2') # in CASA 6.x
+        else:
+            tp2vistweak(imname+'_dirty', imname, mask='\'' + imname +'.image' + '\'' + '>0.2')    # in CASA 5.7
+        
+        
+        exportfits(imagename=imname+'.tweak.image.pbcor', fitsimage=imname+'.tweak.image.pbcor.fits')
+        
+    exportfits(imagename=imname+'.image.pbcor', fitsimage=imname+'.image.pbcor.fits')
+    ##exportfits(imagename=TP2VISim+'.pb', fitsimage=TP2VISim+'.pb.fits')
+    
+ 
+ 
+     
+    #os.system('mv ' +combipraefix+'*.png '+imResult)   
 
