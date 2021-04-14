@@ -1,3 +1,47 @@
 Place all your raw data (tar files, fits files, ....) in here.
 
 Use "make" and/or consult README_DC2019_data
+
+## rainforest
+
+We picked cmr.rainforest from **cmasher** as our default colormap.
+But this is not part of CASA, and would force us to use matplotlib
+(e.g. aplply) as plotting tools.
+
+The rainforest.lut file is a 3 column (R,G,B) text file created
+with NEMO's mklut script from cmasher.rainforest.
+Including it in CASA's color table goes as follows in casa:
+
+Here's a script to import this LUT file into CASA for IMVIEW...
+except it does not seem to work yet
+
+      import numpy as np
+      (r,g,b) = np.loadtxt('rainforest.lut').T
+
+       
+      tb.open('data/gui/colormaps/default.tbl',nomodify=False)
+      cn=tb.getcol('CMAP_NAME')
+      n=len(cn)    
+      print("Creating a new row %d (should probably be 16)" % n)
+      tb.addrows()
+      tb.putcell('CMAP_NAME',n,'Rainforest')
+      tb.putcell('RED',n,r)
+      tb.putcell('GREEN',n,r)
+      tb.putcell('BLUE',n,r)
+      tb.putcell('SYNONYMS',n,['rainforest'])
+
+      m = 2
+      print("Getting %s", cn[2])
+      r1 = tb.getcell('RED',m)
+      g1 = tb.getcell('GREEN',m)
+      b1 = tb.getcell('BLUE',m)
+      fp = open("rainbow2.lut","w")
+      for (r0,g0,b0) in zip(r1,g1,b1):
+          fp.write("%g %g %g\n" % (r0,g0,b0))
+      fp.close()
+      tb.close()
+
+      
+
+and voila, now **Rainforest** will show up in your colormap options in the viewer.
+Go to Data -> Adjust Data Display
