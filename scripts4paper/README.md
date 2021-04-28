@@ -3,6 +3,24 @@
 Here we gather (now in a more organized way) the scripts for the paper.
 
 
+## Configure
+
+In order to configure your casa environment for these script, one
+suggested solution is the use of the included **configure** script. By
+default it will expect your data to be locally present, but the
+command
+
+        ./configure --help
+
+will remind you what to configure.  It will report something like
+
+        execfile("/home/teuben/dc2019/scripts4paper/DC_locals.py")
+
+which you will need to add to your scripts, or better yet, addd this to
+your ~/.casa/init.py (CASA5) or ~/.casa/startup.py (CASA6).
+
+NOTE:  MAC users may need to install the needed command **realpath** via "brew install coreutils"
+
 ## 
 
 This is a discussion how the DC2019 data should be circulated, and
