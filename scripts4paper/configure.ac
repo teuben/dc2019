@@ -40,7 +40,7 @@ AC_OUTPUT([DC_locals.py])
 # keep user happily informed
 echo ''
 echo 'Use this line in your CASA session:'
-echo '     execfile("'$S4P/DC_locals.py'")'
+echo '     execfile("'$S4P/DC_locals.py'",globals())'
 echo 'or place that line in:   ~/.casa/init.py     (for CASA5)'
 echo '               and/or:   ~/.casa/startup.py  (for CASA6)'
 

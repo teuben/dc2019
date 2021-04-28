@@ -1,27 +1,31 @@
 # @EDIT_MSG@
 #
 # define setup parameters for our "scripts4paper" scripts and data
+# also figure out if we're in python2 (CASA5) or python3 (CASA6)
 
 _s4p      = '@S4P@/'        # the S4P scripts directory
-_s4p_data = '@S4P_DATA@/'   # the S4P data directory, read from here
-_s4p_work = '@S4P_WORK@/'   # the S4P work directory, write here
+
+_s4p_data = '@S4P_DATA@/'   # the S4P data directory, read only from here?
+_s4p_work = '@S4P_WORK@/'   # the S4P work directory, write here?
 
 #  Lydia's original names
 pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/skymodel-c.sim/skymodel-c_120L/'   # path to the folder with the files to be concatenated
 pathtoimage  = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/DC_Ly_tests/'                          # path to the folder where to put the combination and image results
 
 # reuse them, but we should move to use the S4P variables
-pathtoconcat = _s4p_data
+pathtoconcat = _s4p_data     # e.g. _s4p_data/skymodel-c.sim/skymodel-c_120L  is the root directory
 pathtoimage  = _s4p_work
 
 
+# why do we need two here ?
 datacombpath = _s4p
 TP2VISpath   = _s4p
 
-print("Setup of @S4P@ complete")
+sys.path.append(datacombpath)
+sys.path.append(TP2VISpath)
 
 
-# helper functions for DC_script.py
+# helper function for DC_script.py
 
 def function_exists(fn):
     """
@@ -40,3 +44,75 @@ def function_exists(fn):
     # should never get here
     return None
 
+
+#  now the hard work
+import sys
+
+
+#  we can't work without the new sdintimaging....
+if not function_exists('sdintimaging'):
+    print('#########################################################')
+    print('Your CASA version does not seem to  support sdintimaging.')
+    print('Please use at least CASA 5.7.0 or 6.1.x')
+    print('Aborting script ...')
+    print('#########################################################')
+
+pythonversion = sys.version[0]
+
+if pythonversion=='3':
+    from casatasks import version as CASAvers
+    if CASAvers()[0]>=6 and CASAvers()[1]>=1:
+        print('Executed in CASA ' +'.'.join(map(str, CASAvers())))    
+        #if 'casatasks' in locals():
+        import datacomb as dc
+        import tp2vis as t2v
+        #import ssc_DC_2 as ssc     # need to import casatasks therein!
+        from casatasks import concat
+        from casatasks import imregrid, immath
+        from casatasks import casalog
+        from importlib import reload  
+
+        from casatasks import exportfits
+        from casatasks import imstat, immoments
+        from casatools import table as tbtool
+
+
+        from casatasks import casalog
+        from casatasks import exportfits
+        from casatasks import imhead
+        from casatasks import sdintimaging
+        from casatasks import tclean
+        from casatasks import immath, imstat, immoments
+        from casatasks import imregrid, imtrans
+        from casatasks import imsmooth
+        from casatasks import feather
+        from casatasks import mstransform
+        from casatasks import listobs
+        from casatasks import concat
+        
+        from casatools import image as iatool
+        from casatools import quanta as qatool
+        from casatools import table as tbtool
+        
+        #reload(ssc)
+        reload(dc)
+        reload(t2v)
+
+
+elif pythonversion=='2':
+    #print('Executed in CASA ' +casadef.casa_version)
+    #execfile(datacombpath + 'datacomb.py', globals()) 
+    #execfile(TP2VISpath   + 'tp2vis.py',   globals())
+    #   python2 doesn't need globals()
+    execfile(datacombpath + 'datacomb.py')
+    execfile(TP2VISpath   + 'tp2vis.py')
+
+else:
+    print('Unknown python version ',pythonversion)
+    sys.exit(1)
+
+
+
+print("Setup of @S4P@ complete for python %s" % pythonversion)
+print("S4P_DATA = @S4P_DATA@")
+print("S4P_WORK = @S4P_WORK@")

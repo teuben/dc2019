@@ -15,73 +15,18 @@ Typical use:
 
 """
 
-#thesteps=[0,1,2,3,4,5,6]
+#thesteps=[0,1,2,3,4,5,6,7]
 thesteps=[7]
-
 
 import os 
 import sys 
 #import glob
 
 
-if not os.path.exists('DC_locals.py'):
-    print("The file DC_locals.py is missing, did you forget the ./configure step?")
-    sys.exit(1)
-else:
-    execfile('DC_locals.py')                  # this file is now produced by "configure"
+# this script assumes the DC_locals.py has been execfiled'd - see the README.md how to do this
 
-###### CASA - version check  ######
-sys.path.append(datacombpath)
-sys.path.append(TP2VISpath)  
-pythonversion = sys.version[0]
-
-if pythonversion=='3':
-    from casatasks import version as CASAvers
-    if CASAvers()[0]>=6 and CASAvers()[1]>=1:
-        #print('Executed in CASA ' +'.'.join(map(str, CASAvers())))    
-        #if 'casatasks' in locals():
-        import datacomb as dc
-        import tp2vis as t2v
-        #import ssc_DC_2 as ssc     # need to import casatasks therein!
-        from casatasks import concat
-        from casatasks import imregrid, immath
-        from casatasks import casalog
-        from importlib import reload  
-
-        from casatasks import exportfits
-        from casatasks import imstat, immoments
-        from casatools import table as tbtool
-        import numpy as np
-         
-        #reload(ssc)
-        reload(dc)
-        reload(t2v)
-        
-    else:
-        if function_exists('sdintimaging'):
-            print('###################################################')
-            print('Your CASA version does not support sdintimaging.')
-            print('Please use at least CASA 5.7.0 or 6.1.x')
-            print('Aborting script ...')
-            print('###################################################')
-            sys.exit(1)
-
-
-elif pythonversion=='2':
-    if not function_exists('sdintimaging'):
-        print('###################################################')
-        print('Your CASA version does not support sdintimaging.')
-        print('Please use at least CASA 5.7.0 or 6.1.x')
-        print('Aborting script ...')
-        print('###################################################')
-        sys.exit(1)
-    #print('Executed in CASA ' +casadef.casa_version)
-    execfile(datacombpath + 'datacomb.py', globals()) 
-    execfile(TP2VISpath   + 'tp2vis.py',   globals()) 
-    
-
-
-# -------------------------------------------------------------------#
+pathtoconcat = _s4p_data + '/skymodel-c.sim/skymodel-c_120L/'
+pathtoimage  = _s4p_work + '/'
 
 
 ############ USER INPUT needed - beginning ##############
@@ -119,7 +64,7 @@ os.system('rm -rf '+pathtoimage + 'TempLattice*')
 
 #thevis = [pathtoconcat + 'M100_Band3_12m_CalibratedData/M100_Band3_12m_CalibratedData.ms']#,
 
-thevis = [pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-02.ms']#,
+thevis = [pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-02.ms']
 a12m = thevis
 
 

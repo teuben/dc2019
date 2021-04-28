@@ -18,61 +18,8 @@ import sys
 import glob
 import numpy as np
 
-pythonversion = sys.version[0]
 
-#     this is now done via 
-#TP2VISpath='/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/'
-#sys.path.append(TP2VISpath)               # path to the folder with datacomb.py and ssc_DC.py
-
-
-if pythonversion=='3':
-    from casatasks import version as CASAvers
-    if CASAvers()[0]>=6 and CASAvers()[1]>=1:
-        print('Executed in CASA ' +'.'.join(map(str, CASAvers()))) 
-        import tp2vis as t2v
-        from importlib import reload  
-        reload(t2v)
-        from casatasks import casalog
-        from casatasks import exportfits
-        from casatasks import imhead
-        from casatasks import sdintimaging
-        from casatasks import tclean
-        from casatasks import immath, imstat, immoments
-        from casatasks import imregrid, imtrans
-        from casatasks import imsmooth
-        from casatasks import feather
-        from casatasks import mstransform
-        from casatasks import listobs
-        from casatasks import concat
-        
-        from casatools import image as iatool
-        from casatools import quanta as qatool
-        from casatools import table as tbtool
-    else:
-        print('###################################################')
-        print('Your CASA version does not support sdintimaging.')
-        print('Please use at least CASA 5.7.0 or 6.1.x')
-        print('Aborting script ...')
-        print('###################################################')
-        sys.exit()
-
-elif pythonversion=='2':
-    import casadef
-    if casadef.casa_version == '5.7.0' or casadef.casa_version == '5.7.2':
-        print('Executed in CASA ' +casadef.casa_version)
-        execfile(TP2VISpath+'tp2vis.py', globals())                   # path to the folder swith datacomb.py and ssc_DC.py
-        #print("Warning: datacomb assuming not in casa6")
-    else:
-        print('###################################################')
-        print('Your CASA version does not support sdintimaging.')
-        print('Please use at least CASA 5.7.0 or 6.1.x')
-        print('Aborting script ...')
-        print('###################################################')
-        sys.exit()
-
-else:
-    print('Unknown python version ',pythonversion)
-    sys.exit(1)
+# this script assumes the DC_locals.py has been execfiled'd - see the README.md how to do this
 
 
 ##########################################
