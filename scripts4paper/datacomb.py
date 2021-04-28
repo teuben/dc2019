@@ -1856,6 +1856,7 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
         print(highres+' does not exist')
         return False
 
+    #  @todo   this is dangerous, need to find temp names 
     os.system('rm -rf lowres.*')
 
 
@@ -1866,13 +1867,14 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     # Regrid low res Image to match high res image
     lowres_regrid1 = 'lowres.regrid'
     
-    print('Regridding lowres image...')
+    print('Regridding lowres image...[%s]' % lowres)
     imregrid(imagename=lowres,
                      template=highres,
                      axes=[0,1,2,3],
                      output=lowres_regrid1)
                      
-    lowres_unit = imhead(lowres_regrid1, mode='get', hdkey='Bunit')['value']
+    #lowres_unit = imhead(lowres_regrid1, mode='get', hdkey='Bunit')['value']
+    lowres_unit = imhead(lowres_regrid1, mode='get', hdkey='Bunit')
 
     # Multiply the lowres image with the highres primary beam response
     print('Multiplying lowres by the highres pb...')
