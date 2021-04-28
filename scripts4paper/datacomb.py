@@ -20,8 +20,9 @@ import numpy as np
 
 pythonversion = sys.version[0]
 
-TP2VISpath='/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/'
-sys.path.append(TP2VISpath)               # path to the folder with datacomb.py and ssc_DC.py
+#     this is now done via 
+#TP2VISpath='/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/'
+#sys.path.append(TP2VISpath)               # path to the folder with datacomb.py and ssc_DC.py
 
 
 if pythonversion=='3':
@@ -69,6 +70,9 @@ elif pythonversion=='2':
         print('###################################################')
         sys.exit()
 
+else:
+    print('Unknown python version ',pythonversion)
+    sys.exit(1)
 
 
 ##########################################
