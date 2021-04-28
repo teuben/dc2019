@@ -1,0 +1,42 @@
+# @EDIT_MSG@
+#
+# define setup parameters for our "scripts4paper" scripts and data
+
+_s4p      = '@S4P@/'        # the S4P scripts directory
+_s4p_data = '@S4P_DATA@/'   # the S4P data directory, read from here
+_s4p_work = '@S4P_WORK@/'   # the S4P work directory, write here
+
+#  Lydia's original names
+pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/skymodel-c.sim/skymodel-c_120L/'   # path to the folder with the files to be concatenated
+pathtoimage  = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/DC_Ly_tests/'                          # path to the folder where to put the combination and image results
+
+# reuse them, but we should move to use the S4P variables
+pathtoconcat = _s4p_data
+pathtoimage  = _s4p_work
+
+
+datacombpath = _s4p
+TP2VISpath   = _s4p
+
+print("Setup of @S4P@ complete")
+
+
+# helper functions for DC_script.py
+
+def function_exists(fn):
+    """
+         fn (string) :  name of the function to test if it exists
+                        in the current python environment
+    """
+    #   surely there must be a better pythonic way for this?
+    #   but this does work :-)
+    try:
+        a=eval('dir(%s)' % fn)
+        print("Hurrah, %s exists" % fn)
+        return True
+    except:
+        print("Warning: function %s not known" % fn)
+        return False
+    # should never get here
+    return None
+
