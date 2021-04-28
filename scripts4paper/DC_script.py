@@ -8,34 +8,31 @@ Based on the work at the Workshop
 Lorentz Center, Leiden, August 2019, 
 and subsequent follow-up work. 
 
-Run under CASA 6.
+Run under CASA 6. (does CASA 5 stil work?)
+
+Typical use:
+     execfile("DC_script.py")
 
 """
-
-
 
 #thesteps=[0,1,2,3,4,5,6]
 thesteps=[7]
 
-# step_title = {0: 'Concat',
-#               1: 'Prepare the SD-image',
-#               2: 'Clean for Feather/Faridani',
-#               3: 'Feather', 
-#               4: 'Faridani short spacings combination (SSC)',
-#               5: 'Hybrid (startmodel clean + Feather)',
-#               6: 'SDINT',
-#               7: 'TP2VIS'
-#               }
 
 import os 
 import sys 
 #import glob
 
+
+if not os.path.exists('DC_locals.py'):
+    print("The file DC_locals.py is missing, did you forget the ./configure step?")
+    sys.exit(1)
+else:
+    execfile('DC_locals.py')                  # this file is now produced by "configure"
+
 ###### CASA - version check  ######
-datacombpath='/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/'
-TP2VISpath='/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/'
-sys.path.append(datacombpath)               # path to the folder with datacomb.py and ssc_DC.py
-sys.path.append(TP2VISpath)               # path to the folder with datacomb.py and ssc_DC.py
+sys.path.append(datacombpath)
+sys.path.append(TP2VISpath)  
 pythonversion = sys.version[0]
 
 if pythonversion=='3':
@@ -61,29 +58,27 @@ if pythonversion=='3':
         reload(t2v)
         
     else:
-        print('###################################################')
-        print('Your CASA version does not support sdintimaging.')
-        print('Please use at least CASA 5.7.0 or 6.1.x')
-        print('Aborting script ...')
-        print('###################################################')
-        sys.exit()
+        if function_exists('sdintimaging'):
+            print('###################################################')
+            print('Your CASA version does not support sdintimaging.')
+            print('Please use at least CASA 5.7.0 or 6.1.x')
+            print('Aborting script ...')
+            print('###################################################')
+            sys.exit(1)
 
 
 elif pythonversion=='2':
-    import casadef
-    if casadef.casa_version == '5.7.0' or casadef.casa_version == '5.7.2':
-        #print('Executed in CASA ' +casadef.casa_version)
-        execfile(datacombpath+'datacomb.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
-        execfile(TP2VISpath+'tp2vis.py', globals())                   # path to the folder swith datacomb.py and ssc_DC.py
-        #execfile('/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/dc2019/scripts4paper/ssc_DC_2.py', globals())               # path to the folder swith datacomb.py and ssc_DC.py
-    else:
+    if not function_exists('sdintimaging'):
         print('###################################################')
         print('Your CASA version does not support sdintimaging.')
         print('Please use at least CASA 5.7.0 or 6.1.x')
         print('Aborting script ...')
         print('###################################################')
-        sys.exit()
-
+        sys.exit(1)
+    #print('Executed in CASA ' +casadef.casa_version)
+    execfile(datacombpath + 'datacomb.py', globals()) 
+    execfile(TP2VISpath   + 'tp2vis.py',   globals()) 
+    
 
 
 # -------------------------------------------------------------------#
@@ -95,8 +90,8 @@ elif pythonversion=='2':
 # path to input and outputs
 #pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/M100-data/'   # path to the folder with the files to be concatenated
 #pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/gmcSkymodel_120L/gmc_120L/'   # path to the folder with the files to be concatenated
-pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/skymodel-c.sim/skymodel-c_120L/'   # path to the folder with the files to be concatenated
-pathtoimage  = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/DC_Ly_tests/'                          # path to the folder where to put the combination and image results
+#pathtoconcat = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/ToshiSim/skymodel-c.sim/skymodel-c_120L/'   # path to the folder with the files to be concatenated
+#pathtoimage  = '/vol/arc3/data1/arc2_data/moser/DataComb/DCSlack/DC_Ly_tests/'                          # path to the folder where to put the combination and image results
 
 
 ### delete garbage from aboprted script ###
@@ -526,7 +521,7 @@ step_title = {0: 'Concat',
         
     
 mystep = 0    ###################----- CONCAT -----####################
-if(mystep in thesteps):
+if mystep in thesteps:
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     casalog.post('### ','INFO')
@@ -543,7 +538,7 @@ if(mystep in thesteps):
 
 
 mystep = 1    ############# ----- PREPARE SD-IMAGE and MASKS-----###############
-if(mystep in thesteps):
+if mystep in thesteps:
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     casalog.post('### ','INFO')
@@ -643,7 +638,7 @@ if(mystep in thesteps):
            
 
 mystep = 2    ############----- CLEAN FOR FEATHER/SSC -----############
-if(mystep in thesteps):
+if mystep in thesteps:
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     casalog.post('### ','INFO')
@@ -682,7 +677,7 @@ if(mystep in thesteps):
 
 
 mystep = 3    ###################----- FEATHER -----###################
-if(mystep in thesteps):
+if mystep in thesteps:
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     casalog.post('### ','INFO')
@@ -717,7 +712,7 @@ if(mystep in thesteps):
 
 
 mystep = 4    ################----- FARIDANI SSC -----#################
-if(mystep in thesteps):
+if mystep in thesteps:
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     casalog.post('### ','INFO')
@@ -752,7 +747,7 @@ if(mystep in thesteps):
 
 
 mystep = 5    ###################----- HYBRID -----####################
-if(mystep in thesteps):
+if mystep in thesteps:
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     casalog.post('### ','INFO')
@@ -795,7 +790,7 @@ if(mystep in thesteps):
 
 
 mystep = 6    ####################----- SDINT -----####################
-if(mystep in thesteps):
+if mystep in thesteps:
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     casalog.post('### ','INFO')
@@ -838,7 +833,7 @@ if(mystep in thesteps):
                 
                 
 mystep = 7    ###################----- TP2VIS -----####################
-if(mystep in thesteps):
+if mystep in thesteps:
     casalog.post('### ','INFO')
     casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     casalog.post('### ','INFO')
