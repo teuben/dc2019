@@ -20,17 +20,22 @@ import numpy as np
 
 
 import tp2vis as t2v
-from importlib import reload  
+from importlib import reload
+
+# what a mess, should we
+#    import casatools as cto
+#    import casatasks as cta
+#
+
+from casatools import table  as tbtool
+from casatools import image  as iatool
+from casatools import quanta as qatool
 
 from casatasks import concat
 from casatasks import imregrid, immath
 from casatasks import casalog
-
 from casatasks import exportfits
 from casatasks import imstat, immoments
-from casatools import table as tbtool
-
-
 from casatasks import casalog
 from casatasks import exportfits
 from casatasks import imhead
@@ -43,10 +48,6 @@ from casatasks import feather
 from casatasks import mstransform
 from casatasks import listobs
 from casatasks import concat
-
-from casatools import image as iatool
-from casatools import quanta as qatool
-from casatools import table as tbtool
 
 reload(t2v)
 
