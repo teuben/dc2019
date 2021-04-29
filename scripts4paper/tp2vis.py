@@ -30,7 +30,7 @@ import scipy as sp
 import matplotlib.pyplot as plt
 from scipy.ndimage import distance_transform_edt
 
-__version__ = "18-jun-2020 PJT"
+__version__ = "14-apr-2021 PJT/LMF"
 
 try:
     # casa5
