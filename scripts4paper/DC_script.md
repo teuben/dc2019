@@ -1,11 +1,28 @@
 # DC_script
 
+## Preparing (new in april 2021)
+
+Before using these scripts, you will need to run the configure to set the script, data and working directory
+for scripts to use these directories. You need to execute the **configure** script from the
+scripts4paper directory, e.g.
+
+
+      ./configure  --with-s4p-work=tmp
+
+will use the current tmp directory (which will be created for you) for your working files, and ../data as the
+directory were all the data are located (at least for the DC2019 project). Use the --help argument to find out
+what other options might be useful for you.
+
+It should also be noted that this April 2021 version will only support CASA 6.
+
+## Overview
+
 The **DC_script** uses the **datacomb** module to conveniently combine 
 your data. The DC_script's goal is to provide a homogeneous input to all 
 combination methods (e.g. clean parameters) and a homogeneous output 
 style.
 
-It offers 6 different actions to be selected via the 'thesteps' variable:
+It offers several different actions to be selected via the python 'thesteps' list:
 
       0: 'Concat',
       1: 'Prepare the SD-image and create masks',
@@ -61,17 +78,17 @@ holds the information that listobs produces, TPpointinglist contains the antenna
 pointings read out from the listobsOutput. If these are not provided the user can 
 use his own pointing list. 
 
-      TPpointingTemplate = a12m[0]        
-      listobsOutput  = imbase+'.12m.log'
-      TPpointinglist = imbase+'.12m.ptg'
+      TPpointingTemplate        = a12m[0]        
+      listobsOutput             = imbase+'.12m.log'
+      TPpointinglist            = imbase+'.12m.ptg'
       TPpointinglistAlternative = 'user-defined.ptg'   
  
 For transforming the SD image into visibilities, TP2VIS needs the rms in the SD images 
 for setting the weights. Therefore, one has to specify a range of emission-free pixels 
 in a continuum SD image, or a range of emission-free channels in the SD cube.
 
-      TPnoiseRegion = '10,30,10,30'  # emission free box in unregridded continuum SD image!
-      TPnoiseChannels = '2~5'        # emission free channels in unregridded and un-cut SD cube!
+      TPnoiseRegion   = '10,30,10,30'  # emission free box in unregridded continuum SD image!
+      TPnoiseChannels = '2~5'          # emission free channels in unregridded and un-cut SD cube!
 
 
 ##  USER INPUTS: setup of the clean parameters
@@ -88,12 +105,12 @@ to the imbase, reflecting the relevant clean properties (you define).
 Currently, mode, mscale, masking, inter, nit, and specsetup define the 
 infix name: e.g.
 
-       mode   = 'mfs'        # 'mfs' or 'cube'
-       mscale = 'HB'         # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT!)) 
-       masking  = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
-       inter = 'nIA'         # interactive ('IA') or non-interactive ('nIA')
-       nit = 0               # max = 9.9 * 10**9 
-       specsetup = 'INTpar'  # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup, only option for 'mfs')
+       mode      = 'mfs'      # 'mfs' or 'cube'
+       mscale    = 'HB'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT!)) 
+       masking   = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
+       inter     = 'nIA'      # interactive ('IA') or non-interactive ('nIA')
+       nit       = 0          # max = 9.9 * 10**9 
+       specsetup = 'INTpar'   # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup, only option for 'mfs')
 
 
 
@@ -112,18 +129,18 @@ Maybe introduce a loop over some clean parameters like niter.
 
 For "SDpar" we can also define a channel-cut-out from the SD image to 
 reduce channel range translated into the combined product
+
        startchan = 30  #None  # start-value of the SD image channel range you want to cut out 
        endchan   = 39  #None  #   end-value of the SD image channel range you want to cut out
-
 
 Generating a common mask from an SD image mask and an auto-multithreshold mask
 or user defined threshold (masking  = 'SD-AM'), requires additional input:
 
-       smoothing = 5    # smoothing of the threshold mask (by 'smoothing x beam')
-       RMSfactor = 0.5  # continuum rms level (not noise from emission-free regions but entire image)
-       cube_rms = 3     # cube noise (true noise) x this factor
-       cont_chans =''   # line free channels for cube rms estimation
-       sdmasklev = 0.3  # maximum x this factor = threshold for SD mask
+       smoothing  = 5    # smoothing of the threshold mask (by 'smoothing x beam')
+       RMSfactor  = 0.5  # continuum rms level (not noise from emission-free regions but entire image)
+       cube_rms   = 3    # cube noise (true noise) x this factor
+       cont_chans = ''   # line free channels for cube rms estimation
+       sdmasklev  = 0.3  # maximum x this factor = threshold for SD mask
 
 
 
@@ -198,18 +215,24 @@ If you want to combine several interferometric datasets specify
 ### step 1: SD image and tclean/mask preparation
 
 1) the axes of the SD image are sorted according to the tclean 
-output standard order (reorder_axes).
+   output standard order (reorder_axes).
+
 2) if in specmode='SDpar' and start and end channel are defined, 
-the SD cube is trimmed to these channels (exclusively; channel_cutout).
+   the SD cube is trimmed to these channels (exclusively; channel_cutout).
+
 3) the channel setup of the reordered (channel-cut-out0) SD cube is read out (get_SD_cube_params). 
-If wanted, the results are used as inputs for all following tcleans etc (need to implement!).
+   If wanted, the results are used as inputs for all following tcleans etc (need to implement!).
+
 4) a dirty image from the concatvis is created and the RMS of the entire image obtained. 
-This is used to define a threshold and from this a clean mask (derive_threshold).
+   This is used to define a threshold and from this a clean mask (derive_threshold).
+
 5) the dirty image is used as template to regrid the reordered SD image (imregrid).
+
 6) a mask from the reordered-regridded SD image is created and combined 
-with auto-masking results in tclean (make_SDint_mask).
+   with auto-masking results in tclean (make_SDint_mask).
+
 7) combine theshold and SD mask, because the theshold mask may 
-contain more/different emission peaks than auto-masking (immath).
+   contain more/different emission peaks than auto-masking (immath).
 
 
 ### step 2: tclean only
@@ -219,6 +242,7 @@ contain more/different emission peaks than auto-masking (immath).
 
 
 ### step 3: feather
+
 Requires restoringbeam='common'! perplanebeam-problems
 
       imname = imbase + cleansetup + feathersetup + str(sdfac[i]) 
@@ -250,7 +274,9 @@ Requires restoringbeam='common'! perplanebeam-problems
 
 
 ## after combination loops
-delete the nasty TempLattices
+
+delete the nasty TempLattices (this is a CASA bug and should be reported that somebody
+is not cleaning up)
 
 
 
