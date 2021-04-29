@@ -57,61 +57,6 @@ if not function_exists('sdintimaging'):
     print('Aborting script ...')
     print('#########################################################')
 
-pythonversion = sys.version[0]
-
-if pythonversion=='3':
-    from casatasks import version as CASAvers
-    if CASAvers()[0]>=6 and CASAvers()[1]>=1:
-        print('Executed in CASA ' +'.'.join(map(str, CASAvers())))    
-        #if 'casatasks' in locals():
-        import datacomb as dc
-        import tp2vis as t2v
-        #import ssc_DC_2 as ssc     # need to import casatasks therein!
-        from casatasks import concat
-        from casatasks import imregrid, immath
-        from casatasks import casalog
-        from importlib import reload  
-
-        from casatasks import exportfits
-        from casatasks import imstat, immoments
-        from casatools import table as tbtool
-
-
-        from casatasks import casalog
-        from casatasks import exportfits
-        from casatasks import imhead
-        from casatasks import sdintimaging
-        from casatasks import tclean
-        from casatasks import immath, imstat, immoments
-        from casatasks import imregrid, imtrans
-        from casatasks import imsmooth
-        from casatasks import feather
-        from casatasks import mstransform
-        from casatasks import listobs
-        from casatasks import concat
-        
-        from casatools import image as iatool
-        from casatools import quanta as qatool
-        from casatools import table as tbtool
-        
-        #reload(ssc)
-        reload(dc)
-        reload(t2v)
-
-
-elif pythonversion=='2':
-    #print('Executed in CASA ' +casadef.casa_version)
-    #execfile(datacombpath + 'datacomb.py', globals()) 
-    #execfile(TP2VISpath   + 'tp2vis.py',   globals())
-    #   python2 doesn't need globals()
-    execfile(datacombpath + 'datacomb.py')
-    execfile(TP2VISpath   + 'tp2vis.py')
-
-else:
-    print('Unknown python version ',pythonversion)
-    sys.exit(1)
-
-
 
 print("Setup of @S4P@ complete for python %s" % pythonversion)
 print("S4P_DATA = @S4P_DATA@")

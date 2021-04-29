@@ -8,7 +8,7 @@ Based on the work at the Workshop
 Lorentz Center, Leiden, August 2019, 
 and subsequent follow-up work. 
 
-Run under CASA 6.
+Run under CASA 6, no support for CASA 5
 
 """
 
@@ -19,7 +19,36 @@ import glob
 import numpy as np
 
 
-# this script assumes the DC_locals.py has been execfiled'd - see the README.md how to do this
+import tp2vis as t2v
+from importlib import reload  
+
+from casatasks import concat
+from casatasks import imregrid, immath
+from casatasks import casalog
+
+from casatasks import exportfits
+from casatasks import imstat, immoments
+from casatools import table as tbtool
+
+
+from casatasks import casalog
+from casatasks import exportfits
+from casatasks import imhead
+from casatasks import sdintimaging
+from casatasks import tclean
+from casatasks import immath, imstat, immoments
+from casatasks import imregrid, imtrans
+from casatasks import imsmooth
+from casatasks import feather
+from casatasks import mstransform
+from casatasks import listobs
+from casatasks import concat
+
+from casatools import image as iatool
+from casatools import quanta as qatool
+from casatools import table as tbtool
+
+reload(t2v)
 
 
 ##########################################
@@ -2188,19 +2217,12 @@ def create_TP2VIS_ms(imTP=None, TPresult=None,
 
     os.system('rm -rf '+TPresult)    
 
-    if pythonversion=='3':
-        t2v.tp2vis(imTP,TPresult,TPpointinglist,nvgrp=5,rms=rms)# winpix=3)  # in CASA 6.x
-    else:
-        tp2vis(imTP,TPresult,TPpointinglist,nvgrp=5,rms=rms)# winpix=3)      # in CASA 5.7
-
+    t2v.tp2vis(imTP,TPresult,TPpointinglist,nvgrp=5,rms=rms)# winpix=3)  # in CASA 6.x
 
     #### weights-plot for INT and unscaled TP
 
-    if pythonversion=='3':
-        t2v.tp2vispl([TPresult, vis],outfig=imname+'_weightplot.png')  # in CASA 6.x
-    else:
-        tp2vispl([TPresult, vis],outfig=imname+'_weightplot.png')      # in CASA 5.7
-        # use '_' instead of '.', because runtclean deletes all imname+'.*' !          
+    t2v.tp2vispl([TPresult, vis],outfig=imname+'_weightplot.png')  # in CASA 6.x
+    # use '_' instead of '.', because runtclean deletes all imname+'.*' !          
           
 
 
@@ -2359,22 +2381,15 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
     
     os.system('cp -rf '+TPresult+' '+TPresultTPfac)
     
-    if pythonversion=='3':
-        t2v.tp2viswt(TPresultTPfac,mode='multiply',value=TPfac)  # in CASA 6.x
-    else:
-        tp2viswt(TPresultTPfac,mode='multiply',value=TPfac)      # in CASA 5.7
-        
+    t2v.tp2viswt(TPresultTPfac,mode='multiply',value=TPfac)  # in CASA 6.x
                              
     #print ' '
     #print 'Generating corrected weight-plot for ' +msname+ ' with ' +TPresult
     #print ' '
    
     
-    if pythonversion=='3':
-        t2v.tp2vispl([TPresultTPfac, vis],outfig=imname+'_weightplot.png')  # in CASA 6.x
-    else:
-        tp2vispl([TPresultTPfac, vis],outfig=imname+'_weightplot.png')      # in CASA 5.7
-        # use '_' instead of '.', because runtclean deletes all imname+'.*' !          
+    t2v.tp2vispl([TPresultTPfac, vis],outfig=imname+'_weightplot.png')  # in CASA 6.x
+    # use '_' instead of '.', because runtclean deletes all imname+'.*' !          
     
     
     #print ' '
@@ -2501,19 +2516,12 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
 
 
     if niter!=0:
-        if pythonversion=='3':
-            t2v.tp2vistweak(imname+'_dirty', imname, mask='\'' + imname +'.image' + '\'' + '>0.2') # in CASA 6.x
-        else:
-            tp2vistweak(imname+'_dirty', imname, mask='\'' + imname +'.image' + '\'' + '>0.2')    # in CASA 5.7
-        
-        
+        t2v.tp2vistweak(imname+'_dirty', imname, mask='\'' + imname +'.image' + '\'' + '>0.2') # in CASA 6.x
         exportfits(imagename=imname+'.tweak.image.pbcor', fitsimage=imname+'.tweak.image.pbcor.fits')
         
     exportfits(imagename=imname+'.image.pbcor', fitsimage=imname+'.image.pbcor.fits')
     ##exportfits(imagename=TP2VISim+'.pb', fitsimage=TP2VISim+'.pb.fits')
     
- 
- 
      
     #os.system('mv ' +combipraefix+'*.png '+imResult)   
 

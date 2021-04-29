@@ -10,20 +10,39 @@ and subsequent follow-up work.
 
 Run under CASA 6. (does CASA 5 stil work?)
 
-Typical use:
-     execfile("DC_script.py")
+Typical use in CASA6:
+     execfile("DC_script.py",globals())
 
 """
 
+step_title = {0: 'Concat',
+              1: 'Prepare the SD-image',
+              2: 'Clean for Feather/Faridani',
+              3: 'Feather', 
+              4: 'Faridani short spacings combination (SSC)',
+              5: 'Hybrid (startmodel clean + Feather)',
+              6: 'SDINT',
+              7: 'TP2VIS'
+              }
+
 #thesteps=[0,1,2,3,4,5,6,7]
-thesteps=[7]
+thesteps=[5]
+
+print("STEPS:",thesteps)
 
 import os 
 import sys 
 #import glob
 
 
-# this script assumes the DC_locals.py has been execfiled'd - see the README.md how to do this
+from importlib import reload  
+import datacomb as dc
+reload(dc)
+from casatasks import immath
+from casatasks import casalog
+
+
+#   Need to find a way to execfile yet another parameter file?
 
 pathtoconcat = _s4p_data + '/skymodel-c.sim/skymodel-c_120L/'
 pathtoimage  = _s4p_work + '/'
@@ -349,10 +368,7 @@ if specsetup == 'SDpar':
             print('Need to execute step 1 to reorder image axes of the SD image')
     elif os.path.exists(sdreordered_cut):
         # read SD image frequency setup as input for tclean    
-        if pythonversion=='3':
-            cube_dict = dc.get_SD_cube_params(sdcube = sdreordered_cut) #out: {'nchan':nchan, 'start':start, 'width':width}
-        else:
-            cube_dict = get_SD_cube_params(sdcube = sdreordered_cut) #out: {'nchan':nchan, 'start':start, 'width':width}
+        cube_dict = dc.get_SD_cube_params(sdcube = sdreordered_cut) #out: {'nchan':nchan, 'start':start, 'width':width}
         general_tclean_param['start'] = cube_dict['start']  
         general_tclean_param['width'] = cube_dict['width']
         general_tclean_param['nchan'] = cube_dict['nchan']
@@ -394,24 +410,14 @@ if general_tclean_param['threshold'] == '':
             thesteps.sort()           # force execution of SDint mask creation (Step 1)
             print('Need to execute step 1 to estimate a thresold')
     else:
-        if pythonversion=='3':
-            thresh = dc.derive_threshold(vis, imnamethSD , threshmask,
-                         overwrite=False,   # False for read-only
-                         smoothing = smoothing,
-                         RMSfactor = RMSfactor,
-                         cube_rms   = cube_rms,    
-                         cont_chans = cont_chans,
-                         **mask_tclean_param
-                         )
-        else:
-            thresh = derive_threshold(vis, imnamethSD , threshmask,
-                         overwrite=False,   # False for read-only
-                         smoothing = smoothing,
-                         RMSfactor = RMSfactor,
-                         cube_rms   = cube_rms,    
-                         cont_chans = cont_chans,
-                         **mask_tclean_param
-                         )
+        thresh = dc.derive_threshold(vis, imnamethSD , threshmask,
+                                     overwrite=False,   # False for read-only
+                                     smoothing = smoothing,
+                                     RMSfactor = RMSfactor,
+                                     cube_rms   = cube_rms,    
+                                     cont_chans = cont_chans,
+                                     **mask_tclean_param
+        )
 
         general_tclean_param['threshold']  = str(thresh)+'Jy'   
         
@@ -445,25 +451,10 @@ TP2VISims  = []
 
 
 
-
-
-
-
 # methods for combining agg. bandwidth image with TP image - cube not yet tested/provided
 
-#### thesteps = []   # define at beginning or outside this script
 
-step_title = {0: 'Concat',
-              1: 'Prepare the SD-image',
-              2: 'Clean for Feather/Faridani',
-              3: 'Feather', 
-              4: 'Faridani short spacings combination (SSC)',
-              5: 'Hybrid (startmodel clean + Feather)',
-              6: 'SDINT',
-              7: 'TP2VIS'
-              }
 
-        
     
 mystep = 0    ###################----- CONCAT -----####################
 if mystep in thesteps:
@@ -495,27 +486,16 @@ if mystep in thesteps:
   
   
     # axis reordering
-    if pythonversion=='3':
-        dc.reorder_axes(sdimage_input, sdreordered)
-    else:
-        reorder_axes(sdimage_input, sdreordered)
+    dc.reorder_axes(sdimage_input, sdreordered)
 
     # make a a channel-cut-out from the SD image?
     if sdreordered!=sdreordered_cut:
-        if pythonversion=='3':
-            dc.channel_cutout(sdreordered, sdreordered_cut, startchan = startchan,
-                              endchan = endchan)
-        else:
-            channel_cutout(sdreordered, sdreordered_cut, startchan = startchan,
-                              endchan = endchan)
-
+        dc.channel_cutout(sdreordered, sdreordered_cut, startchan = startchan,
+                          endchan = endchan)
 
     # read SD image frequency setup as input for tclean    
     if specsetup == 'SDpar':
-        if pythonversion=='3':
-            cube_dict = dc.get_SD_cube_params(sdcube = sdreordered_cut) #out: {'nchan':nchan, 'start':start, 'width':width}
-        else:
-            cube_dict = get_SD_cube_params(sdcube = sdreordered) #out: {'nchan':nchan, 'start':start, 'width':width}
+        cube_dict = dc.get_SD_cube_params(sdcube = sdreordered_cut) #out: {'nchan':nchan, 'start':start, 'width':width}
         general_tclean_param['start'] = cube_dict['start']  
         general_tclean_param['width'] = cube_dict['width']
         general_tclean_param['nchan'] = cube_dict['nchan']
@@ -524,24 +504,14 @@ if mystep in thesteps:
 
 
     # derive a simple threshold and make a mask from it 
-    if pythonversion=='3':
-        thresh = dc.derive_threshold(vis, imnamethSD , threshmask,
-                     overwrite=True,
-                     smoothing = smoothing,
-                     RMSfactor = RMSfactor,
-                     cube_rms   = cube_rms,    
-                     cont_chans = cont_chans, 
-                     **mask_tclean_param
-                     ) 
-    else:
-        thresh = derive_threshold(vis, imnamethSD , threshmask,
-                     overwrite=True,
-                     smoothing = smoothing,
-                     RMSfactor = RMSfactor,
-                     cube_rms   = cube_rms,    
-                     cont_chans = cont_chans,
-                     **mask_tclean_param
-                     )             
+    thresh = dc.derive_threshold(vis, imnamethSD , threshmask,
+                                 overwrite=True,
+                                 smoothing = smoothing,
+                                 RMSfactor = RMSfactor,
+                                 cube_rms   = cube_rms,    
+                                 cont_chans = cont_chans, 
+                                 **mask_tclean_param
+    ) 
                      
     general_tclean_param['threshold']  = str(thresh)+'Jy'   
                      
@@ -553,28 +523,18 @@ if mystep in thesteps:
         print('')
         print('Regridding SD image...')
         os.system('rm -rf '+sdroregrid)
-        if pythonversion=='3':
-            dc.regrid_SD(sdreordered_cut, sdroregrid, imnamethSD+'.image')
-        else:
-            regrid_SD(sdreordered_cut, sdroregrid, imnamethSD+'.image')  
+        dc.regrid_SD(sdreordered_cut, sdroregrid, imnamethSD+'.image')
         sdimage = sdroregrid  # for INT cube params used
 
     
        
     # make SD+AM mask (requires regridding to be run; currently)
-    if pythonversion=='3':
-        SDint_mask = dc.make_SDint_mask(vis, sdimage, imnamethSD, 
-                                 sdmasklev, 
-                                 SDint_mask_root,
-                                 **mask_tclean_param
-                                 ) 
-    else:
-        SDint_mask = make_SDint_mask(vis, sdimage, imnamethSD, 
-                                 sdmasklev, 
-                                 SDint_mask_root,
-                                 **mask_tclean_param
-                                 ) 
-
+    SDint_mask = dc.make_SDint_mask(vis, sdimage, imnamethSD, 
+                                    sdmasklev, 
+                                    SDint_mask_root,
+                                    **mask_tclean_param
+    ) 
+    
     immath(imagename=[SDint_mask_root+'.mask', threshmask+'.mask'],
            expr='iif((IM0+IM1)>'+str(0)+',1,0)',
            outfile=combined_mask)    
@@ -609,13 +569,9 @@ if mystep in thesteps:
         pass
     else:
         os.system('rm -rf '+imname+'*')
-        if pythonversion=='3':
-            dc.runtclean(vis, imname, startmodel='', 
-                    **z)
-                    #**general_tclean_param, **special_tclean_param)   # in CASA 6.x
-        else:
-            runtclean(vis, imname, startmodel='', **z)    # in CASA 5.7
-        
+        dc.runtclean(vis, imname, startmodel='', 
+                     **z)
+        #**general_tclean_param, **special_tclean_param)   # in CASA 6.x
 
     tcleanims.append(imname)
 
@@ -643,13 +599,8 @@ if mystep in thesteps:
         if dryrun == True:
             pass
         else:
-            if pythonversion=='3':
-                dc.runfeather(intimage, intpb, sdimage, sdfactor = sdfac[i],
+            dc.runfeather(intimage, intpb, sdimage, sdfactor = sdfac[i],
                           featherim = imname)
-            else:
-                runfeather(intimage, intpb, sdimage, sdfactor = sdfac[i],
-                          featherim = imname)
-                                      
 
         featherims.append(imname)
 
@@ -667,7 +618,7 @@ if mystep in thesteps:
     print('### ')
     print(' ')
 
-    for i in range(0,len(sdfac)):
+    for i in range(0,len(SSCfac)):
         imname = imbase + cleansetup + SSCsetup + str(SSCfac[i]) 
         
         if dryrun == True:
@@ -675,15 +626,9 @@ if mystep in thesteps:
         else:
             os.system('rm -rf '+imname+'*')
 
-            if pythonversion=='3':
-                dc.ssc(highres=imbase+cleansetup+tcleansetup+'.image', 
-                    lowres=sdimage, pb=imbase+cleansetup+tcleansetup+'.pb',
-                    sdfactor = SSCfac[i], combined=imname) 
-            else:
-                ssc(highres=imbase+cleansetup+tcleansetup+'.image', 
-                    lowres=sdimage, pb=imbase+cleansetup+tcleansetup+'.pb',
-                    sdfactor = SSCfac[i], combined=imname) 
-                    
+            dc.ssc(highres=imbase+cleansetup+tcleansetup+'.image', 
+                   lowres=sdimage, pb=imbase+cleansetup+tcleansetup+'.pb',
+                   sdfactor = SSCfac[i], combined=imname) 
                    
         SSCims.append(imname)
 
@@ -723,14 +668,9 @@ if mystep in thesteps:
             # delete tclean files ending on 'hybrid.*'  (dot '.' is important!)
 
             
-            if pythonversion=='3':
-                dc.runWSM(vis, sdimage, imname, sdfactorh = sdfac_h[i],
-                      **z)
-            else:
-                runWSM(vis, sdimage, imname, sdfactorh = sdfac_h[i],
+            dc.runWSM(vis, sdimage, imname, sdfactorh = sdfac_h[i],
                       **z)
            
-            
         hybridims.append(imname)
 
 
@@ -767,12 +707,8 @@ if mystep in thesteps:
         else:
             os.system('rm -rf '+jointname+'*')
             
-            if pythonversion=='3':
-                dc.runsdintimg(vis, sdimage, jointname, sdgain = sdg[0],
-                   **z)
-            else:
-                runsdintimg(vis, sdimage, jointname, sdgain = sdg[0],
-                   **z)
+            dc.runsdintimg(vis, sdimage, jointname, sdgain = sdg[0],
+                           **z)
 
         sdintims.append(jointname)                
                 
@@ -798,11 +734,7 @@ if mystep in thesteps:
 
     
     if a12m!=[]:    # if 12m-data exists ...
-        if pythonversion=='3':
-            dc.ms_ptg(TPpointingTemplate, outfile=TPpointinglist, uniq=True)
-        else:
-            ms_ptg(TPpointingTemplate, outfile=TPpointinglist, uniq=True)
-
+        dc.ms_ptg(TPpointingTemplate, outfile=TPpointinglist, uniq=True)
     else:
         TPpointinglist = TPpointinglistAlternative    
     
@@ -813,14 +745,10 @@ if mystep in thesteps:
       
       
     # works!  
-    #if pythonversion=='3':
+    #
     #    dc.create_TP2VIS_ms(imTP=imTP, TPresult=TPresult,
     #        TPpointinglist=TPpointinglist, mode='mfs',  
     #        vis=vis, imname=imname1, TPnoiseRegion=TPnoiseRegion)  # in CASA 6.x
-    #else:
-    #    create_TP2VIS_ms(imTP=imTP, TPresult=TPresult,
-    #        TPpointinglist=TPpointinglist, mode='mfs', 
-    #        vis=vis, imname=imname1, TPnoiseRegion=TPnoiseRegion)      # in CASA 5.7
           
 
     
@@ -839,13 +767,8 @@ if mystep in thesteps:
     transvis = vis+'_LSRK' #'_1spw'
 
     # works!
-    #if pythonversion=='3':
     #    dc.transform_INT_to_SD_freq_spec(TPresult, imTP, vis, 
     #        transvis, datacolumn='DATA', outframe='LSRK')  # in CASA 6.x
-    #else:
-    #    transform_INT_to_SD_freq_spec(TPresult=TPresult, imTP=imTP, vis=vis, 
-    #        transvis=transvis, datacolumn='DATA', outframe='LSRK')      # in CASA 5.7
-    #      
 
 
     ### for CASA 5.7:
@@ -861,12 +784,8 @@ if mystep in thesteps:
         if dryrun == True:
             pass
         else:
-            if pythonversion=='3':
-                dc.runtclean_TP2VIS_INT(TPresult, TPfac[i], vis, imname,
-                    RMSfactor=RMSfactor, cube_rms=cube_rms, cont_chans = cont_chans, **z)   # in CASA 6.x
-            else:
-                runtclean_TP2VIS_INT(TPresult, TPfac[i], vis, imname,
-                    RMSfactor=RMSfactor, cube_rms=cube_rms, cont_chans = cont_chans, **z)   # in CASA 5.7
+            dc.runtclean_TP2VIS_INT(TPresult, TPfac[i], vis, imname,
+                                    RMSfactor=RMSfactor, cube_rms=cube_rms, cont_chans = cont_chans, **z)   # in CASA 6.x
         
         TP2VISims.append(imname)
     
