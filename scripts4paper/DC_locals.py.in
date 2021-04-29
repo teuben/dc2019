@@ -21,16 +21,15 @@ pathtoimage  = _s4p_work
 datacombpath = _s4p
 TP2VISpath   = _s4p
 
-sys.path.append(datacombpath)
-sys.path.append(TP2VISpath)
+import sys
+sys.path.append(_s4p)
 
 
-# helper function for DC_script.py
-
+#  helper function for DC_script.py
 def function_exists(fn):
     """
-         fn (string) :  name of the function to test if it exists
-                        in the current python environment
+         fn (string) :  name of the function (or variable) to test if it exists
+                        in your current python environment
     """
     #   surely there must be a better pythonic way for this?
     #   but this does work :-)
@@ -45,19 +44,16 @@ def function_exists(fn):
     return None
 
 
-#  now the hard work
-import sys
-
-
 #  we can't work without the new sdintimaging....
 if not function_exists('sdintimaging'):
     print('#########################################################')
     print('Your CASA version does not seem to  support sdintimaging.')
-    print('Please use at least CASA 5.7.0 or 6.1.x')
+    print('Please use at least 6.1.x')
     print('Aborting script ...')
     print('#########################################################')
+    sys.exit(1)
 
 
-print("Setup of @S4P@ complete for python %s" % pythonversion)
+print("Setup of @S4P@ complete for python3 only")
 print("S4P_DATA = @S4P_DATA@")
 print("S4P_WORK = @S4P_WORK@")

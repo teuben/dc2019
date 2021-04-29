@@ -26,7 +26,7 @@ step_title = {0: 'Concat',
               }
 
 #thesteps=[0,1,2,3,4,5,6,7]
-thesteps=[5]
+thesteps=[0]
 
 print("STEPS:",thesteps)
 
