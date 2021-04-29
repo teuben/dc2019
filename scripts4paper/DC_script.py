@@ -8,10 +8,10 @@ Based on the work at the Workshop
 Lorentz Center, Leiden, August 2019, 
 and subsequent follow-up work. 
 
-Run under CASA 6. (does CASA 5 stil work?)
+Run under CASA 6. (CASA5 no longer supported)
 
 Typical use in CASA6:
-     execfile("DC_script.py",globals())
+     execfile("DC_script.py")
 
 """
 
@@ -28,18 +28,18 @@ step_title = {0: 'Concat',
 #thesteps=[0,1,2,3,4,5,6,7]
 thesteps=[0]
 
-print("STEPS:",thesteps)
-
 import os 
 import sys 
-#import glob
 
 
 from importlib import reload  
 import datacomb as dc
 reload(dc)
-from casatasks import immath
-from casatasks import casalog
+
+import casatasks as cta
+
+# from casatasks import immath
+# from casatasks import casalog
 
 
 #   Need to find a way to execfile yet another parameter file?
@@ -458,9 +458,9 @@ TP2VISims  = []
     
 mystep = 0    ###################----- CONCAT -----####################
 if mystep in thesteps:
-    casalog.post('### ','INFO')
-    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
-    casalog.post('### ','INFO')
+    cta.casalog.post('### ','INFO')
+    cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    cta.casalog.post('### ','INFO')
     print(' ')    
     print('### ')
     print('Step ', mystep, step_title[mystep])
@@ -475,9 +475,9 @@ if mystep in thesteps:
 
 mystep = 1    ############# ----- PREPARE SD-IMAGE and MASKS-----###############
 if mystep in thesteps:
-    casalog.post('### ','INFO')
-    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
-    casalog.post('### ','INFO')
+    cta.casalog.post('### ','INFO')
+    cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    cta.casalog.post('### ','INFO')
     print(' ')    
     print('### ')
     print('Step ', mystep, step_title[mystep])
@@ -535,18 +535,18 @@ if mystep in thesteps:
                                     **mask_tclean_param
     ) 
     
-    immath(imagename=[SDint_mask_root+'.mask', threshmask+'.mask'],
-           expr='iif((IM0+IM1)>'+str(0)+',1,0)',
-           outfile=combined_mask)    
+    cta.immath(imagename=[SDint_mask_root+'.mask', threshmask+'.mask'],
+               expr='iif((IM0+IM1)>'+str(0)+',1,0)',
+               outfile=combined_mask)    
 
 
            
 
 mystep = 2    ############----- CLEAN FOR FEATHER/SSC -----############
 if mystep in thesteps:
-    casalog.post('### ','INFO')
-    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
-    casalog.post('### ','INFO')
+    cta.casalog.post('### ','INFO')
+    cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    cta.casalog.post('### ','INFO')
     print(' ')
     print('### ')
     print('Step ', mystep, step_title[mystep])
@@ -579,9 +579,9 @@ if mystep in thesteps:
 
 mystep = 3    ###################----- FEATHER -----###################
 if mystep in thesteps:
-    casalog.post('### ','INFO')
-    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
-    casalog.post('### ','INFO')
+    cta.casalog.post('### ','INFO')
+    cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    cta.casalog.post('### ','INFO')
     print(' ')
     print('### ')
     print('Step ', mystep, step_title[mystep])
@@ -609,9 +609,9 @@ if mystep in thesteps:
 
 mystep = 4    ################----- FARIDANI SSC -----#################
 if mystep in thesteps:
-    casalog.post('### ','INFO')
-    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
-    casalog.post('### ','INFO')
+    cta.casalog.post('### ','INFO')
+    cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    cta.casalog.post('### ','INFO')
     print(' ')
     print('### ')
     print('Step ', mystep, step_title[mystep])
@@ -638,9 +638,9 @@ if mystep in thesteps:
 
 mystep = 5    ###################----- HYBRID -----####################
 if mystep in thesteps:
-    casalog.post('### ','INFO')
-    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
-    casalog.post('### ','INFO')
+    cta.casalog.post('### ','INFO')
+    cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    cta.casalog.post('### ','INFO')
     print(' ')
     print('### ')
     print('Step ', mystep, step_title[mystep])
@@ -676,9 +676,9 @@ if mystep in thesteps:
 
 mystep = 6    ####################----- SDINT -----####################
 if mystep in thesteps:
-    casalog.post('### ','INFO')
-    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
-    casalog.post('### ','INFO')
+    cta.casalog.post('### ','INFO')
+    cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    cta.casalog.post('### ','INFO')
     print(' ')
     print('### ')
     print('Step ', mystep, step_title[mystep])
@@ -715,9 +715,9 @@ if mystep in thesteps:
                 
 mystep = 7    ###################----- TP2VIS -----####################
 if mystep in thesteps:
-    casalog.post('### ','INFO')
-    casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
-    casalog.post('### ','INFO')
+    cta.casalog.post('### ','INFO')
+    cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    cta.casalog.post('### ','INFO')
     print(' ')
     print('### ')
     print('Step ', mystep, step_title[mystep])
