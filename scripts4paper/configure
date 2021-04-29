@@ -1253,8 +1253,8 @@ if test -n "$ac_init_help"; then
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-s4p-data=DIR     Directory where S4$ data are (or their symlinks)
-  --with-s4p-work=DIR     Directory where S4P data can be written
+  --with-s4p-data=DIR     Directory where S4$ data are (or their symlinks) Default: ../data
+  --with-s4p-work=DIR     Directory where S4P data can be written.  Default: tmp
 
 Report bugs to the package provider.
 _ACEOF
@@ -1710,12 +1710,12 @@ S4P_DATA=$(realpath $s4p_data)
 if test "${with_s4p_work+set}" = set; then :
   withval=$with_s4p_work; s4p_work="$withval"
 else
-  s4p_work="../data"
+  s4p_work="tmp"
 fi
 
 S4P_WORK=$(realpath $s4p_work)
 
-
+mkdir -p $S4P_WORK
 
 # report
 echo ""
