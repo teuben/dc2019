@@ -4,6 +4,8 @@
 #  if sigma given, if will use that for the ASINH rescaling, units will be this rescaled
 #  one.
 #
+#  Usage:      fitscmap fitsfile colormap [dmin dmax sigma]
+#
 #  Supposed to work within casa as well, but it won't return valid cmap names
 #  You will need to have casa's python in your $PATH.
 #
@@ -32,7 +34,24 @@ try:
     import aplpy
     Qaplpy = True
 except:
-    Qaplpy = False    
+    Qaplpy = False
+
+try:
+    import pandas as pd
+    import seaborn as sns
+    plt.rcParams['font.family'] = 'serif'
+    plt.rcParams['font.size'] = 6
+    plt.rcParams['mathtext.rm'] = 'serif'
+    plt.rcParams['mathtext.fontset'] = 'cm'
+    from astropy.visualization import (ManualInterval, AsinhStretch, ImageNormalize, LogStretch)
+    #
+    pal=sns.cubehelix_palette(n_colors=8,start=0.3,rot=-0.3,light=1.0,dark=0.0)
+    pal[1] = [0.9, 0.9, 0.9]
+    pal[2] = [0.85, 0.85, 0.85]
+    cmap = LinearSegmentedColormap.from_list('test',pal,N=256)
+except:
+    print("Tried something new, but it didn't work yet. Continuing without it")
+
 
 if len(sys.argv) == 1:
     sys.stderr.write("Usage %s FITSFILE [cmr.]CMAP [min max asinh_sigma]\n" % sys.argv[0])
@@ -94,7 +113,10 @@ plt.imshow(data,origin='lower',cmap=cmap,vmin=dmin,vmax=dmax)
 plt.colorbar()
 plt.title('%s %s' % (fitsfile,colormap_name))
 plt.savefig(plotname)
-plt.show()
+#plt.show()
+
+# 2nd chance
+Qaplpy = False    
 
 
 if Qaplpy:

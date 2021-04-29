@@ -32,7 +32,7 @@ except:
 
 def qac_compare(image1, image2, channel=False, ds9=False, method='mse'):
     """    
-    image1, image2: two images to compare
+    image1, image2: two images to compare. They need to be fits files.
     
     channel:   if True, if will return an array (one per channel)
 

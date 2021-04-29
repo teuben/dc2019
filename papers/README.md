@@ -25,6 +25,10 @@ We should have PDF's of the following papers
 
 * Rau et al. 2019, AJ: https://ui.adsabs.harvard.edu/abs/2019AJ....158....3R/abstract *A Joint Deconvolution Algorithm to Combine Single-dish and Interferometer Data for Wideband Multiterm and Mosaic Imaging*
 
+* Mason 2020 https://arxiv.org/pdf/2006.06549.pdf *Imaging Spatially Extended Objects with Interferometers: Mosaicking and the Short Spacing Correction*
+
+* Stanimirovic 2002 http://articles.adsabs.harvard.edu/pdf/2002ASPC..278..375S *Short-Spacings Correction from the Single-Dish Perspective*
+
 * ALMA cycle 7 technical handbook (version 1.1)
 
 
@@ -48,3 +52,7 @@ We should have PDF's of the following papers
     *A Tool and Workflow for Radio Astronomical "Peeling" in CASA*
     
 * Report: "Combination of the ALMA Main Array, 7M, and TP imaging products for Cycles 1 and 2" : https://www.eso.org/projects/alma/arc/tw/pub/External/CombinationWorkshop2016/ALMACycle12Combination.pdf
+
+* ngVLA memo 67:
+  Next Generation VLA Memo 67:Demonstration & Analysis of ngVLA core + ShortBaseline Array Extended Structure Imaging
+  https://library.nrao.edu/public/memos/ngvla/NGVLA_67.pdf

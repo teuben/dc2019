@@ -116,6 +116,7 @@ When convolved to a 2" beam, the flux is about
       gmc_2L.sd.image0.scaled        7879
 
 There is an issue discussion this flux scaling issue of the SD vs. OTF:  https://github.com/teuben/dc2019/issues/14
+possible related to a 4% re-scaling.
 
 ## Imaging
 
@@ -161,4 +162,5 @@ count, presumably due to the curvature of the WCS.
 Maps that are compared on a pixel by pixel basis, also need to be smoothed to the same beam.
 The assessment methods team uses a 2" beam, and a certain physical area (maybe not quite box1).
 To be confirmed.
+
 

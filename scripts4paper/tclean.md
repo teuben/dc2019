@@ -26,9 +26,12 @@ WSM| auto|false|10219.6|-0.378|3.390
 WSM+feather| auto|false|7839.9|-0.581|3.334
 WSM |auto|true|9739.2|-0.557|3.197
 WSM+feather| auto|true|7839.4|-0.549|3.175
+WSM+feather| SD | true | 7828.5|-0.529|3.315
 
 In the above table, WSM stands for 'with start model', in other words,
-startmodel='sd.image' in TCLEAN.
+startmodel='sd.image' in TCLEAN.  The mask `SD' means we make a mask
+based on the SD, use auto-mask to find the additional interferometry
+contribution, and then run the TCLEAN with start model, using that mask.
 
 Next I show TCLEAN interferometry-only images using pb-mask (top row)
 and auto-mask (lower row).  Column 1 uses multiscale=False; column 2
