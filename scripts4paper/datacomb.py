@@ -17,37 +17,19 @@ import math
 import sys
 import glob
 import numpy as np
+from importlib import reload
 
 
 import tp2vis as t2v
-from importlib import reload
 
-# what a mess, should we
-#    import casatools as cto
-#    import casatasks as cta
-#
+# new style
+import casatools as cto
+import casatasks as cta
 
+# old style
 from casatools import table  as tbtool
 from casatools import image  as iatool
 from casatools import quanta as qatool
-
-from casatasks import concat
-from casatasks import imregrid, immath
-from casatasks import casalog
-from casatasks import exportfits
-from casatasks import imstat, immoments
-from casatasks import casalog
-from casatasks import exportfits
-from casatasks import imhead
-from casatasks import sdintimaging
-from casatasks import tclean
-from casatasks import immath, imstat, immoments
-from casatasks import imregrid, imtrans
-from casatasks import imsmooth
-from casatasks import feather
-from casatasks import mstransform
-from casatasks import listobs
-from casatasks import concat
 
 reload(t2v)
 
@@ -213,7 +195,7 @@ def runsdintimg(vis,
     myia = iatool()
     myqa = qatool()
 
-    myhead = imhead(mysdimage)
+    myhead = cta.imhead(mysdimage)
     myaxes = list(myhead['axisnames'])
     numchan = myhead['shape'][myaxes.index('Frequency')] 
             
@@ -223,15 +205,15 @@ def runsdintimg(vis,
         mybeam = myia.restoringbeam()
     except:
         myia.close()
-        casalog.post('ERROR: sdimage does not contain beam information.', 'SEVERE', 
-                     origin='runsdintimg')
+        cta.casalog.post('ERROR: sdimage does not contain beam information.', 'SEVERE', 
+                         origin='runsdintimg')
         return False
 
     haspcb=False
     if 'beams' in mybeam.keys():
         haspcb=True
-        casalog.post("The sdimage has a per channel beam.", 'INFO', 
-                     origin='runsdintimg')
+        cta.casalog.post("The sdimage has a per channel beam.", 'INFO', 
+                         origin='runsdintimg')
 
     myia.close()
 
@@ -258,8 +240,8 @@ def runsdintimg(vis,
             myia.setrestoringbeam(beam=mybeam, log=True, channel=i, polarization=0) 
         myia.close()
 
-        casalog.post('Needed to give the sdimage a per-channel beam. Modifed image is in '+mysdimage, 'WARN', 
-                     origin='runsdintimg')
+        cta.casalog.post('Needed to give the sdimage a per-channel beam. Modifed image is in '+mysdimage, 'WARN', 
+                         origin='runsdintimg')
 
     # specmode and deconvolver
     if multiscale:
@@ -289,7 +271,7 @@ def runsdintimg(vis,
     # image and cell size
     npnt = 0
     if imsize==[] or cell=='':
-        casalog.post('You need to provide values for the parameters imsize and cell.', 'SEVERE', origin='runsdintimg')
+        cta.casalog.post('You need to provide values for the parameters imsize and cell.', 'SEVERE', origin='runsdintimg')
         return False
 
     if phasecenter=='':
@@ -302,7 +284,7 @@ def runsdintimg(vis,
 
     if niter==0:
         niter = 1
-        casalog.post('You set niter to 0 (zero, the default), but sdintimaging can only produce an output for niter>1. niter = 1 set automatically. ', 'WARN')
+        cta.casalog.post('You set niter to 0 (zero, the default), but sdintimaging can only produce an output for niter>1. niter = 1 set automatically. ', 'WARN')
 
 
     os.system('rm -rf '+jointname+'.*')
@@ -370,7 +352,7 @@ def runsdintimg(vis,
         
 
                  
-    sdintimaging(**sdint_arg)
+    cta.sdintimaging(**sdint_arg)
 
                  
     #oldnames=glob.glob(imname+'.joint.multiterm*')
@@ -398,7 +380,7 @@ def runsdintimg(vis,
         os.system('rm -rf '+jointname+'.sd.cube*')
         os.system('rm -rf '+jointname+'.joint.cube*')
 
-        exportfits(jointname+'.image.pbcor', jointname+'.image.pbcor.fits')
+        cta.exportfits(jointname+'.image.pbcor', jointname+'.image.pbcor.fits')
         
     elif mydeconvolver=='hogbom':
         os.system('rm -rf '+jointname+'.int.cube*')
@@ -409,7 +391,7 @@ def runsdintimg(vis,
             os.system('mv '+nam+' '+nam.replace('.joint.cube',''))
         
         #exportfits(jointname+'.joint.cube.image.pbcor', jointname+'.joint.cube.image.pbcor.fits')
-        exportfits(jointname+'.image.pbcor', jointname+'.image.pbcor.fits')
+        cta.exportfits(jointname+'.image.pbcor', jointname+'.image.pbcor.fits')
 
     return True
 
@@ -542,13 +524,15 @@ def runWSM(vis,
         print(sdimage+' does not exist')
         return False
 
-    if imhead(mysdimage)['unit']=='Jy/beam': print('SD units {}. OK, will convert to Jy/pixel.'.format(imhead(mysdimage)['unit']))
-    elif imhead(mysdimage)['unit']=='Jy/pixel': print('SD units {}. SKIP conversion. '.format(imhead(mysdimage)['unit']))
-    else: print('SD units {}. NOT OK, needs conversion. '.format(imhead(mysdimage)['unit']))
+    myimhead = cta.imhead(mysdimage)
+
+    if myimhead['unit']=='Jy/beam': print('SD units {}. OK, will convert to Jy/pixel.'.format(myimhead['unit']))
+    elif myimhead['unit']=='Jy/pixel': print('SD units {}. SKIP conversion. '.format(myimhead['unit']))
+    else: print('SD units {}. NOT OK, needs conversion. '.format(myimhead['unit']))
 
     ##CHECK: header units
-    SingleDishResolutionArcsec = imhead(mysdimage)['restoringbeam']['major']['value'] #in Arcsec
-    CellSizeArcsec = abs(imhead(mysdimage)['incr'][0])*206265. #in Arcsec
+    SingleDishResolutionArcsec = myimhead['restoringbeam']['major']['value'] #in Arcsec
+    CellSizeArcsec = abs(myimhead['incr'][0])*206265. #in Arcsec
     toJyPerPix = CellSizeArcsec**2/(1.1331*SingleDishResolutionArcsec**2)
     SDEfficiency = 1.0 #--> Scaling factor
     fluxExpression = "(IM0 * {0:f} / {1:f})".format(toJyPerPix,SDEfficiency)
@@ -556,15 +540,15 @@ def runWSM(vis,
     scaled_name = mysdimage+'.Jyperpix'
 
     os.system('rm -rf '+scaled_name)
-    immath(imagename=mysdimage,
-           outfile=scaled_name,
-           mode='evalexpr',
-           expr=fluxExpression)
+    cta.immath(imagename=mysdimage,
+               outfile=scaled_name,
+               mode='evalexpr',
+               expr=fluxExpression)
     hdval = 'Jy/pixel'
-    dummy = imhead(imagename=scaled_name,
-                   mode='put',
-                   hdkey='BUNIT',
-                   hdvalue=hdval)
+    dummy = cta.imhead(imagename=scaled_name,
+                       mode='put',
+                       hdkey='BUNIT',
+                       hdvalue=hdval)
     ### TO DO: MAY NEED TO REMOVE BLANK 
     ### and/or NEGATIVE PIXELS IN SD OBSERVATIONS
 
@@ -791,42 +775,38 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
     # Regrid low res Image to match high res image
 
     print('Regridding lowres image...')
-    imregrid(imagename=mysdimage,
-           template=myintimage,
-           axes=[0,1,2],
-           output='lowres.regrid')
+    cta.imregrid(imagename=mysdimage,
+                 template=myintimage,
+                 axes=[0,1,2],
+                 output='lowres.regrid')
 
     # Multiply the lowres image with the highres primary beam response
 
     print('Multiplying lowres by the highres pb...')
-    immath(imagename=['lowres.regrid',
-                      myintpb],
-         expr='IM0*IM1',
-         outfile='lowres.multiplied')
+    cta.immath(imagename=['lowres.regrid', myintpb],
+               expr='IM0*IM1',
+               outfile='lowres.multiplied')
 
 
     # Feather together the low*pb and hi images
 
     print('Feathering...')
-    feather(imagename=featherim+'.image',
-          highres=myintimage,
-          lowres='lowres.multiplied',
-          sdfactor = sdfactor,
-          lowpassfiltersd = True )
+    cta.feather(imagename=featherim+'.image',
+                highres=myintimage,
+                lowres='lowres.multiplied',
+                sdfactor = sdfactor,
+                lowpassfiltersd = True )
 
     os.system('rm -rf '+featherim+'.image.pbcor')
-    immath(imagename=[featherim+'.image',
-                      myintpb],
-       expr='IM0/IM1',
-       outfile=featherim+'.image.pbcor')
+    cta.immath(imagename=[featherim+'.image', myintpb],
+               expr='IM0/IM1',
+               outfile=featherim+'.image.pbcor')
     
     print('Exporting final pbcor image to FITS ...')
     os.system('rm -rf '+featherim+'.image.pbcor.fits')
-    exportfits(featherim+'.image.pbcor', featherim+'.image.pbcor.fits')
+    cta.exportfits(featherim+'.image.pbcor', featherim+'.image.pbcor.fits')
 
     os.system('rm -rf lowres.*')
-
-
 
     return True
 
@@ -997,7 +977,7 @@ def runtclean(vis,
         mydeconvolver = 'hogbom'
 
     if niter==0:
-        casalog.post('You set niter to 0 (zero, the default). Only a dirty image will be created.', 'WARN', origin='runtclean')
+        cta.casalog.post('You set niter to 0 (zero, the default). Only a dirty image will be created.', 'WARN', origin='runtclean')
 
 
 
@@ -1054,14 +1034,11 @@ def runtclean(vis,
         os.system('rm -rf '+imname+'.*') #+'.TCLEAN.*')   
         # if to be switched off add command to delete "*.pbcor.fits"
     
-    tclean(**tclean_arg)
-    
-   
+    cta.tclean(**tclean_arg)
 
     print('Exporting final pbcor image to FITS ...')
     #exportfits(imname+'.TCLEAN.image.pbcor', imname+'.TCLEAN.pbcor.fits')
-    exportfits(imname+'.image.pbcor', imname+'.image.pbcor.fits')
-
+    cta.exportfits(imname+'.image.pbcor', imname+'.image.pbcor.fits')
 
     return True
 
@@ -1237,26 +1214,26 @@ def channel_cutout(old_image, new_image, startchan = None,
         print('Reduce channel range to '+str(startchan)+'-'+str(endchan))   
         os.system('rm -rf '+new_image)
         
-        immath(imagename=old_image,
-               expr='IM0', chans=str(startchan)+'~'+str(endchan),
-               outfile=new_image) 
+        cta.immath(imagename=old_image,
+                   expr='IM0', chans=str(startchan)+'~'+str(endchan),
+                   outfile=new_image) 
             
-        width   = imhead(imagename = old_image, 
-                         mode='get', hdkey='cdelt4')['value']
-        ref_old = imhead(imagename = old_image, 
-                         mode='get', hdkey='crval4')['value'] 
+        width   = cta.imhead(imagename = old_image, 
+                             mode='get', hdkey='cdelt4')['value']
+        ref_old = cta.imhead(imagename = old_image, 
+                             mode='get', hdkey='crval4')['value'] 
         ref_new = ref_old + startchan*width  
         
-        imhead(imagename = new_image, 
-               mode='put', hdkey='crval4', hdvalue=str(ref_new))
+        cta.imhead(imagename = new_image, 
+                   mode='put', hdkey='crval4', hdvalue=str(ref_new))
         
         #if perplanebeams, then smooth
-        check_beam=imhead(new_image, mode='summary')
+        check_beam=cta.imhead(new_image, mode='summary')
         if 'perplanebeams' in check_beam.keys():
-            imsmooth(imagename = new_image,
-                kernel    = 'commonbeam',                                                     
-                outfile   = new_image+'_1',            
-                overwrite = True)       
+            cta.imsmooth(imagename = new_image,
+                         kernel    = 'commonbeam',                                                     
+                         outfile   = new_image+'_1',            
+                         overwrite = True)       
                         
             os.system('rm -rf '+new_image)
             os.system('cp -r '+new_image+'_1 ' +new_image)
@@ -1294,19 +1271,19 @@ def regrid_SD(old_image, new_image, template_image):
     """
 
 
-    imregrid(imagename=old_image,
-                     template=template_image,
-                     axes=[0,1,2,3],
-                     output=new_image)  
+    cta.imregrid(imagename=old_image,
+                 template=template_image,
+                 axes=[0,1,2,3],
+                 output=new_image)  
 
 
     #if perplanebeams, then smooth
-    check_beam=imhead(new_image, mode='summary')
+    check_beam=cta.imhead(new_image, mode='summary')
     if 'perplanebeams' in check_beam.keys():
-        imsmooth(imagename = new_image,
-            kernel    = 'commonbeam',                                                     
-            outfile   = new_image+'_1',            
-            overwrite = True)       
+        cta.imsmooth(imagename = new_image,
+                     kernel    = 'commonbeam',                                                     
+                     outfile   = new_image+'_1',            
+                     overwrite = True)       
                     
         os.system('rm -rf '+new_image)
         os.system('cp -r '+new_image+'_1 ' +new_image)
@@ -1338,9 +1315,9 @@ def reorder_axes(to_reorder, reordered_image):
     """
 
     os.system('rm -rf '+reordered_image)
-    imtrans(imagename=to_reorder,
-            outfile=reordered_image,
-            order = ['rig', 'declin', 'stok', 'frequ'])
+    cta.imtrans(imagename=to_reorder,
+                outfile=reordered_image,
+                order = ['rig', 'declin', 'stok', 'frequ'])
 
     #return True 
     return reordered_image
@@ -1389,7 +1366,7 @@ def reorder_axes2(template, to_reorder, reordered):
              axes = {}
              i=0
              for key in mykeys:
-                     q = imhead(f,mode='get',hdkey=key)
+                     q = cta.imhead(f,mode='get',hdkey=key)
                      axes[i]=q
                      i=i+1
                      print(str(key)+' : '+str(q))
@@ -1422,7 +1399,7 @@ def reorder_axes2(template, to_reorder, reordered):
     else:
             reordered_image=reordered
             os.system('rm -rf '+reordered_image)
-            imtrans(imagename=to_reorder,outfile=reordered_image,order=order)
+            cta.imtrans(imagename=to_reorder,outfile=reordered_image,order=order)
             print('Had to reorder!')
             outputname = reordered_image
     
@@ -1509,10 +1486,10 @@ def make_SDint_mask(vis, SDimage, imname, sdmasklev, SDint_mask_root,
 
     
 
-    casalog.post("Generating a mask based on SD image", 'INFO', 
-                 origin='make_SDint_mask')
+    cta.casalog.post("Generating a mask based on SD image", 'INFO', 
+                     origin='make_SDint_mask')
     #get max in SD image
-    maxSD = imstat(SDimage)['max'][0]
+    maxSD = cta.imstat(SDimage)['max'][0]
     #sdmasklev=sdmasklev
     sdmaskval = sdmasklev*maxSD
     
@@ -1522,8 +1499,8 @@ def make_SDint_mask(vis, SDimage, imname, sdmasklev, SDint_mask_root,
     
     os.system('rm -rf '+SDint_mask_root + '*mask')     
     #try: 
-    immath(imagename=[SDimage],expr='iif(IM0>'+str(round(sdmaskval,6))+',1,0)',
-           outfile=SDoutname1)
+    cta.immath(imagename=[SDimage],expr='iif(IM0>'+str(round(sdmaskval,6))+',1,0)',
+               outfile=SDoutname1)
     #except: print('### SD.mask already exists, will proceed')
 
     print('')
@@ -1659,8 +1636,8 @@ def derive_threshold(vis, imname, threshmask,
 
     
 
-    casalog.post("derive_threshold", 'INFO', 
-                 origin='derive_threshold')
+    cta.casalog.post("derive_threshold", 'INFO', 
+                     origin='derive_threshold')
 
     imnameth = imname #+'_template'
 
@@ -1688,7 +1665,7 @@ def derive_threshold(vis, imname, threshmask,
     else:       
         #### continuum
         if specmode == 'mfs':
-            full_RMS = imstat(imnameth+'.image')['rms'][0]
+            full_RMS = cta.imstat(imnameth+'.image')['rms'][0]
             print('full_RMS', full_RMS)
             #peak_val = imstat(imnameth+'.image')['max'][0]
             thresh = full_RMS*RMSfactor
@@ -1697,9 +1674,9 @@ def derive_threshold(vis, imname, threshmask,
         #### cube
         elif specmode == 'cube':
             os.system('rm -rf '+imnameth+'.mom6')
-            immoments(imagename=imnameth+'.image', moments=[6], 
-                       outfile=imnameth+'.mom6', chans=cont_chans)
-            cube_RMS = imstat(imnameth+'.mom6')['rms'][0]
+            cta.immoments(imagename=imnameth+'.image', moments=[6], 
+                          outfile=imnameth+'.mom6', chans=cont_chans)
+            cube_RMS = cta.imstat(imnameth+'.mom6')['rms'][0]
         
             thresh = cube_RMS*cube_rms   # 3 sigma level
         
@@ -1714,9 +1691,9 @@ def derive_threshold(vis, imname, threshmask,
         threshmask1 = threshmask+'_1.mask'
         os.system('rm -rf '+threshmask+'*.mask')     
         
-        immath(imagename=[imnameth+'.image'],
-               expr='iif(IM0>'+str(round(thresh,6))+',1,0)',
-               outfile=threshmask1)
+        cta.immath(imagename=[imnameth+'.image'],
+                   expr='iif(IM0>'+str(round(thresh,6))+',1,0)',
+                   outfile=threshmask1)
            
         convfactor = smoothing
         
@@ -1739,24 +1716,24 @@ def derive_threshold(vis, imname, threshmask,
         #     BeamMin = imhead(imnameth+'.image', mode='summary')['perplanebeams']['beams']['*'+str(midchan)]['*0']['minor']['value']
         #     BeamPA  = imhead(imnameth+'.image', mode='summary')['perplanebeams']['beams']['*'+str(midchan)]['*0']['positionangle']['value']
  
-        BeamMaj = imhead(imnameth+'.image', mode='get', hdkey='bmaj')['value']
-        BeamMin = imhead(imnameth+'.image', mode='get', hdkey='bmin')['value']
-        BeamPA  = imhead(imnameth+'.image', mode='get', hdkey='bpa' )['value']
+        BeamMaj = cta.imhead(imnameth+'.image', mode='get', hdkey='bmaj')['value']
+        BeamMin = cta.imhead(imnameth+'.image', mode='get', hdkey='bmin')['value']
+        BeamPA  = cta.imhead(imnameth+'.image', mode='get', hdkey='bpa' )['value']
  
  
         
-        imsmooth(imagename = threshmask1,
-            kernel    = 'gauss',               
-            targetres = False,                                                             
-            major     = str(convfactor*round(BeamMaj, 6))+'arcsec',                                                     
-            minor     = str(convfactor*round(BeamMin, 6))+'arcsec',    
-            pa        = str(round(BeamPA, 3))+'deg',                                       
-            outfile   = threshmaskconv,            
-            overwrite = True)                 
+        cta.imsmooth(imagename = threshmask1,
+                     kernel    = 'gauss',               
+                     targetres = False,                                                             
+                     major     = str(convfactor*round(BeamMaj, 6))+'arcsec',                                                     
+                     minor     = str(convfactor*round(BeamMin, 6))+'arcsec',    
+                     pa        = str(round(BeamPA, 3))+'deg',                                       
+                     outfile   = threshmaskconv,            
+                     overwrite = True)                 
         
-        immath(imagename=[threshmaskconv],
-               expr='iif(IM0>'+str(0.2)+',1,0)',  # cut-off value is arbitrary!
-               outfile=threshmask+'.mask')
+        cta.immath(imagename=[threshmaskconv],
+                   expr='iif(IM0>'+str(0.2)+',1,0)',  # cut-off value is arbitrary!
+                   outfile=threshmask+'.mask')
         
         
     return thresh
@@ -1898,23 +1875,23 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     lowres_regrid1 = 'lowres.regrid'
     
     print('Regridding lowres image...[%s]' % lowres)
-    imregrid(imagename=lowres,
-                     template=highres,
-                     axes=[0,1,2,3],
-                     output=lowres_regrid1)
+    cta.imregrid(imagename=lowres,
+                 template=highres,
+                 axes=[0,1,2,3],
+                 output=lowres_regrid1)
                      
     #lowres_unit = imhead(lowres_regrid1, mode='get', hdkey='Bunit')['value']
-    lowres_unit = imhead(lowres_regrid1, mode='get', hdkey='Bunit')
+    lowres_unit = cta.imhead(lowres_regrid1, mode='get', hdkey='Bunit')
 
     # Multiply the lowres image with the highres primary beam response
     print('Multiplying lowres by the highres pb...')
-    immath(imagename=[lowres_regrid1, pb],
-                 expr='IM0*IM1',
-                 outfile='lowres.multiplied')
+    cta.immath(imagename=[lowres_regrid1, pb],
+               expr='IM0*IM1',
+               outfile='lowres.multiplied')
 
     lowres_regrid = 'lowres.multiplied'
 
-    imhead(lowres_regrid, mode='put', hdkey='Bunit', hdvalue=lowres_unit)
+    cta.imhead(lowres_regrid, mode='put', hdkey='Bunit', hdvalue=lowres_unit)
 
 
     print('')
@@ -1941,7 +1918,7 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     minor = str(getBmin(lowres_regrid)) + 'arcsec'
     pa = str(getPA(highres)[0]) + str(getPA(highres)[1])
     print('imsmooth',major,minor,pa)
-    imsmooth(highres, 'gauss', major, minor, pa, True, outfile=highres + '_conv', overwrite=True)
+    cta.imsmooth(highres, 'gauss', major, minor, pa, True, outfile=highres + '_conv', overwrite=True)
 
     highres_conv = highres + '_conv'
     
@@ -1955,7 +1932,7 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     os.system('rm -rf '+sub_bc)
     
     print('Computing the obtained flux only by single-dish ...')
-    immath([lowres_regrid, highres_conv], 'evalexpr', sub, '%s*IM0-IM1' % sdfactor)
+    cta.immath([lowres_regrid, highres_conv], 'evalexpr', sub, '%s*IM0-IM1' % sdfactor)
     print('Flux difference has been determined' + '\n')
     print('Units', getBunit(lowres_regrid))
     print(lowres_regrid)
@@ -1969,38 +1946,37 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
         print('Weighting factor: ' + str(weightingfac) + '\n')
         print('Considering the different beam sizes ...')
         os.system('rm -rf %s' % sub_bc)        
-        immath(sub, 'evalexpr', sub_bc, 'IM0*' + str(weightingfac))
+        cta.immath(sub, 'evalexpr', sub_bc, 'IM0*' + str(weightingfac))
         print('Fixed for the beam size' + '\n')
         print('Combining the single-dish and interferometer cube [Jy/beam mode]')
         os.system('rm -rf %s' % combined)        
-        immath([highres, sub_bc], 'evalexpr', combined, 'IM0+IM1')
+        cta.immath([highres, sub_bc], 'evalexpr', combined, 'IM0+IM1')
         print('The missing flux has been restored' + '\n')
 
     if getBunit(lowres_regrid) == 'Kelvin':
         print('Combining the single-dish and interferometer cube [K-mode]')
         os.system('rm -rf %s' % combined)                
-        immath([highres, sub], 'evalexpr', combined, 'IM0 + IM1')
+        cta.immath([highres, sub], 'evalexpr', combined, 'IM0 + IM1')
         print('The missing flux has been restored' + '\n')
 
     # primary beam correction
     os.system(combined +'.pbcor')
-    immath(imagename=[combined,
-        pb],
-        expr='IM0/IM1',
-        outfile=combined +'.pbcor')
+    cta.immath(imagename=[combined, pb],
+               expr='IM0/IM1',
+               outfile=combined +'.pbcor')
 
     myimages = [combined]
     
     for myimagebase in myimages:
-         exportfits(imagename = myimagebase+'.pbcor',
-                             fitsimage = myimagebase+'.pbcor.fits',
-                             overwrite = True
-                             )
+         cta.exportfits(imagename = myimagebase+'.pbcor',
+                        fitsimage = myimagebase+'.pbcor.fits',
+                        overwrite = True
+         )
     
-         exportfits(imagename = myimagebase,
-                             fitsimage = myimagebase+'.fits',
-                             overwrite = True
-                             )
+         cta.exportfits(imagename = myimagebase,
+                        fitsimage = myimagebase+'.fits',
+                        overwrite = True
+         )
 
     # Tidy up 
     os.system('rm -rf lowres.*')
@@ -2023,8 +1999,8 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
 ######################################
 
 def listobs_ptg(TPpointingTemplate, 
-        listobsOutput, 
-        TPpointinglist):
+                listobsOutput, 
+                TPpointinglist):
     """
     listobs_ptg (L. Moser-Fischer)
     based on Jin Koda's approach to get 12m pointings from listobs()
@@ -2041,7 +2017,7 @@ def listobs_ptg(TPpointingTemplate,
 
     os.system('rm -rf '+listobsOutput)
     os.system('rm -rf '+TPpointinglist)     
-    listobs(TPpointingTemplate, listfile=listobsOutput)
+    cta.listobs(TPpointingTemplate, listfile=listobsOutput)
     pointings=[]
     with open(listobsOutput, 'r') as f1:
         data = f1.readlines()
@@ -2197,7 +2173,7 @@ def create_TP2VIS_ms(imTP=None, TPresult=None,
     
     #### continuum
     if specmode == 'mfs':
-        cont_RMS = imstat(imTP, box=TPnoiseRegion)['rms']#[0]
+        cont_RMS = cta.imstat(imTP, box=TPnoiseRegion)['rms']#[0]
         #peak_val = imstat(imnameth+'.image')['max'][0]
         #thresh = full_RMS*RMSfactor
         rms = cont_RMS
@@ -2207,9 +2183,9 @@ def create_TP2VIS_ms(imTP=None, TPresult=None,
     elif specmode == 'cube':
         TPmom6=imTP.replace('.image','.mom6')
         os.system('rm -rf '+TPmom6)
-        immoments(imagename=imTP, moments=[6], 
-                   outfile=TPmom6, chans=TPnoiseChannels)
-        cube_RMS = imstat(TPmom6)['rms'][0]
+        cta.immoments(imagename=imTP, moments=[6], 
+                      outfile=TPmom6, chans=TPnoiseChannels)
+        cube_RMS = cta.imstat(TPmom6)['rms'][0]
         rms = cube_RMS
     
         #thresh = cube_RMS*cube_rms   # 3 sigma level
@@ -2289,15 +2265,15 @@ def transform_INT_to_SD_freq_spec(TPresult, imTP, vis,
     
     os.system('rm -rf '+transvis)
                 
-    mstransform(vis=vis,
-                outputvis=transvis,
-                datacolumn=datacolumn,
-                regridms=True,
-                outframe=outframe,
-                #field='',
-                spw = str(im_min_freq)+'~'+str(im_max_freq)+'GHz', # general_tclean_param['spw'], 
-                combinespws=True
-                ) 
+    cta.mstransform(vis=vis,
+                    outputvis=transvis,
+                    datacolumn=datacolumn,
+                    regridms=True,
+                    outframe=outframe,
+                    #field='',
+                    spw = str(im_min_freq)+'~'+str(im_max_freq)+'GHz', # general_tclean_param['spw'], 
+                    combinespws=True
+    ) 
 
 
 def runtclean_TP2VIS_INT(TPresult, TPfac, 
@@ -2402,12 +2378,12 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
     TPconcatTPfac= vis.replace('.ms','_TPfac'+str(TPfac)+'.ms')
     os.system('rm -rf '+TPconcatTPfac)            
     
-    concat(vis=[vis,TPresultTPfac], concatvis=TPconcatTPfac, copypointing=False)    
+    cta.concat(vis=[vis,TPresultTPfac], concatvis=TPconcatTPfac, copypointing=False)    
     myvis = TPconcatTPfac
 
     ####myvis = [TPresultTPfac, vis]
-    listobs(TPresultTPfac)
-    listobs(vis)
+    cta.listobs(TPresultTPfac)
+    cta.listobs(vis)
     
     if specmode=='cube':
     	specmode_used ='cubedata'
@@ -2456,7 +2432,7 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
     
     #### continuum
     if specmode == 'mfs':
-        cont_RMS = imstat(TPINTim)['rms'][0]
+        cont_RMS = cta.imstat(TPINTim)['rms'][0]
         #peak_val = imstat(imnameth+'.image')['max'][0]
         #thresh = full_RMS*RMSfactor
         thresh = cont_RMS*RMSfactor
@@ -2466,9 +2442,9 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
     elif specmode == 'cube':
         TPINTmom6=TPINTim.replace('.image','.mom6')
         os.system('rm -rf '+TPINTmom6)
-        immoments(imagename=TPINTim, moments=[6], 
-                   outfile=TPINTmom6, chans=cont_chans)
-        cube_RMS = imstat(TPINTmom6)['rms'][0]
+        cta.immoments(imagename=TPINTim, moments=[6], 
+                      outfile=TPINTmom6, chans=cont_chans)
+        cube_RMS = cta.imstat(TPINTmom6)['rms'][0]
         thresh = cube_RMS*cube_rms
     
         #thresh = cube_RMS*cube_rms   # 3 sigma level
@@ -2518,9 +2494,9 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
 
     if niter!=0:
         t2v.tp2vistweak(imname+'_dirty', imname, mask='\'' + imname +'.image' + '\'' + '>0.2') # in CASA 6.x
-        exportfits(imagename=imname+'.tweak.image.pbcor', fitsimage=imname+'.tweak.image.pbcor.fits')
+        cta.exportfits(imagename=imname+'.tweak.image.pbcor', fitsimage=imname+'.tweak.image.pbcor.fits')
         
-    exportfits(imagename=imname+'.image.pbcor', fitsimage=imname+'.image.pbcor.fits')
+    cta.exportfits(imagename=imname+'.image.pbcor', fitsimage=imname+'.image.pbcor.fits')
     ##exportfits(imagename=TP2VISim+'.pb', fitsimage=TP2VISim+'.pb.fits')
     
      
