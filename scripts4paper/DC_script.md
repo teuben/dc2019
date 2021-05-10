@@ -1,9 +1,11 @@
 # DC_script
 
-## Preparing (new in april 2021)
+## Preparing (new in May 2021)
 
-Before using these scripts, you will need to run the configure to set the script, data and working directory
-for scripts to use these directories. You need to execute the **configure** script from the
+It should be noted that this May 2021 version will only support CASA 6.
+
+1) Before using these scripts, you will need to configure to set the script, data and working directory
+for scripts to use your directories. You need to execute the **configure** script from the
 scripts4paper directory, e.g.
 
 
@@ -13,16 +15,25 @@ will use the current tmp directory (which will be created for you) for your work
 directory were all the data are located (at least for the DC2019 project). Use the --help argument to find out
 what other options might be useful for you.
 
-It should also be noted that this April 2021 version will only support CASA 6.
+2) The second step will be to pick a parameter file. Several should be available from a template, e.g.
 
-## Overview
+       cp  DC_pars_GMC.py  DC_pars.py
+	   
+after which you can change the well documented parameters in the new DC_pars.py.
 
-The **DC_script** uses the **datacomb** module to conveniently combine 
+3) From your CASA session you will use DC_script.py (it will call DC_pars and DC_run):
+
+       execfile("DC_script.py")
+	   
+
+## DC_script overview
+
+The **DC_script.py** uses the **datacomb.py** module to conveniently combine 
 your data. The DC_script's goal is to provide a homogeneous input to all 
 combination methods (e.g. clean parameters) and a homogeneous output 
 style.
 
-It offers several different actions to be selected via the python 'thesteps' list:
+It offers several different actions to be selected via the python 'thesteps' list set in **DC_pars.py**
 
       0: 'Concat',
       1: 'Prepare the SD-image and create masks',
@@ -41,6 +52,7 @@ The naming scheme of the output images is the following
 - cleansetup - defined by your tclean parameter choice
 - combisetup - defined by your combination method and parameter choice
 
+Various **USER INPUTS** are described below, which you should all find in **DC_pars.py**
 
 
 ## USER INPUTS: Paths to the input and output files and for concatenation of several ms - data sets
