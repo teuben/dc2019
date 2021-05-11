@@ -4,26 +4,37 @@
 
 It should be noted that this May 2021 version will only support CASA 6.
 
+First an outline how to use the scripts in this directory:
+
 1) Before using these scripts, you will need to configure to set the script, data and working directory
-for scripts to use your directories. You need to execute the **configure** script from the
-scripts4paper directory, e.g.
+for your scripts to use your own directories, as oppsed to the current one.
+You need to execute the **configure** script from the scripts4paper directory, e.g.
 
 
-      ./configure  --with-s4p-work=tmp
+      ./configure  --with-s4p-work=tmp  --with-s4p-data=../data
 
 will use the current tmp directory (which will be created for you) for your working files, and ../data as the
 directory were all the data are located (at least for the DC2019 project). Use the --help argument to find out
-what other options might be useful for you.
+what other options might be useful for you. What is listed here are the defaults.
 
-2) The second step will be to pick a parameter file. Several should be available from a template, e.g.
+2) The second step will be to pick a parameter file. Several should be available from a template, for
+example for the GMC dataset
 
        cp  DC_pars_GMC.py  DC_pars.py
 	   
-after which you can change the well documented parameters in the new DC_pars.py.
+after which you can change various parameters (see also USER INPUTS below)  in this **DC_pars.py**.
 
-3) From your CASA session you will use DC_script.py (it will call DC_pars and DC_run):
+3a) Make sure you CASA environment has been set up
+
+       execfile("/home/teuben/dc2019/scripts4paper/DC_locals.py")
+
+it is best to place your version of this line in your **~/.casa/startup.py** file
+
+3a) From your CASA session you will use DC_script.py (it will call DC_pars and DC_run):
 
        execfile("DC_script.py")
+
+this will do the whole data combination as specified by the many USER INPUTS.
 	   
 
 ## DC_script overview
