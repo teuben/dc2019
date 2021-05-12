@@ -35,7 +35,27 @@ it is best to place your version of this line in your **~/.casa/startup.py** fil
        execfile("DC_script.py")
 
 this will do the whole data combination as specified by the many USER INPUTS.
-	   
+
+
+## Alternative Script
+
+If you prefer to be in many directories, and work from those, first configure for a dummy **/tmp** 
+
+	./configure  --with-s4p-data=../data  --with-s4p-work=/tmp
+	
+and in each the directories you want to work can create a script
+**DC_script.py** that reads something like the following:
+
+	execfile("/home/teuben/dc2019/scripts4paper/DC_locals.py",globals())
+	execfile("DC_pars.py", globals()) 
+	execfile("/home/teuben/dc2019/scripts4paper/DC_runs.py",globals())
+	
+in those directories you can use
+
+	execfile("DC_script.py")
+	
+Just make sure not to use the **_s4p_work** variable, but define the **pathtoimage** directory as a local folder, e.g. **./**	
+	
 
 ## DC_script overview
 
