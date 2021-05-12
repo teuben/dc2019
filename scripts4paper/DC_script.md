@@ -15,7 +15,7 @@ You need to execute the **configure** script from the scripts4paper directory, e
 
       ./configure  --with-s4p-work=tmp  --with-s4p-data=../data
 
-will use the current tmp directory (which will be created for you) for your working files, and ../data as the
+will use the current tmp directory (which will be created for you) for your working files, and **../data** as the
 directory were all the data are located (at least for the DC2019 project). Use the --help argument to find out
 what other options might be useful for you. What is listed here are the defaults.
 
@@ -31,13 +31,13 @@ after which you can change various parameters (see also USER INPUTS below)  in t
        execfile("/home/teuben/dc2019/scripts4paper/DC_locals.py")
 
 it is best to place your version of this line in your **~/.casa/startup.py** file so it
-automatically done for each CASA session.
+automatically done for each CASA session. But see also an alternative approach in the next section.
 
-3a) From your CASA session you will use DC_script.py (it will call DC_pars and DC_run):
+3a) From your CASA session you will use standard **DC_script.py** (it will simply call DC_pars and DC_run):
 
        execfile("DC_script.py")
 
-this will do the whole data combination as specified by the many USER INPUTS.
+this will do the whole data combination as specified by the many USER INPUTS in your **DC_pars.py**
 
 
 ## Alternative Script
@@ -62,21 +62,21 @@ Just make sure not to use the **_s4p_work** variable, but define the **pathtoima
 
 ## DC_script overview
 
-The **DC_script.py** uses the **datacomb.py** module to conveniently combine 
+The **DC_script.py** uses the **datacomb.py** module to combine 
 your data. The DC_script's goal is to provide a homogeneous input to all 
 combination methods (e.g. clean parameters) and a homogeneous output 
 style.
 
 It offers several different actions to be selected via the python 'thesteps' list set in **DC_pars.py**
 
-      0: 'Concat',
-      1: 'Prepare the SD-image and create masks',
-      2: 'Clean for Feather/Faridani'
-      3: 'Feather', 
-      4: 'Faridani short spacings combination (SSC)',
-      5: 'Hybrid (startmodel clean + Feather)',
-      6: 'SDINT',
-      7: 'TP2VIS'
+      0: Concat   [can be skipped if data are already in one ms]
+      1: Prepare the SD-image and create masks
+      2: Clean for Feather/Faridani
+      3: Feather
+      4: Faridani short spacings combination (SSC)
+      5: Hybrid (startmodel clean + Feather)
+      6: SDINT
+      7: TP2VIS
 
 The naming scheme of the output images is the following
 
@@ -85,6 +85,20 @@ The naming scheme of the output images is the following
 - imbase     - a basename you define
 - cleansetup - defined by your tclean parameter choice
 - combisetup - defined by your combination method and parameter choice
+
+Example:
+		  skymodel-c_120L.mfs_INTpar_HB_SD-AM_nIA_n100.feather_f1.0.image.pbcor.fits
+		  skymodel-c_120L.mfs_INTpar_HB_SD-AM_nIA_n100.hybrid_f1.0.image.pbcor.fits
+		  skymodel-c_120L.mfs_INTpar_HB_SD-AM_nIA_n100.hybrid_f.image.pbcor.fits
+		  skymodel-c_120L.mfs_INTpar_HB_SD-AM_nIA_n100.SSC_f1.0.image.pbcor.fits
+		  skymodel-c_120L.mfs_INTpar_HB_SD-AM_nIA_n100.tclean.image.pbcor.fits
+
+          <-  imbase ->   <-----   cleansetup -------> <-- combisetup ------------->
+		  
+		  
+* Q1:   why f1.0 and f1
+* Q2:   need a function to reverse engineer this name  (par1,par2,....) = decode(filename)
+		  
 
 Various **USER INPUTS** are described below, which you should all find in **DC_pars.py**
 
