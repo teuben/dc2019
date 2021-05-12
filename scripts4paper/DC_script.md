@@ -1,13 +1,15 @@
 # DC_script
 
+It should be noted that this version will only support CASA 6.
+
+
 ## Preparing (new in May 2021)
 
-It should be noted that this May 2021 version will only support CASA 6.
 
 First an outline how to use the scripts in this directory:
 
 1) Before using these scripts, you will need to configure to set the script, data and working directory
-for your scripts to use your own directories, as oppsed to the current one.
+for your scripts to use your own directories, as opposed to the current defaults.
 You need to execute the **configure** script from the scripts4paper directory, e.g.
 
 
@@ -24,11 +26,12 @@ example for the GMC dataset
 	   
 after which you can change various parameters (see also USER INPUTS below)  in this **DC_pars.py**.
 
-3a) Make sure you CASA environment has been set up
+3a) Make sure your CASA environment has been set up, e.g.
 
        execfile("/home/teuben/dc2019/scripts4paper/DC_locals.py")
 
-it is best to place your version of this line in your **~/.casa/startup.py** file
+it is best to place your version of this line in your **~/.casa/startup.py** file so it
+automatically done for each CASA session.
 
 3a) From your CASA session you will use DC_script.py (it will call DC_pars and DC_run):
 
