@@ -58,6 +58,12 @@ in those directories you can use
 	execfile("DC_script.py")
 	
 Just make sure not to use the **_s4p_work** variable, but define the **pathtoimage** directory as a local folder, e.g. **./**	
+
+## Example DC_pars_XXX.py scripts
+
+* M100 - the casaguide example
+
+* GMC  - the skymodel c
 	
 
 ## DC_script overview
