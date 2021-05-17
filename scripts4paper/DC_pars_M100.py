@@ -5,6 +5,15 @@
 #  Data and procedure are described here:
 #        https://casaguides.nrao.edu/index.php?title=M100_Band3_Combine_5.4
 
+step_title = {0: 'Concat',
+              1: 'Prepare the SD-image',
+              2: 'Clean for Feather/Faridani',
+              3: 'Feather', 
+              4: 'Faridani short spacings combination (SSC)',
+              5: 'Hybrid (startmodel clean + Feather)',
+              6: 'SDINT',
+              7: 'TP2VIS'
+              }
 
 #thesteps=[0,1,2,3,4,5,6,7]
 thesteps=[0]
@@ -15,18 +24,12 @@ import sys
 
 # this script assumes the DC_locals.py has been execfiled'd - see the README.md how to do this
 
-pathtoconcat = _s4p_data + '/skymodel-c.sim/skymodel-c_120L/'
+pathtoconcat = _s4p_data + '../scripts/'
 pathtoimage  = _s4p_work + '/'
-
-pathtoconcat = 'M100/'
-pathtoimage  = 'M100/'
 
 
 ############ USER INPUT needed - beginning ##############
 
-
-# path to input and outputs
-pathtoconcat = 'M100/data/'
 
 # to quote the casaguide, "In order to run this guide you will need the following three files:"
 _7ms  = 'M100_Band3_7m_CalibratedData.ms'
@@ -38,51 +41,35 @@ _sdim = 'M100_TP_CO_cube.bl.image'
 os.system('rm -rf '+pathtoimage + 'TempLattice*')
 
 
-# setup for concat 
+# setup for concat (the optional step 0)
 
-thevis = [pathtoconcat + 'M100_Band3_12m_CalibratedData/M100_Band3_12m_CalibratedData.ms']
+thevis = [pathtoconcat + _12ms]
+
 
 a12m = thevis
 
+weightscale = [1.0]
 
-#weight12m = [1., 1., 1., 1., 1., 1., 1.]
-#weight7m = [0.116, 0.116, 0.116, 0.116]
-#
-#weightscale = weight12m
-#weightscale = weightscale.expand(weight7m)
-#
-weightscale = [1.]#, 1., 1., 1., 1., 1., 1., 1.,
-               #0.116, 0.116, 0.116, 0.116]
-
-concatms     = pathtoimage + 'M100-B3.alma.all_int-weighted.ms'       # path and name of concatenated file
-#concatms     = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
-#concatms     = pathtoimage + 'skymodel-c_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
+concatms     = pathtoimage + 'M100-B3.alma.all_int-weighted.ms' 
 
 
 
 
 ############# input to combination methods ###########
 
-vis       = concatms
-#sdimage_input  = pathtoconcat + 'M100_Band3_ACA_ReferenceImages/M100_TP_CO_cube_1550-5.image'
-sdimage_input  = pathtoconcat + 'M100_Band3_ACA_ReferenceImages/M100_TP_CO_cube.bl.image'
-#sdimage_input  = pathtoconcat + 'gmc_120L.sd.image'
-#sdimage_input   = pathtoconcat + 'skymodel-c_120L.sd.image'
-imbase    = pathtoimage + 'M100-B3'            # path + image base name
-#imbase    = pathtoimage + 'skymodel-b_120L'            # path + image base name
-#imbase    = pathtoimage + 'skymodel-c_120L'            # path + image base name
-sdbase    = pathtoimage + 'M100-B3'            # path + sd image base name
-#sdbase    = pathtoimage + 'skymodel-c_120L.sd'            # path + sd image base name
-
+vis            = concatms
+sdimage_input  = pathtoconcat + _sdim
+imbase         = pathtoimage + 'M100-B3'            # path + image base name
+sdbase         = pathtoimage + 'M100-B3'            # path + sd image base name
 
 
 # TP2VIS related:
 TPpointingTemplate = a12m[0]
-listobsOutput  = imbase+'.12m.log'
-TPpointinglist = imbase+'.12m.ptg'
+listobsOutput      = imbase+'.12m.log'
+TPpointinglist     = imbase+'.12m.ptg'
 TPpointinglistAlternative = 'user-defined.ptg' 
 
-TPnoiseRegion = '150,200,150,200'  # in unregridded SD image (i.e. sdreordered = sdbase +'.SD_ro.image')
+TPnoiseRegion   = '150,200,150,200'  # in unregridded SD image (i.e. sdreordered = sdbase +'.SD_ro.image')
 TPnoiseChannels = '2~5'        # in unregridded and un-cut SD cube (i.e. sdreordered = sdbase +'.SD_ro.image')!
 
 
