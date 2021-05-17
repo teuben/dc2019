@@ -1,6 +1,9 @@
 #
 #   GMC template for setting up a DC_script.py
 #
+#   Input are:     skymodel-c_120L.alma.cycle6.4.2018-10-02.ms
+#                  (optionally more, there are 8 in this skymodel-c_120L)
+#                  skymodel-c_120L.sd.image
 
 step_title = {0: 'Concat',
               1: 'Prepare the SD-image',
@@ -13,28 +16,31 @@ step_title = {0: 'Concat',
               }
 
 thesteps=[0,1,2,3,4,5,6,7]
-thesteps=[5]
+#thesteps=[0]
 
 
 #  you can use _s4p_data if you want to use the configure'd setup,
 #  but feel free to override
+#  _s4p_data :  for read-only data
+#  _s4p_work :  for reading/writing
 
 pathtoconcat = _s4p_data + '/skymodel-c.sim/skymodel-c_120L/'
 pathtoimage  = _s4p_work + '/'
 
 
 
+#  for optional step 0:   thevis[] -> concatms
+#  otherwise concatms must contain the MS for combination
 
 
 thevis = [pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-02.ms']
 a12m = thevis
 
+#  a weight for each vis file in thevis[]
+weightscale = [1.]
 
-weightscale = [1.]#, 1., 1., 1., 1., 1., 1., 1.,
-               #0.116, 0.116, 0.116, 0.116]
-
-
-concatms     = pathtoimage + 'skymodel-c_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
+#  the concatenated MS 
+concatms     = pathtoimage + 'skymodel-c_120L.alma.all_int-weighted.ms'
 
 
 ############# input to combination methods ###########
