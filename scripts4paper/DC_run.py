@@ -8,7 +8,7 @@
 #     datacomb.py and standard CASA6 routines.
 
 
-step_title = {0: 'Concat',
+step_title = {0: 'Concat (optional)',
               1: 'Prepare the SD-image',
               2: 'Clean for Feather/Faridani',
               3: 'Feather', 
@@ -19,7 +19,7 @@ step_title = {0: 'Concat',
               }
 
 # thesteps need to be set in DC_pars.py
-#thesteps=[0,1,2,3,4,5,6,7]
+# thesteps=[0,1,2,3,4,5,6,7]
 
 import os 
 import sys 
@@ -87,10 +87,10 @@ sdreordered_cut = sdbase +'.SD_ro.image'                 # SD image axis-reorder
 sdroregrid = sdbase +'.SD_ro-rg_'+specsetup+'.image' # SD image regridding
 
 
-imnamethSD  = imbase + cleansetup_nonit +'_template'      # dirty image for thershold and mask generation
-threshmask = imbase + '.'+specsetup+ '_RMS'         # thresold mask name
-SDint_mask_root = sdbase + '.'+specsetup+ '_SD-AM'  # SD+AM mask name
-combined_mask = SDint_mask_root + '-RMS.mask'       # SD+AM+threshold mask name
+imnamethSD      = imbase + cleansetup_nonit +'_template'   # dirty image for thershold and mask generation
+threshmask      = imbase + '.'+specsetup+ '_RMS'           # thresold mask name
+SDint_mask_root = sdbase + '.'+specsetup+ '_SD-AM'         # SD+AM mask name
+combined_mask   = SDint_mask_root + '-RMS.mask'            # SD+AM+threshold mask name
 
 
 
@@ -228,6 +228,8 @@ if mystep in thesteps:
     print(' ')    
     print('### ')
     print('Step ', mystep, step_title[mystep])
+    print('  vis:',thevis)
+    print('  concatvis:',concatms)
     print('### ')
     print(' ')
     
