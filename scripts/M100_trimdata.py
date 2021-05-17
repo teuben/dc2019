@@ -1,6 +1,7 @@
 #  https://casaguides.nrao.edu/index.php/M100_Band3_Combine_5.4
 #
 #  The original M100 data, as described in the casaguide, are rather big (26 GB)
+#  This script will make an equally good dataset, and is only 105MB.
 #
 #  For various workshops we trim these down to a more manageable 70 channel 5km/s data set
 #  (which is that of the SD data)
@@ -8,6 +9,8 @@
 #  data, as it is used by the 2 minute tp2vis benchmark in QAC (cd QAC/test ; make bench)
 #  An earlier version of the benchmark was based on CASA4 , but this script has been updated to
 #  reflect a more modern CASA5. For sake of insanity, we kept the names the same.
+#  It has been confirmed to work with CASA6... though numerically you will not get the exact
+#  same numbers.
 
 #  Note: it's important to keep a consistent value for the restfreq (we use 115.271202 GHz)
 
@@ -38,6 +41,12 @@
 #
 # @todo    this version (July 2020) still does not have the spectral axes aligned properly:
 #          the first channel is blank in the combination.
+#          this begs the question if it's only the first channel, or are they all shifted?
+
+#   use the direct link from the untarred files, or 
+ms1 = 'M100_Band3_12m_CalibratedData/M100_Band3_12m_CalibratedData.ms'
+ms2 = 'M100_Band3_7m_CalibratedData/M100_Band3_7m_CalibratedData.ms'
+tp1 = 'M100_Band3_ACA_ReferenceImages_5.1/M100_TP_CO_cube.spw3.image.bl'
 
 #   we start with this data from the 5.1 M100Band3...
 ms1 = 'M100_Band3_12m_CalibratedData.ms'     # first ch. at high vel, ch.width 
@@ -57,24 +66,27 @@ rf0 = 115.2712018   # header of the older (casa4.3) TP data
 rf0 = 115.271202    # (114.60024366825306, 114.73289732123453, 115.271202,  1744.9999999999588, 1399.9999999999975, -4.9999999999994396, 70)
 rf0 = 115.271204    # header of original (casa5.x) TP
 
-#   and want these dataset names for the QAC benchmark and M100_* scripts 
+# we want these dataset names for the QAC benchmark and other M100_* scripts 
 
-ms1q = 'M100_aver_12.ms'
-ms2q = 'M100_aver_7.ms'
+ms1q  = 'M100_aver_12.ms'
+ms2q  = 'M100_aver_7.ms'
 tp1q  = 'M100_TP_CO_cube.bl.image'
-tp1q2 = 'M100_TP_CO_cube.bl.image.2'
+tp1q2 = 'M100_TP_CO_cube.bl.image.2'    # temp intermediate result when imreframe is used
 
-#   this is the final product here
+#   this is the final product in this directory
 benchtar = 'qac_bench5.tar.gz'
 
+#   this was an experiment, turns out the results are the same
+Qreframe = False
 
 #    TP first
 # we use imtrans() to flip the 3rd axis to align them with the other MS
-if False:
+if Qreframe:
     os.system('rm -rf %s' % tp1q2)
     imtrans(tp1, tp1q2, '012-3')
     # imreframe() is another task that may be useful to bring your TP into MS frame
-    imreframe(tp1q2,tp1q,outframe='LSRK',restfreq='%fGHz' % rf0)
+    # in CASA6 outframe='LSRK' is not allowed anymore, it has to be lowercase. NUTS (see mstransform below, where it's ok)
+    imreframe(tp1q2,tp1q,outframe='lsrk',restfreq='%fGHz' % rf0)
 else:
     os.system('rm -rf %s' % tp1q)
     imtrans(tp1, tp1q, '012-3')
