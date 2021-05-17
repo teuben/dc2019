@@ -219,8 +219,10 @@ combination method to iterate over. Default could be 1.0 for all.
 
 ##  USER INPUTS: dryrun
 
-dryrun=True: It generates the filennames with the wanted 
-iterators and cleannames without executing the combination method (time saving).
+       dryrun=True
+
+It generates the filenames with the wanted iterators and cleannames
+without executing the combination method (time saving).
 
 
 
@@ -240,23 +242,28 @@ will be added in the corresponding combination loop.
 
 ## automated setup: intermediate products name for step 1 = gather information 
 
-In this section, intermediate file names such as for the axis-reordered, 
-the potential channel-range-cut-out of an SD cube,
-and regridded SD images are defined.
-The chosen mask setup is translated into CASA parameters 
-and the several mask names (threshold based, SD-AM based and combined) 
-are defined and forwarded to the different combination methods.
-File existence checks initiate the execution of 'step 1', if one of the 
-here defined files does not exist and step 1 is not yet included in the 
-list of execution steps.
-The choice of the 'specsetup'-parameter sets the tclean parameters 'start', 
-'width', and 'nchans' either to the spectral setup of the SD image 
-(specsetup == 'SDpar') or to the user defined spectral setup (specsetup == 'INTpar').
-The SDimage used in the combination methods is the 
-axis-reordered-(channel-cut-out-)only-image 
-or the axis-reordered-(channel-cut-out-)regridded-image, respectively.
-If no threshold is given and a threshold-based mask exists from previous runs, 
-the threshold used therein is retreived from it again, else step 1 is enforced.
+In this section, intermediate file names such as for the
+axis-reordered, the potential channel-range-cut-out of an SD cube, and
+regridded SD images are defined.
+
+The chosen mask setup is translated into CASA parameters and the
+several mask names (threshold based, SD-AM based and combined) are
+defined and forwarded to the different combination methods.  File
+existence checks initiate the execution of 'step 1', if one of the
+here defined files does not exist and step 1 is not yet included in
+the list of execution steps.
+
+The choice of the 'specsetup'-parameter sets the tclean parameters
+'start', 'width', and 'nchans' either to the spectral setup of the SD
+image (specsetup == 'SDpar') or to the user defined spectral setup
+(specsetup == 'INTpar').  
+
+The SDimage used in the combination methods is the
+axis-reordered-(channel-cut-out-)only-image or the
+axis-reordered-(channel-cut-out-)regridded-image, respectively.  If no
+threshold is given and a threshold-based mask exists from previous
+runs, the threshold used therein is retreived from it again, else step
+1 is enforced.
 
 
 
@@ -271,11 +278,10 @@ module, he can use dryrun=True (see above).
 
 ## execution steps/methods
 
-### step 0: concat
+### step 0: concat (optional)
 
 If you want to combine several interferometric datasets specify 
-'thevis', 'weighscale', 'concatms' and add 0 to your 'thestep'-list 
-
+'thevis', 'weightscale', 'concatms' and add 0 to your 'thestep'-list 
 
 
 ### step 1: SD image and tclean/mask preparation
@@ -304,7 +310,7 @@ If you want to combine several interferometric datasets specify
 ### step 2: tclean only
 
        imname = imbase + cleansetup + tcleansetup
-       e.g.     skymodel-b_120L.HB_AM_n0.0e0.tclean
+	   e.g. skymodel-b_120L.HB_AM_n0.0e0.tclean
 
 
 ### step 3: feather
