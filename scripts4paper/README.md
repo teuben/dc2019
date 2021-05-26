@@ -1,9 +1,17 @@
 # Scripts for the Paper
 
-Here we gather (now in a more organized way) the scripts for the paper.
+These should be the steps that allow you to reproduce the
+figures in the paper:
 
+1. Gather the data (see ../data/README_DC2019_data)
+2. Run configure to be able to run the casa based scripts
+3. Run DC_script.py to run through your selected data set
+4. Run IQA_scripts.py create our standard assessment tests
+   (this might go into DC_scripts.py ?)
 
-## Configure
+## 1. Data
+
+## 2. Configure
 
 In order to configure your casa environment for these script, one
 suggested solution is the use of the included **configure** script. By
@@ -26,6 +34,14 @@ NOTE:  MAC users may need to install the needed command **realpath** via "brew i
 This is a discussion how the DC2019 data should be circulated, and
 easily match a CASA tasks API for the different combination techniques
 discussed in the paper
+
+## 3. DC_script.py
+
+There is currently in [DC_script](DC_script.md)
+
+## 4. IQA_scripts.py
+
+TBD
 
 
 ## Methods teams
