@@ -30,6 +30,8 @@ reload(dc)
 import casatasks as cta
 
           
+### delete garbage from aboprted script ###
+os.system('rm -rf '+pathtoimage + 'TempLattice*')
 
 
 ### naming scheme specific inputs:
@@ -512,9 +514,9 @@ if mystep in thesteps:
       
     # works!  
     #
-    #    dc.create_TP2VIS_ms(imTP=imTP, TPresult=TPresult,
-    #        TPpointinglist=TPpointinglist, mode='mfs',  
-    #        vis=vis, imname=imname1, TPnoiseRegion=TPnoiseRegion)  # in CASA 6.x
+    dc.create_TP2VIS_ms(imTP=imTP, TPresult=TPresult,
+        TPpointinglist=TPpointinglist, mode='mfs',  
+        vis=vis, imname=imname1, TPnoiseRegion=TPnoiseRegion)  # in CASA 6.x
           
 
     
@@ -532,9 +534,10 @@ if mystep in thesteps:
 
     transvis = vis+'_LSRK' #'_1spw'
 
+
     # works!
-    #    dc.transform_INT_to_SD_freq_spec(TPresult, imTP, vis, 
-    #        transvis, datacolumn='DATA', outframe='LSRK')  # in CASA 6.x
+    dc.transform_INT_to_SD_freq_spec(TPresult, imTP, vis, 
+        transvis, datacolumn='DATA', outframe='LSRK')  # in CASA 6.x
 
 
     ### for CASA 5.7:
