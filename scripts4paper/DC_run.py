@@ -29,9 +29,13 @@ import datacomb as dc
 reload(dc)
 import casatasks as cta
 
-          
-### delete garbage from aboprted script ###
-os.system('rm -rf '+pathtoimage + 'TempLattice*')
+
+### switch this off, if you run multiple casa instances/DC_runs in the same work folder !
+#          
+#  ### delete garbage from aboprted script ###
+#  os.system('rm -rf '+pathtoimage + 'TempLattice*')
+#  
+####### else switch on #######
 
 
 ### naming scheme specific inputs:
@@ -503,6 +507,7 @@ if mystep in thesteps:
     
     if a12m!=[]:    # if 12m-data exists ...
         dc.ms_ptg(TPpointingTemplate, outfile=TPpointinglist, uniq=True)
+        #dc.listobs_ptg(TPpointingTemplate, listobsOutput, TPpointinglist)
     else:
         TPpointinglist = TPpointinglistAlternative    
     
@@ -515,8 +520,9 @@ if mystep in thesteps:
     # works!  
     #
     dc.create_TP2VIS_ms(imTP=imTP, TPresult=TPresult,
-        TPpointinglist=TPpointinglist, mode='mfs',  
-        vis=vis, imname=imname1, TPnoiseRegion=TPnoiseRegion)  # in CASA 6.x
+        TPpointinglist=TPpointinglist, mode=mode,  
+        vis=vis, imname=imname1, TPnoiseRegion=TPnoiseRegion, 
+        TPnoiseChannels=TPnoiseChannels)  # in CASA 6.x
           
 
     
@@ -546,7 +552,7 @@ if mystep in thesteps:
     #z.update(special_tclean_param)
     
     for i in range(0,len(TPfac)) :
-        imname = imbase + cleansetup + TP2VISsetup + str(TPfac[i]) + '_CD'
+        imname = imbase + cleansetup + TP2VISsetup + str(TPfac[i]) #+ '_CD'     #don't remember the reason for this "CD" ending
         
         vis=transvis #!
         
