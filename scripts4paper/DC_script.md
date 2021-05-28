@@ -6,38 +6,37 @@ It should be noted that this version will only support CASA 6.
 ## Preparing (new in May 2021)
 
 
-First an outline how to use the scripts in this directory:
+First an outline of how to use the scripts in this directory and configure local paths:
 
-1) Before using these scripts, you will need to configure to set the script, data and working directory
-for your scripts to use your own directories, as opposed to the current defaults.
-You need to execute the **configure** script from the scripts4paper directory, e.g.
+1) Before using these scripts, you will first need to configure to set the script, data and working directories
+that the scripts will use on your local machine, as opposed to the current defaults.
+To do this, you need to execute the **configure** script from the scripts4paper directory to set the directories (a) in which you would like to save the output products (--with-s4p-work) and (b) where the data you want to combine is located (--with-s4p-data). For example,
 
 
       ./configure  --with-s4p-work=tmp  --with-s4p-data=../data
 
-will use the current tmp directory (which will be created for you) for your working files, and **../data** as the
-directory were all the data are located (at least for the DC2019 project). Use the --help argument to find out
+will place your working files in a tmp directory (which will be created for you) in your current directory and set **../data** to be the
+directory where all the input data are located (at least for the DC2019 project). Use the --help argument to find out
 what other options might be useful for you. What is listed here are the defaults.
 
-2) The second step will be to pick a parameter file. Several should be available from a template, for
-example for the GMC dataset
+2) The second step will be to pick a parameter file template and change any input parameters for your specific case. First, choose a parameter file from the several templates that are available, for example for the GMC dataset
 
        cp  DC_pars_GMC.py  DC_pars.py
 	   
-after which you can change various parameters (see also USER INPUTS below)  in this **DC_pars.py**.
+Then you can change various parameters (see also USER INPUTS below)  in this **DC_pars.py** for your specific case.
 
-3a) Make sure your CASA environment has been set up, e.g.
+3) Set up your CASA environment by executing **DC_locals.py** in your CASA session,
 
        execfile("/home/teuben/dc2019/scripts4paper/DC_locals.py")
 
-it is best to place your version of this line in your **~/.casa/startup.py** file so it
+It is best to place your version of this line in your **~/.casa/startup.py** file so that this is
 automatically done for each CASA session. But see also an alternative approach in the next section.
 
-3a) From your CASA session you will use standard **DC_script.py** (it will simply call DC_pars and DC_run):
+4) Lastly to do the data combination, from your CASA session exectute **DC_script.py** (which simply calls DC_pars and DC_run):
 
        execfile("DC_script.py")
 
-this will do the whole data combination as specified by the many USER INPUTS in your **DC_pars.py**
+which will do the whole data combination as specified by the many USER INPUTS in your **DC_pars.py**
 
 
 ## Alternative Script
