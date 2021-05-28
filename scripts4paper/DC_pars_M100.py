@@ -15,8 +15,8 @@ step_title = {0: 'Concat',
               7: 'TP2VIS'
               }
 
-thesteps=[0,1,2,3,4,5,6,7]
-#thesteps=[0]
+#thesteps=[0,1,2,3,4,5,6,7]
+thesteps=[7]
 
 import os 
 import sys 
