@@ -15,7 +15,7 @@ step_title = {0: 'Concat',
               7: 'TP2VIS'
               }
 
-thesteps=[0,1,2,3,4,5,6,7]
+thesteps=[0,1,2,3,4,5,6,7,8]
 #thesteps=[4]
 
 
@@ -23,6 +23,10 @@ thesteps=[0,1,2,3,4,5,6,7]
 #  but feel free to override
 #  _s4p_data :  for read-only data
 #  _s4p_work :  for reading/writing
+
+
+pathtoastropy = '/users/moser/.local/lib/python3.6/site-packages'
+
 
 pathtoconcat = _s4p_data + '/gmcSkymodel_120L/gmc_120L/'
 pathtoimage  = _s4p_work + '/'
@@ -157,5 +161,5 @@ TPfac   = [1000000.]     # TP2VIS parameters:
 
 dryrun = False    # False to execute combination, True to gather filenames only
           
-          
+refimage = _s4p_data + '/gmcSkymodel_120L/skymodel-b.fits'  
 
