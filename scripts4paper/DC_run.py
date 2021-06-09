@@ -15,7 +15,8 @@ step_title = {0: 'Concat (optional)',
               4: 'Faridani short spacings combination (SSC)',
               5: 'Hybrid (startmodel clean + Feather)',
               6: 'SDINT',
-              7: 'TP2VIS'
+              7: 'TP2VIS',
+              8: 'Assessment'
               }
 
 # thesteps need to be set in DC_pars.py
@@ -27,6 +28,11 @@ from importlib import reload
 import datacomb as dc
 #   we do a reload here, because we often edit this in the same casa session
 reload(dc)
+sys.path.append(pathtoastropy)               # path to the folder with datacomb.py and ssc_DC.py
+
+import IQA_scripts as iqa
+reload(iqa)
+
 import casatasks as cta
 
 
@@ -238,10 +244,13 @@ if mystep in thesteps:
     print('  concatvis:',concatms)
     print('### ')
     print(' ')
-    
-    os.system('rm -rf '+concatms)
 
-    concat(vis = thevis, concatvis = concatms, visweightscale = weightscale)
+    if dryrun == True:
+        pass
+    else:    
+        os.system('rm -rf '+concatms)
+        
+        concat(vis = thevis, concatvis = concatms, visweightscale = weightscale)
            
 
 
@@ -255,61 +264,61 @@ if mystep in thesteps:
     print('Step ', mystep, step_title[mystep])
     print('### ')
     print(' ')
-  
-  
-    # axis reordering
-    dc.reorder_axes(sdimage_input, sdreordered)
 
-    # make a a channel-cut-out from the SD image?
-    if sdreordered!=sdreordered_cut:
-        dc.channel_cutout(sdreordered, sdreordered_cut, startchan = startchan,
-                          endchan = endchan)
-
-    # read SD image frequency setup as input for tclean    
-    if specsetup == 'SDpar':
-        cube_dict = dc.get_SD_cube_params(sdcube = sdreordered_cut) #out: {'nchan':nchan, 'start':start, 'width':width}
-        general_tclean_param['start'] = cube_dict['start']  
-        general_tclean_param['width'] = cube_dict['width']
-        general_tclean_param['nchan'] = cube_dict['nchan']
-        sdimage = sdreordered_cut  # for SD cube params used   
-
-
-
-    # derive a simple threshold and make a mask from it 
-    thresh = dc.derive_threshold(vis, imnamethSD , threshmask,
-                                 overwrite=True,
-                                 smoothing = smoothing,
-                                 RMSfactor = RMSfactor,
-                                 cube_rms   = cube_rms,    
-                                 cont_chans = cont_chans, 
-                                 **mask_tclean_param
-    ) 
-                     
-    general_tclean_param['threshold']  = str(thresh)+'Jy'   
-                     
-    
-    # regrid SD image frequency axis to tclean (requires derive_threshold to be run)    
-    if specsetup == 'SDpar':
-        sdimage = sdreordered_cut  # for SD cube params used
-    else:
-        print('')
-        print('Regridding SD image...')
-        os.system('rm -rf '+sdroregrid)
-        dc.regrid_SD(sdreordered_cut, sdroregrid, imnamethSD+'.image')
-        sdimage = sdroregrid  # for INT cube params used
-
-    
-       
-    # make SD+AM mask (requires regridding to be run; currently)
-    SDint_mask = dc.make_SDint_mask(vis, sdimage, imnamethSD, 
-                                    sdmasklev, 
-                                    SDint_mask_root,
-                                    **mask_tclean_param
-    ) 
-    
-    cta.immath(imagename=[SDint_mask_root+'.mask', threshmask+'.mask'],
-               expr='iif((IM0+IM1)>'+str(0)+',1,0)',
-               outfile=combined_mask)    
+    if dryrun == True:
+        pass
+    else:    
+        # axis reordering
+        dc.reorder_axes(sdimage_input, sdreordered)
+        
+        # make a a channel-cut-out from the SD image?
+        if sdreordered!=sdreordered_cut:
+            dc.channel_cutout(sdreordered, sdreordered_cut, startchan = startchan,
+                              endchan = endchan)
+        
+        # read SD image frequency setup as input for tclean    
+        if specsetup == 'SDpar':
+            cube_dict = dc.get_SD_cube_params(sdcube = sdreordered_cut) #out: {'nchan':nchan, 'start':start, 'width':width}
+            general_tclean_param['start'] = cube_dict['start']  
+            general_tclean_param['width'] = cube_dict['width']
+            general_tclean_param['nchan'] = cube_dict['nchan']
+            sdimage = sdreordered_cut  # for SD cube params used   
+        
+        
+        
+        # derive a simple threshold and make a mask from it 
+        thresh = dc.derive_threshold(vis, imnamethSD , threshmask,
+                                     overwrite=True,
+                                     smoothing = smoothing,
+                                     RMSfactor = RMSfactor,
+                                     cube_rms   = cube_rms,    
+                                     cont_chans = cont_chans, 
+                                     **mask_tclean_param) 
+                         
+        general_tclean_param['threshold']  = str(thresh)+'Jy'   
+                         
+        
+        # regrid SD image frequency axis to tclean (requires derive_threshold to be run)    
+        if specsetup == 'SDpar':
+            sdimage = sdreordered_cut  # for SD cube params used
+        else:
+            print('')
+            print('Regridding SD image...')
+            os.system('rm -rf '+sdroregrid)
+            dc.regrid_SD(sdreordered_cut, sdroregrid, imnamethSD+'.image')
+            sdimage = sdroregrid  # for INT cube params used
+        
+        
+           
+        # make SD+AM mask (requires regridding to be run; currently)
+        SDint_mask = dc.make_SDint_mask(vis, sdimage, imnamethSD, 
+                                        sdmasklev, 
+                                        SDint_mask_root,
+                                        **mask_tclean_param) 
+        
+        cta.immath(imagename=[SDint_mask_root+'.mask', threshmask+'.mask'],
+                   expr='iif((IM0+IM1)>'+str(0)+',1,0)',
+                   outfile=combined_mask)    
 
 
            
@@ -345,7 +354,7 @@ if mystep in thesteps:
                      **z)
         #**general_tclean_param, **special_tclean_param)   # in CASA 6.x
 
-    tcleanims.append(imname)
+    tcleanims.append(imname+'.image')
 
 
 
@@ -374,7 +383,7 @@ if mystep in thesteps:
             dc.runfeather(intimage, intpb, sdimage, sdfactor = sdfac[i],
                           featherim = imname)
 
-        featherims.append(imname)
+        featherims.append(imname+'.image')
 
 
 
@@ -402,7 +411,7 @@ if mystep in thesteps:
                    lowres=sdimage, pb=imbase+cleansetup+tcleansetup+'.pb',
                    sdfactor = SSCfac[i], combined=imname) 
                    
-        SSCims.append(imname)
+        SSCims.append(imname+'.image')
 
 
 
@@ -443,7 +452,7 @@ if mystep in thesteps:
             dc.runWSM(vis, sdimage, imname, sdfactorh = sdfac_h[i],
                       **z)
            
-        hybridims.append(imname)
+        hybridims.append(imname+str(sdfac_h[i])+'.image')
 
 
 mystep = 6    ####################----- SDINT -----####################
@@ -482,7 +491,7 @@ if mystep in thesteps:
             dc.runsdintimg(vis, sdimage, jointname, sdgain = sdg[0],
                            **z)
 
-        sdintims.append(jointname)                
+        sdintims.append(jointname+'.image')                
                 
                 
 mystep = 7    ###################----- TP2VIS -----####################
@@ -497,19 +506,20 @@ if mystep in thesteps:
     print(' ')
 
 
+
     # inputs: concatms, sdreordered, a12m[0]
     # get 12m pointings to simulate TP observation as interferometric
-
-
-    
+        
     # if a12m[0] exists:        
 
-    
-    if a12m!=[]:    # if 12m-data exists ...
-        dc.ms_ptg(TPpointingTemplate, outfile=TPpointinglist, uniq=True)
-        #dc.listobs_ptg(TPpointingTemplate, listobsOutput, TPpointinglist)
-    else:
-        TPpointinglist = TPpointinglistAlternative    
+    if dryrun == True:
+        pass
+    else:    
+        if a12m!=[]:    # if 12m-data exists ...
+            dc.ms_ptg(TPpointingTemplate, outfile=TPpointinglist, uniq=True)
+            #dc.listobs_ptg(TPpointingTemplate, listobsOutput, TPpointinglist)
+        else:
+            TPpointinglist = TPpointinglistAlternative    
     
 
     imTP = sdreordered
@@ -517,16 +527,13 @@ if mystep in thesteps:
     imname1 = imbase + cleansetup + TP2VISsetup  # first plot
       
       
-    # works!  
-    #
-    dc.create_TP2VIS_ms(imTP=imTP, TPresult=TPresult,
-        TPpointinglist=TPpointinglist, mode=mode,  
-        vis=vis, imname=imname1, TPnoiseRegion=TPnoiseRegion, 
-        TPnoiseChannels=TPnoiseChannels)  # in CASA 6.x
-          
-
-    
-
+    if dryrun == True:
+        pass
+    else:    
+        dc.create_TP2VIS_ms(imTP=imTP, TPresult=TPresult,
+            TPpointinglist=TPpointinglist, mode=mode,  
+            vis=vis, imname=imname1, TPnoiseRegion=TPnoiseRegion, 
+            TPnoiseChannels=TPnoiseChannels)  # in CASA 6.x
 
     if masking == 'SD-AM': 
         general_tclean_param['mask']  = TP2VIS_mask
@@ -541,9 +548,11 @@ if mystep in thesteps:
     transvis = vis+'_LSRK' #'_1spw'
 
 
-    # works!
-    dc.transform_INT_to_SD_freq_spec(TPresult, imTP, vis, 
-        transvis, datacolumn='DATA', outframe='LSRK')  # in CASA 6.x
+    if dryrun == True:
+        pass
+    else:
+        dc.transform_INT_to_SD_freq_spec(TPresult, imTP, vis, 
+            transvis, datacolumn='DATA', outframe='LSRK')  # in CASA 6.x
 
 
     ### for CASA 5.7:
@@ -562,8 +571,54 @@ if mystep in thesteps:
             dc.runtclean_TP2VIS_INT(TPresult, TPfac[i], vis, imname,
                                     RMSfactor=RMSfactor, cube_rms=cube_rms, cont_chans = cont_chans, **z)   # in CASA 6.x
         
-        TP2VISims.append(imname)
+        TP2VISims.append(imname+'.image')
     
+
+
+mystep = 8    ###################----- ASSESSMENT -----####################
+if mystep in thesteps:
+    cta.casalog.post('### ','INFO')
+    cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
+    cta.casalog.post('### ','INFO')
+    print(' ')
+    print('### ')
+    print('Step ', mystep, step_title[mystep])
+    print('### ')
+    print(' ')
+
+    os.system('rm -rf ' + sdroregrid + '.fits')
+    exportfits(imagename=sdroregrid, fitsimage=sdroregrid + '.fits', dropdeg=True)
+    
+    allcombims = tcleanims  + featherims + SSCims     + hybridims  + sdintims  # + TP2VISims
+    print(allcombims)
+
+    # make Apar and fidelity images
+
+    iqa.get_IQA(ref_image = sdroregrid, target_image=allcombims)
+    
+    
+    # make comparison plots
+    
+    if mode=='mfs':
+        iqa.Compare_Apar(ref_image = sdroregrid, target_image=allcombims,save=True)
+        iqa.Compare_Apar_signal(ref_image = sdroregrid, target_image=allcombims[:3],save=True,noise=0.0) #expecting only one file name entry per combi-method
+        iqa.Compare_Apar_signal(ref_image = sdroregrid, target_image=allcombims[3:],save=True,noise=0.0) #expecting only one file name entry per combi-method
+        iqa.Compare_Fidelity(ref_image = sdroregrid, target_image=allcombims,save=True)
+        iqa.Compare_Fidelity_signal(ref_image = sdroregrid, target_image=allcombims,save=True)
+    elif mode=='mfs':        
+        iqa.Compare_Apar_cubes(ref_image = sdroregrid, target_image=allcombims,save=True)
+        iqa.Compare_Fidelity_cubes(ref_image = sdroregrid, target_image=allcombims,save=True)
+
+
+    # make Apar and fidelity image plots
+
+    for i in range(0,len(allcombims)):
+        iqa.show_Apar_map(sdroregrid,allcombims[i],channel=general_tclean_param['nchan']/2.)
+        iqa.show_Fidelity_map(sdroregrid,allcombims[i],channel=general_tclean_param['nchan']/2.)
+
+
+
+
 
 
 # delete tclean TempLattices
