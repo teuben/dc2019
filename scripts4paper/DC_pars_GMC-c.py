@@ -2,7 +2,7 @@
 #   GMC template for setting up a DC_script.py
 #
 #   Input are:     skymodel-c_120L.alma.cycle6.4.2018-10-02.ms
-#                  (optionally more, there are 8 in this skymodel-c_120L)
+#                  (optionally more, there are 12 (8*12m + 4*7m) in this skymodel-c_120L)
 #                  skymodel-c_120L.sd.image
 
 step_title = {0: 'Concat',
@@ -32,12 +32,40 @@ pathtoimage  = _s4p_work + '/'
 #  for optional step 0:   thevis[] -> concatms
 #  otherwise concatms must contain the MS for combination
 
+a12m=[pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-02.ms',
+      #pathtoconcat + 'skymodel-c_120L.alma.cycle6.1.2018-10-02.ms',
+      #pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-03.ms',
+      #pathtoconcat + 'skymodel-c_120L.alma.cycle6.1.2018-10-03.ms',
+      #pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-04.ms',
+      #pathtoconcat + 'skymodel-c_120L.alma.cycle6.1.2018-10-04.ms',
+      #pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-05.ms',
+      #pathtoconcat + 'skymodel-c_120L.alma.cycle6.1.2018-10-05.ms'
+      ]
+      
+weight12m = [1.]#, 1., 1., 1., 1., 1., 1., 1.]
+        
+a7m =[#pathtoconcat + 'skymodel-c_120L.aca.cycle6.2018-10-20.ms',
+      #pathtoconcat + 'skymodel-c_120L.aca.cycle6.2018-10-21.ms',
+      #pathtoconcat + 'skymodel-c_120L.aca.cycle6.2018-10-22.ms',
+      #pathtoconcat + 'skymodel-c_120L.aca.cycle6.2018-10-23.ms'
+      ]
 
-thevis = [pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-02.ms']
-a12m = thevis
+weight7m = []#0.116, 0.116, 0.116, 0.116]  # weigthing for SIMULATED data !
+
+##### non interactive - begin #####
+thevis = a12m
+thevis.extend(a7m)
 
 #  a weight for each vis file in thevis[]
-weightscale = [1.]
+
+weightscale = weight12m
+weightscale.extend(weight7m)
+
+##### non interactive - end #####
+
+
+
+
 
 #  the concatenated MS 
 concatms     = pathtoimage + 'skymodel-c_120L.alma.all_int-weighted.ms'
@@ -48,7 +76,7 @@ concatms     = pathtoimage + 'skymodel-c_120L.alma.all_int-weighted.ms'
 vis             = concatms
 sdimage_input   = pathtoconcat + 'skymodel-c_120L.sd.image'
 imbase          = pathtoimage + 'skymodel-c_120L'            # path + image base name
-sdbase          = pathtoimage + 'skymodel-c_120L.sd'            # path + sd image base name
+sdbase          = pathtoimage + 'skymodel-c_120L'            # path + sd image base name
 
 
 # TP2VIS related:
@@ -66,11 +94,13 @@ mode      = 'mfs'      # 'mfs' or 'cube'
 mscale    = 'HB'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
 masking   = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 inter     = 'nIA'      # interactive ('IA') or non-interactive ('nIA')
-nit       = 100        # max = 9.9 * 10**9 
+nit       = 0          # max = 9.9 * 10**9 
 
 specsetup =  'INTpar'  # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
-                       # if "SDpar", want to use just a channel-cut-out of the SD image? , 
-                       # else set to None (None automatically for 'INTpar'
+
+# if "SDpar", want to use just a channel-cut-out of the SD image? , 
+# else set to None (None automatically for 'INTpar'
+
 startchan = 30  #None  # start-value of the SD image channel range you want to cut out 
 endchan   = 39  #None  #   end-value of the SD image channel range you want to cut out
 
@@ -93,11 +123,11 @@ general_tclean_param = dict(#overwrite  = overwrite,
                            imsize      = [1120], 
                            cell        = '0.21arcsec',    # arcsec
                            phasecenter = 'J2000 12:00:00 -35.00.00.0000',             
-                           start       = '1550km/s', #'1400km/s', #0, 
-                           width       = '5km/s', #1, 
-                           nchan       = 10, #70, #-1, 
-                           restfreq    = '115.271202GHz', #'',
-                           threshold   = '',        # SDINT: None 
+                           start       = 0, 
+                           width       = 1, 
+                           nchan       = -1, 
+                           restfreq    = '',
+                           threshold   = '',               # SDINT: None 
                            maxscale    = 10.,              # recommendations/explanations 
                            niter      = nit,               # ! change in variable above dict !
                            mask        = '', 
@@ -121,7 +151,7 @@ sdfac   = [1.0]          # feather parameters:
 SSCfac  = [1.0]          # Faridani parameters:
 sdfac_h = [1.0]          # Hybrid feather paramteters:
 sdg     = [1.0]          # SDINT parameters:
-TPfac   = [1000000.]     #  TP2VIS parameters:
+TPfac   = [1000000.]     # TP2VIS parameters:
           
 
 dryrun = False    # False to execute combination, True to gather filenames only

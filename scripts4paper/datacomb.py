@@ -17,6 +17,7 @@ import math
 import sys
 import glob
 import numpy as np
+import re
 from importlib import reload
 
 
@@ -1934,8 +1935,14 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     print('Computing the obtained flux only by single-dish ...')
     cta.immath([lowres_regrid, highres_conv], 'evalexpr', sub, '%s*IM0-IM1' % sdfactor)
     print('Flux difference has been determined' + '\n')
-    print('Units', getBunit(lowres_regrid))
-    print(lowres_regrid)
+    #print('Units', getBunit(lowres_regrid))
+    #print(lowres_regrid)
+    #print('Units', getBunit(sub))
+    #print('Units', getBunit(highres_conv))
+    #print('Units', getBunit(highres))
+
+
+    cta.imhead(sub, mode='put', hdkey='Bunit', hdvalue=lowres_unit)
 
 
     # Combination 
@@ -1959,8 +1966,12 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
         cta.immath([highres, sub], 'evalexpr', combined, 'IM0 + IM1')
         print('The missing flux has been restored' + '\n')
 
+    #print('Units', getBunit(combined))
+    cta.imhead(combined, mode='put', hdkey='Bunit', hdvalue=lowres_unit)
+
+
     # primary beam correction
-    os.system(combined +'.pbcor')
+    os.system('rm -rf '+combined +'.pbcor')
     cta.immath(imagename=[combined, pb],
                expr='IM0/IM1',
                outfile=combined +'.pbcor')
@@ -2147,7 +2158,8 @@ def ms_ptg(msfile, outfile=None, uniq=True):
 
 
 def create_TP2VIS_ms(imTP=None, TPresult=None,
-    TPpointinglist=None, mode='mfs', vis=None, imname=None, TPnoiseRegion=None
+    TPpointinglist=None, mode='mfs', vis=None, imname=None, TPnoiseRegion=None,
+    TPnoiseChannels=None
     ):
     """ 
     create_TP2VIS_ms (L. Moser-Fischer)
@@ -2165,6 +2177,8 @@ def create_TP2VIS_ms(imTP=None, TPresult=None,
     TPpointinglist - 12m pointing list (ALMA, *.ptg) 
     vis - INT ms-file to compare TP ms-file to
     inmame - output praefix for weightplot
+    TPnoiseRegion - if mode='mfs', emission-free box in cont image is used to determine noise
+    TPnoiseChannels - if mode='cube', line-free channels in cube are used to determine noise
 
     """
 

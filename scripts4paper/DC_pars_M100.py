@@ -16,7 +16,7 @@ step_title = {0: 'Concat',
               }
 
 #thesteps=[0,1,2,3,4,5,6,7]
-thesteps=[0]
+thesteps=[7]
 
 import os 
 import sys 
@@ -24,7 +24,7 @@ import sys
 
 # this script assumes the DC_locals.py has been execfiled'd - see the README.md how to do this
 
-pathtoconcat = _s4p_data + '../scripts/'
+pathtoconcat = _s4p_data + '/M100/'
 pathtoimage  = _s4p_work + '/'
 
 
@@ -37,19 +37,34 @@ _12ms = 'M100_Band3_12m_CalibratedData.ms'
 _sdim = 'M100_TP_CO_cube.bl.image'
 
 
-### delete garbage from aboprted script ###
-os.system('rm -rf '+pathtoimage + 'TempLattice*')
-
 
 # setup for concat (the optional step 0)
 
-thevis = [pathtoconcat + _12ms]
+a12m=[pathtoconcat + _12ms
+     ]
+      
+weight12m = [1.]
+        
+a7m =[#pathtoconcat + _7ms
+     ]
+
+weight7m = []#0.193]  # weigthing for REAL data !
+
+##### non interactive - begin #####
+thevis = a12m
+thevis.extend(a7m)
+
+#  a weight for each vis file in thevis[]
+
+weightscale = weight12m
+weightscale.extend(weight7m)
+
+##### non interactive - end #####
 
 
-a12m = thevis
 
-weightscale = [1.0]
 
+#  the concatenated MS 
 concatms     = pathtoimage + 'M100-B3.alma.all_int-weighted.ms' 
 
 
@@ -70,7 +85,7 @@ TPpointinglist     = imbase+'.12m.ptg'
 TPpointinglistAlternative = 'user-defined.ptg' 
 
 TPnoiseRegion   = '150,200,150,200'  # in unregridded SD image (i.e. sdreordered = sdbase +'.SD_ro.image')
-TPnoiseChannels = '2~5'        # in unregridded and un-cut SD cube (i.e. sdreordered = sdbase +'.SD_ro.image')!
+TPnoiseChannels = '2~5'              # in unregridded and un-cut SD cube (i.e. sdreordered = sdbase +'.SD_ro.image')!
 
 
 
@@ -79,11 +94,11 @@ TPnoiseChannels = '2~5'        # in unregridded and un-cut SD cube (i.e. sdreord
 # structure could be something like:
 #    imname = imbase + cleansetup + combisetup 
 
-mode   = 'mfs'        # 'mfs' or 'cube'
-mscale = 'HB'         # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
+mode     = 'cube'      # 'mfs' or 'cube'
+mscale   = 'HB'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
 masking  = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
-inter = 'nIA'         # interactive ('IA') or non-interactive ('nIA')
-nit = 100               # max = 9.9 * 10**9 
+inter    = 'nIA'      # interactive ('IA') or non-interactive ('nIA')
+nit     = 0           # max = 9.9 * 10**9 
 
 specsetup =  'INTpar' # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
 ######### if "SDpar", want to use just a channel-cut-out of the SD image? , 
@@ -112,19 +127,18 @@ sdmasklev = 0.3  # maximum x this factor = threshold for SD mask
                       
 ########## general tclean parameters
 
-# M100                           
 general_tclean_param = dict(#overwrite  = overwrite,
-                           spw         = '', #'0~2', #'0', 
-                           field       = '', #'0~68', 
+                           spw         = '', 
+                           field       = '',
                            specmode    = mode,      # ! change in variable above dict !        
-                           imsize      = 560, #800, #[1120], 
-                           cell        = '0.5arcsec', #'0.21arcsec',    # arcsec
-                           phasecenter = 'J2000 12h22m54.9 +15d49m15', #'J2000 12:00:00 -35.00.00.0000',             
-                           start       = '1550km/s', #'1400km/s', #0, 
-                           width       = '5km/s', #1, 
-                           nchan       = 10, #70, #-1, 
-                           restfreq    = '115.271202GHz', #'',
-                           threshold   = '',        # SDINT: None 
+                           imsize      = 560,  
+                           cell        = '0.5arcsec', 
+                           phasecenter = 'J2000 12h22m54.9 +15d49m15',             
+                           start       = '1550km/s', #'1400km/s',  
+                           width       = '5km/s',  
+                           nchan       = 10, #70,  
+                           restfreq    = '115.271202GHz',
+                           threshold   = '',               # SDINT: None 
                            maxscale    = 10.,              # recommendations/explanations 
                            niter      = nit,               # ! change in variable above dict !
                            mask        = '', 
