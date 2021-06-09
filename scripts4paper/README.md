@@ -3,11 +3,32 @@
 These should be the steps that allow you to reproduce the
 figures in the paper:
 
+0. Ensure your CASA has astropy installed
 1. Gather the data (see ../data/README_DC2019_data)
 2. Run configure to be able to run the casa based scripts
 3. Run DC_script.py to run through your selected data set
-4. Run IQA_scripts.py create our standard assessment tests
+4. Run IQA_script.py create our standard assessment tests
    (this might go into DC_scripts.py ?)
+   
+## 0. astropy  (et al.)
+
+In case your CASA does not have astropy, which you can test by trying
+
+      casa -c "import astropy"
+	  
+	  
+you will need to install it.  Since casa has it's own python, you can
+install it using **pip3** from the casa prompt (it's cumbersome to
+try this from the unix command line):
+
+	  CASA <1>:    !pip3 install astropy
+
+If this results in some kind of permission related problem, you will need to
+ask the owner of CASA to do this. Just to be clear, we are using only python3 now,
+hence CASA 6.2 and above.
+
+**TBD** Unclear at this stage if/how a user based install will work, but
+we do need to provide a solution here.
 
 ## 1. Data
 
