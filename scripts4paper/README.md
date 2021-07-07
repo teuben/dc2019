@@ -28,7 +28,13 @@ ask the owner of CASA to do this. Just to be clear, we are using only python3 no
 hence CASA 6.2 and above.
 
 **TBD** Unclear at this stage if/how a user based install will work, but
-we do need to provide a solution here.
+we do need to provide a solution here. Another suggested solution is to add
+some kind of
+
+      sys.path.append(pathtoastropy) 
+	  
+to your personal casa setup (e.g. via ~/.casa/startup.py), but making sure there
+is no version skew between casa's python and the one astropy is expecting.
 
 ## 2. Data
 
