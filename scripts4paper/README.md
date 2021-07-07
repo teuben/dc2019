@@ -3,14 +3,14 @@
 These should be the steps that allow you to reproduce the
 figures in the paper:
 
-0. Ensure your CASA has astropy installed
-1. Gather the data (see ../data/README_DC2019_data)
-2. Run configure to be able to run the casa based scripts
-3. Run DC_script.py to run through your selected data set
-4. Run IQA_script.py create our standard assessment tests
+1. Ensure your CASA has astropy installed
+2. Gather the data (see ../data/README_DC2019_data)
+3. Run configure to be able to run the casa based scripts
+4. Run DC_script.py to run through your selected data set
+5. Run IQA_script.py create our standard assessment tests
    (this might go into DC_scripts.py ?)
    
-## 0. astropy  (et al.)
+## 1. astropy  (et al.)
 
 In case your CASA does not have astropy, which you can test by trying
 
@@ -30,9 +30,11 @@ hence CASA 6.2 and above.
 **TBD** Unclear at this stage if/how a user based install will work, but
 we do need to provide a solution here.
 
-## 1. Data
+## 2. Data
 
-## 2. Configure
+Details are in [../data/README_DC2019_data](../data/README_DC2019_data)
+
+## 3. Configure
 
 In order to configure your casa environment for these script, one
 suggested solution is the use of the included **configure** script. By
@@ -56,13 +58,13 @@ This is a discussion how the DC2019 data should be circulated, and
 easily match a CASA tasks API for the different combination techniques
 discussed in the paper
 
-## 3. DC_script.py
+## 4. DC_script.py
 
-There is currently in [DC_script](DC_script.md)
+There is currently described in more detail in [DC_script](DC_script.md)
 
-## 4. IQA_scripts.py
+## 5. IQA_script.py
 
-TBD
+TBD 
 
 
 ## Methods teams
