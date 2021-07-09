@@ -145,6 +145,7 @@ def get_convo2target(convo_file,ref_image):
     beam_major = hdr['restoringbeam']['major']
     beam_minor = hdr['restoringbeam']['minor']
     beam_PA = hdr['restoringbeam']['positionangle']
+    ref_unit = hdr['unit']
     # Convolution into the same beam as the reference
     os.system("rm -rf tmp.tmp")
     imsmooth(imagename= convo_file,
@@ -154,10 +155,13 @@ def get_convo2target(convo_file,ref_image):
         minor=beam_minor,
         pa=beam_PA,
         targetres=True)
+    #imhead(convo_file, mode='put', hdkey='Bunit', hdvalue=ref_unit)
     os.system("rm -rf convo2ref")
     imregrid(imagename= "tmp.tmp",
          template= ref_image,
          output= 'convo2ref')
+    imhead('convo2ref', mode='put', hdkey='Bunit', hdvalue=ref_unit)   # Lydia's modification to avoid lost bunits
+
     os.system("rm -rf tmp.tmp")
 
 ## Resample 
@@ -451,7 +455,10 @@ def get_IQA(ref_image = '',target_image=['']):
 # Tools for continuum and/or mom0 maps
 
 # Accuracy parameter comparisons
-def Compare_Apar(ref_image = '',target_image=[''],save=False):
+def Compare_Apar(ref_image = '',target_image=[''],
+                  #pathnametodrop = '', 
+                  save=False, plotname='', 
+                  labelname=[''], titlename=''):
     """
     Compare all Apar images (continuum or mom0 maps) (A. Hacar, Univ. of Vienna)
 
@@ -499,7 +506,11 @@ def Compare_Apar(ref_image = '',target_image=[''],save=False):
         skewness = np.round(skew(Adist),3)
         kurt = np.round(kurtosis(Adist),3)
         # Plot results
-        ax1.plot(mids,h,label=target_image[m] + "; A = "+ str(meanvalue) + " +/- " + str(sigmavalue),linewidth=3,c=IQA_colours[m])
+        if labelname[m]=='':            
+            ax1.plot(mids,h,label=target_image[m] + "; A = "+ str(meanvalue) + " +/- " + str(sigmavalue),linewidth=3,c=IQA_colours[m])
+            #ax1.plot(mids,h,label=target_image[m].replace(pathnametodrop,'') + "; A = "+ str(meanvalue) + " +/- " + str(sigmavalue),linewidth=3,c=IQA_colours[m])
+        else:
+            ax1.plot(mids,h,label=labelname[m] + "; A = "+ str(meanvalue) + " +/- " + str(sigmavalue),linewidth=3,c=IQA_colours[m])
         # Print results on screen
         print(" Target image " + str(m+1) + " : " + str(target_image[m]))
         print(" Total Flux = " + str(flux) + " Jy ("+str(np.round(flux/flux0,2))+"\%)")
@@ -516,18 +527,29 @@ def Compare_Apar(ref_image = '',target_image=[''],save=False):
     plt.legend(bbox_to_anchor=(0.5, -0.1),loc='upper center', borderaxespad=0.)
     plt.xlabel("Accuracy",fontsize=20)
     plt.ylabel(r'# pixels',fontsize=20)
-    plt.title("Accuracy Parameter: comparisons",fontsize=20)
+    if titlename=='':
+        plt.title("Accuracy Parameter: comparisons",fontsize=16)
+    else: 
+        plt.title(titlename,fontsize=16)
+
     # Save plot?
     if save == True:
-        plt.savefig("AparALL_tmp.png")
-        print(" See results: AparALL_tmp.png")
+        if plotname == '':
+            plotname="AparALL_tmp"
+        plt.savefig(plotname+'.png')
+        print(" See results: "+plotname+".png")
+        plt.close()
     # out
     print("---------------------------------------------")
     print(" Accuracy parameter comparisons... DONE")
     print("=============================================")
     return True
 
-def Compare_Apar_signal(ref_image = '',target_image=[''],save=False,noise=0.0):
+def Compare_Apar_signal(ref_image = '',target_image=[''],
+            #pathnametodrop = '', 
+            save=False, noise=0.0, plotname='', 
+            labelname=[''], titlename=''
+            ):
     """
     Compare_Apar_signal (A. Hacar, Univ. of Vienna) 
     
@@ -588,8 +610,10 @@ def Compare_Apar_signal(ref_image = '',target_image=[''],save=False,noise=0.0):
         xmax = np.max(im1[0].data[np.isnan(im1[0].data)==False])
         if (xmax > xmax0):
             xmax0=xmax+xmax/10. # Slightly larger
-        if (xmin < xmin0):
+        if (xmin < xmin0):       
             xmin0=xmin
+        if (xmin < 0.0):          #Lydia's modification to avoid negative values!
+            xmin0=0.0001
         # Plot results
         ax0.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,edgecolor='none')
 
@@ -612,9 +636,11 @@ def Compare_Apar_signal(ref_image = '',target_image=[''],save=False,noise=0.0):
         medians=np.zeros(len(xvalues))  # Median
         q1values=np.zeros(len(xvalues)) # Q1
         q3values=np.zeros(len(xvalues)) # Q2
-        
-        print(xmin0, xmax0)
-        print(xvalues)
+  
+        # helpers for debugging
+        #print(xmin, xmax)        
+        #print(xmin0, xmax0)
+        #print(xvalues)
 
         count=0
         for j in xvalueslog:
@@ -656,6 +682,10 @@ def Compare_Apar_signal(ref_image = '',target_image=[''],save=False,noise=0.0):
         ax0.set_ylim(-1.5, 0.5)
     ax0.set_xscale('log')
     ax0.set_ylabel(r" A-par",fontsize=20)
+    if titlename=='':
+        plt.title("Accuracy vs. Signal",fontsize=16)
+    else: 
+        plt.title(titlename,fontsize=16)
 
 
     # Plot #2: Reference vs Target
@@ -673,8 +703,14 @@ def Compare_Apar_signal(ref_image = '',target_image=[''],save=False,noise=0.0):
             xmax0=xmax+xmax/10. # Slightly larger
         if (xmin < xmin0):
             xmin0=xmin
+        if (xmin < 0.0):          #Lydia's modification to avoid negative values!
+            xmin0=0.0001
+
         # Plot results
-        ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,label=target_image[m],edgecolor='none')
+        if labelname[m]=='':
+            ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,label=target_image[m],edgecolor='none')
+        else:    
+            ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,label=labelname[m],edgecolor='none')
 
     # Show A values lines
     xvalues=np.arange(xmin0,xmax0,(xmax0-xmin0)/20.)
@@ -705,10 +741,14 @@ def Compare_Apar_signal(ref_image = '',target_image=[''],save=False,noise=0.0):
     plt.ylabel(r" Target flux (image units)",fontsize=20)
     plt.xlabel(r" Reference flux (image units)",fontsize=20)
 
+
     # Save plot?
     if save == True:
-        plt.savefig("Apar_signal_ALL_tmp.png")
-        print(" See results: Apar_signal_ALL_tmp.png")
+        if plotname == '':
+            plotname="Apar_signal_ALL_tmp"
+        plt.savefig(plotname+'.png')
+        print(" See results: "+plotname+".png")
+        plt.close()
     # out
     print("---------------------------------------------")
     print(" A-par vs Signal... DONE")
@@ -716,7 +756,10 @@ def Compare_Apar_signal(ref_image = '',target_image=[''],save=False,noise=0.0):
     return True
 
 # Fidelity comparisons
-def Compare_Fidelity(ref_image = '',target_image=[''],save=False):
+def Compare_Fidelity(ref_image = '',target_image=[''],
+                    #pathnametodrop = '', 
+                    save=False, plotname='', 
+                    labelname=[''], titlename=''):
     """
     Compare all Fidelity images (continuum or mom0 maps) (A. Hacar, Univ. of Vienna)
 
@@ -758,7 +801,10 @@ def Compare_Fidelity(ref_image = '',target_image=[''],save=False):
         q1value = np.round(np.percentile(Fdist, 25),1)  # Quartile 1st
         q3value = np.round(np.percentile(Fdist, 75),1)  # Quartile 3rd
         #meanvalue = np.round(np.average(mids,weights=h),1)
-        plt.plot(mids,h,label=target_image[m] + "; <Fidelity> = "+ str(meanvalue),linewidth=3,c=IQA_colours[m])
+        if labelname[m]=='':
+            plt.plot(mids,h,label=target_image[m] + "; <Fidelity> = "+ str(meanvalue),linewidth=3,c=IQA_colours[m])
+        else:    
+            plt.plot(mids,h,label=labelname[m] + "; <Fidelity> = "+ str(meanvalue),linewidth=3,c=IQA_colours[m])
         # Display on screen
         print(" Fidelity")
         print("  Mean = " + str(meanvalue))
@@ -772,15 +818,24 @@ def Compare_Fidelity(ref_image = '',target_image=[''],save=False):
     plt.legend(bbox_to_anchor=(0.5, -0.1),loc='upper center', borderaxespad=0.)
     plt.xlabel("Fidelity",fontsize=20)
     plt.ylabel(r'# pixels',fontsize=20)
-    plt.title("Fidelity Comparisons")
+    if titlename=='':
+        plt.title("Fidelity Comparisons",fontsize=16)
+    else:
+        plt.title(titlename,fontsize=16)
     if save == True:
-        plt.savefig("FidelityALL_tmp.png")
-        print(" See results: FidelityALL_tmp.png")
+        if plotname == '':
+            plotname="FidelityALL_tmp"
+        plt.savefig(plotname+'.png')
+        print(" See results: "+plotname+".png")
+        plt.close()
     print("---------------------------------------------")
     print(" Fidelity comparisons... DONE")
     print("=============================================")
 
-def Compare_Fidelity_signal(ref_image = '',target_image=[''],save=False):
+def Compare_Fidelity_signal(ref_image = '',target_image=[''],
+             pathnametodrop = '', save=False,noise=0.0, plotname='', 
+             labelname=[''], titlename=''
+             ):
     """
     Compare all Fidelity images vs signal (continuum or mom0 maps) (A. Hacar, Univ. of Vienna)
 
@@ -823,8 +878,12 @@ def Compare_Fidelity_signal(ref_image = '',target_image=[''],save=False):
             xmax0=xmax
         if (xmin < xmin0):
             xmin0=xmin
+        if (xmin < 0.0):          #Lydia's modification to avoid negative values!
+            xmin0=0.0001
         # Plot results
-        ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,label=target_image[m],edgecolor='none')
+        if labelname[m]=='':            ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,label=target_image[m],edgecolor='none')
+        else:    
+            ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,label=labelname[m],edgecolor='none')
     # Plot limits, legend, labels...
     plt.xlim(xmin0,xmax0+xmax0/5)
     plt.ylim(xmin0,xmax0+xmax0/5)
@@ -849,11 +908,18 @@ def Compare_Fidelity_signal(ref_image = '',target_image=[''],save=False):
     plt.legend(bbox_to_anchor=(0.5, -0.1),loc='upper center', borderaxespad=0.)
     plt.ylabel(r" Target flux (image units)",fontsize=20)
     plt.xlabel(r'# Reference flux (image units)',fontsize=20)
-    plt.title("Fidelity vs signal",fontsize=20)
+    if titlename=='':
+        plt.title("Fidelity vs. Signal",fontsize=16)
+    else: 
+        plt.title(titlename,fontsize=16)
+    
     # Save plot?
     if save == True:
-        plt.savefig("Fidelity_signal_ALL_tmp.png")
-        print(" See results: Fidelity_signal_ALL_tmp.png")
+        if plotname == '':
+            plotname="Fidelity_signal_ALL_tmp"
+        plt.savefig(plotname+'.png')
+        print(" See results: "+plotname+".png")
+        plt.close()
     # out
     print("---------------------------------------------")
     print(" Fidelity vs Signal... DONE")
@@ -1160,7 +1226,11 @@ def plot_Fidelity(image2plot,Nplots,Ny,title):
     # return for comparisons
     return mids, np.nanmean(h,axis=1)[:]
 
-def show_Apar_map(ref_image,target_image,channel=0):
+def show_Apar_map(ref_image,target_image,#pathnametodrop,
+                  channel=0, 
+                  save=False, plotname='',
+                  labelname='', titlename=''
+                  ):
     """
     Display Accuracy maps (A. Hacar, Univ. of Vienna)
     Arguments:
@@ -1179,8 +1249,16 @@ def show_Apar_map(ref_image,target_image,channel=0):
 
     """
     # Figure
-    fig = plt.figure(figsize=(15,10))
-    grid = plt.GridSpec(ncols=2,nrows=2, wspace=0.3, hspace=0.3)
+    fig = plt.figure(figsize=(10,15))
+    #fig = plt.figure(figsize=(15,10))
+    if titlename=='':   
+        fig.suptitle('Accurray map', fontsize=16)
+        #fig.suptitle('Accurray map for \n'+target_image.replace(pathnametodrop,''), fontsize=16)
+    else:    
+        fig.suptitle(titlename, fontsize=16)
+
+    grid = plt.GridSpec(ncols=2,nrows=2, wspace=0.5, hspace=0.3)
+    #grid = plt.GridSpec(ncols=2,nrows=2, wspace=0.3, hspace=0.3)
 
     # Panel #1: Reference
     ax1 = plt.subplot(grid[0, 0])
@@ -1190,6 +1268,7 @@ def show_Apar_map(ref_image,target_image,channel=0):
     vmin , vmax = np.min(image[0].data[~np.isnan(image[0].data)]), np.max(image[0].data[~np.isnan(image[0].data)])
     # Continuum or cube?
     Ndims = np.shape(np.shape(image[0].data))
+    channel=int(channel)
     if (Ndims[0] == 2):
         # Continuum
         im = ax1.imshow(image[0].data,vmin=vmin,vmax=vmax,cmap='jet')
@@ -1200,7 +1279,8 @@ def show_Apar_map(ref_image,target_image,channel=0):
     plt.gca().invert_yaxis()
     cbar = plt.colorbar(im, ax=ax1,orientation='vertical')
     cbar.ax.set_ylabel('Flux (image units)', fontsize=15)
-    plt.text(0.1,0.1,"Ref: " + str(ref_image), bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
+    plt.text(0.1,0.1,"Reference", bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
+    #plt.text(0.1,0.1,"Ref: " + str(ref_image.replace(pathnametodrop,'')), bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
     plt.xlabel("X (pixel units)",fontsize=15)
     plt.ylabel("Y (pixel units)",fontsize=15)
     plt.title(" Reference (Chan.# " + str(channel) + ")")
@@ -1220,7 +1300,8 @@ def show_Apar_map(ref_image,target_image,channel=0):
     plt.gca().invert_yaxis()
     cbar = plt.colorbar(im, ax=ax1,orientation='vertical')
     cbar.ax.set_ylabel('Flux (image units)', fontsize=15)
-    plt.text(0.1,0.1,"Target: " + str(target_image), bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
+    plt.text(0.1,0.1,"Target", bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
+    #plt.text(0.1,0.1,"Target: " + str(target_image.replace(pathnametodrop,'')), bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
     plt.xlabel("X (pixel units)",fontsize=15)
     plt.ylabel("Y (pixel units)",fontsize=15)
     plt.title(" Target at ref. resolution (Chan.# " + str(channel) + ")")
@@ -1247,7 +1328,7 @@ def show_Apar_map(ref_image,target_image,channel=0):
     cbar = plt.colorbar(im, ax=ax1,orientation='vertical')
     cbar.ax.set_ylabel('Accuracy parameter', fontsize=15)
     plt.gca().invert_yaxis()
-    plt.show()
+    #plt.show()
     plt.xlabel("X (pixel units)",fontsize=15)
     plt.ylabel("Y (pixel units)",fontsize=15)
     plt.title(" Accuracy map (Chan.# " + str(channel) + ")")
@@ -1273,9 +1354,30 @@ def show_Apar_map(ref_image,target_image,channel=0):
     plt.legend(loc="lower right")
     plt.xlabel("Accuracy parameter",fontsize=20)
     plt.ylabel(r'Number of pixels',fontsize=20)
+    # Save plot?
+    if save == True:
+        #shortname=target_image.replace(pathnametodrop,'').replace('.image','')
+        #plt.savefig('Accuracy_map_'+shortname+'.png')
+        #print(' See results: Accuracy_map_'+shortname+'.png')
+        if plotname == '':
+            plotname="Accuracy_map_tmp"
+        plt.savefig(plotname+'.png')
+        print(" See results: "+plotname+".png")
+        
+        
+        
+        
+        plt.close()
+    # out
+    print("---------------------------------------------")
+    return True
 
 
-def show_Fidelity_map(ref_image,target_image,channel=0):
+def show_Fidelity_map(ref_image,target_image,
+                       pathnametodrop,
+                       channel=0, save=False, plotname='',
+                       labelname='', titlename=''
+                       ):
     """
     Display Fifelity maps (A. Hacar, Univ. of Vienna)
     Arguments:
@@ -1294,8 +1396,15 @@ def show_Fidelity_map(ref_image,target_image,channel=0):
 
     """
     # Figure
-    fig = plt.figure(figsize=(15,10))
-    grid = plt.GridSpec(ncols=2,nrows=2, wspace=0.3, hspace=0.3)
+    fig = plt.figure(figsize=(10,15))
+    #fig = plt.figure(figsize=(15,10))
+    if titlename=='':   
+        fig.suptitle('Fidelity map', fontsize=16)
+        #fig.suptitle('Fidelity map for \n'+target_image.replace(pathnametodrop,''), fontsize=16)
+    else:    
+        fig.suptitle(titlename, fontsize=16)
+    grid = plt.GridSpec(ncols=2,nrows=2, wspace=0.5, hspace=0.3)
+    #grid = plt.GridSpec(ncols=2,nrows=2, wspace=0.3, hspace=0.3)
 
     # Panel #1: Reference
     ax1 = plt.subplot(grid[0, 0])
@@ -1305,6 +1414,7 @@ def show_Fidelity_map(ref_image,target_image,channel=0):
     vmin , vmax = np.min(image[0].data[~np.isnan(image[0].data)]), np.max(image[0].data[~np.isnan(image[0].data)])
     # Continuum or cube?
     Ndims = np.shape(np.shape(image[0].data))
+    channel=int(channel)
     if (Ndims[0] == 2):
         # Continuum
         im = ax1.imshow(image[0].data,vmin=vmin,vmax=vmax,cmap='jet')
@@ -1315,7 +1425,8 @@ def show_Fidelity_map(ref_image,target_image,channel=0):
     plt.gca().invert_yaxis()
     cbar = plt.colorbar(im, ax=ax1,orientation='vertical')
     cbar.ax.set_ylabel('Flux (image units)', fontsize=15)
-    plt.text(0.1,0.1,"Ref: " + str(ref_image), bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
+    plt.text(0.1,0.1,"Reference", bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
+    #plt.text(0.1,0.1,"Ref: " + str(ref_image.replace(pathnametodrop,'')), bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
     plt.xlabel("X (pixel units)",fontsize=15)
     plt.ylabel("Y (pixel units)",fontsize=15)
     plt.title(" Reference (Chan.# " + str(channel) + ")")
@@ -1335,7 +1446,8 @@ def show_Fidelity_map(ref_image,target_image,channel=0):
     plt.gca().invert_yaxis()
     cbar = plt.colorbar(im, ax=ax1,orientation='vertical')
     cbar.ax.set_ylabel('Flux (image units)', fontsize=15)
-    plt.text(0.1,0.1,"Target: " + str(target_image), bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
+    plt.text(0.1,0.1,"Target", bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
+    #plt.text(0.1,0.1,"Target: " + str(target_image.replace(pathnametodrop,'')), bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
     plt.xlabel("X (pixel units)",fontsize=15)
     plt.ylabel("Y (pixel units)",fontsize=15)
     plt.title(" Target at ref. resolution (Chan.# " + str(channel) + ")")
@@ -1376,7 +1488,18 @@ def show_Fidelity_map(ref_image,target_image,channel=0):
     plt.legend()
     plt.xlabel("Fidelity",fontsize=20)
     plt.ylabel(r'Number of pixels',fontsize=20)
-
+    # Save plot?
+    if save == True:
+        #shortname=target_image.replace(pathnametodrop,'').replace('.image','')
+        #plt.savefig('Fidelity_map_'+shortname+'.png')
+        #print(' See results: Fidelity_map_'+shortname+'.png')
+        if plotname == '':
+            plotname="Fidelity_map_tmp"
+        plt.savefig(plotname+'.png')        
+        plt.close()
+    # out
+    print("---------------------------------------------")
+    return True
 
 
 ##############################################################################################
@@ -1456,7 +1579,8 @@ def compute_1D_SPS(image):
     return ps1D, ps1D_MADErrs, bin_cents*1/u.pix
 
 
-def genmultisps(fitsimages, save=False):
+def genmultisps(fitsimages, save=False, plotname='', labelname='',
+                titlename=''):
     """
     gensps
     Script to plot the power spectra of a user provided general 2D FITS file
@@ -1503,7 +1627,6 @@ def genmultisps(fitsimages, save=False):
 
 
     imnumber = 0
-
     for fitsimage in fitsimages:
 
         if type(fitsimage) != str or len(fitsimage)==0:
@@ -1600,7 +1723,11 @@ def genmultisps(fitsimages, save=False):
 
         ## plot full power spectra ##
         ######ax.plot(logAngScales, logPwr, label='Data '+str(imnumber), color=IQA_colours[imnumber])
-        ax.plot(logAngScales, logPwr, label=str(fitsName), color=IQA_colours[imnumber])
+        if labelname[fitsimages.index(fitsimage)]=='':
+            ax.plot(logAngScales, logPwr, label=str(fitsName), color=IQA_colours[imnumber])
+        else:    
+            ax.plot(logAngScales, logPwr, label=labelname[fitsimages.index(fitsimage)], color=IQA_colours[imnumber])
+        #ax.plot(logAngScales, logPwr, label=str(fitsName), color=IQA_colours[imnumber])
 
         ## fill inbetween for errors ##
         #ax.fill_between(logAngScales, logPwr-logErrors, logPwr+logErrors, color=IQA_colours[1])
@@ -1627,11 +1754,21 @@ def genmultisps(fitsimages, save=False):
     ax.set_ylabel(r'$log_{10}\left(\rm Power\right)$')
     #pyplot.legend(loc='upper right', fontsize=6)
     pyplot.legend(loc='lower left')
+    if titlename=='':
+        plt.title("Power spectra",fontsize=16)
+    else:
+        plt.title(titlename,fontsize=16)
+
+    pyplot.show()
 
     if save == True:
-        pyplot.savefig(fitsimages[0]+'_and_others.sps.pdf')
-    
-    pyplot.show()
+        #pyplot.savefig(fitsimages[0]+'_and_others.sps.pdf')
+        if plotname == '':
+            plotname="Power_spectra_ALL_tmp"
+        plt.savefig(plotname+'.png')
+        print(" See results: "+plotname+".png")
+        plt.close()
+
 
     return True
 
@@ -1735,7 +1872,8 @@ def get_aperture(fitslist,position=(1,1),Nbeams=10):
     ax1 = plt.subplot(grid[:, 0])
     image = fits.open(fitslist[0])
     # get min/max values
-    vmin , vmax = np.min(image[0].data[-np.isnan(image[0].data)]), np.max(image[0].data[-np.isnan(image[0].data)])
+    vmin , vmax = np.min(image[0].data[~np.isnan(image[0].data)]), np.max(image[0].data[~np.isnan(image[0].data)])
+
     # Plot image
     im = ax1.imshow(image[0].data,vmin=vmin,vmax=vmax,cmap='jet',aspect='equal')
     # Get a marker at the position
