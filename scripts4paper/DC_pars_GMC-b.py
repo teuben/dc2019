@@ -18,15 +18,15 @@ step_title = {0: 'Concat',
 thesteps=[0,1,2,3,4,5,6,7,8]
 #thesteps=[4]
 
+######## collect only the product name?          
+dryrun = True    # False to execute combination, True to gather filenames only
+ 
+ 
 
 #  you can use _s4p_data if you want to use the configure'd setup,
 #  but feel free to override
 #  _s4p_data :  for read-only data
 #  _s4p_work :  for reading/writing
-
-
-pathtoastropy = '/users/moser/.local/lib/python3.6/site-packages'
-
 
 pathtoconcat = _s4p_data + '/gmcSkymodel_120L/gmc_120L/'
 pathtoimage  = _s4p_work + '/'
@@ -159,7 +159,6 @@ sdg     = [1.0]          # SDINT parameters:
 TPfac   = [1000000.]     # TP2VIS parameters:
           
 
-dryrun = False    # False to execute combination, True to gather filenames only
           
-refimage = _s4p_data + '/gmcSkymodel_120L/skymodel-b.fits'  
+#refimage = _s4p_data + '/gmcSkymodel_120L/skymodel-b.fits'  
 

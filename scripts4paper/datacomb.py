@@ -1284,7 +1284,8 @@ def regrid_SD(old_image, new_image, template_image):
         cta.imsmooth(imagename = new_image,
                      kernel    = 'commonbeam',                                                     
                      outfile   = new_image+'_1',            
-                     overwrite = True)       
+                     overwrite = True) 
+        print('Got rid of perplanebeams...')                  
                     
         os.system('rm -rf '+new_image)
         os.system('cp -r '+new_image+'_1 ' +new_image)
@@ -1667,7 +1668,7 @@ def derive_threshold(vis, imname, threshmask,
         #### continuum
         if specmode == 'mfs':
             full_RMS = cta.imstat(imnameth+'.image')['rms'][0]
-            print('full_RMS', full_RMS)
+            #print('full_RMS', full_RMS)
             #peak_val = imstat(imnameth+'.image')['max'][0]
             thresh = full_RMS*RMSfactor
         

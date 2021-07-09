@@ -15,9 +15,12 @@ step_title = {0: 'Concat',
               7: 'TP2VIS'
               }
 
-#thesteps=[0,1,2,3,4,5,6,7]
-thesteps=[7]
+thesteps=[0,1,2,3,4,5,6,7,8]
+#thesteps=[7]
 
+######## collect only the product name?          
+dryrun = True    # False to execute combination, True to gather filenames only
+ 
 
 #  you can use _s4p_data if you want to use the configure'd setup,
 #  but feel free to override
@@ -149,7 +152,6 @@ sdg     = [1.0]          # SDINT parameters:
 TPfac   = [1.]     # TP2VIS parameters:
           
 
-dryrun = False    # False to execute combination, True to gather filenames only
           
           
 
