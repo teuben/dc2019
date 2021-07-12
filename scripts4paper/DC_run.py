@@ -622,17 +622,23 @@ if mystep in thesteps:
 
 
     if mode=='cube':   ###### Compare*cubes has problems! #####
-        #iqa.Compare_Apar_cubes(ref_image = sdroregrid, 
-        #                       target_image=[allcombims],
-        #                       save=True)#,
-        #                       #plotname=assessment+'/Apar_channels_'+sourcename+cleansetup,
-        #                       ##labelname=[allcombi], 
-        #                       #titlename='Accuracy Parameter: comparison for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.','')
-        #                       #)
-        #iqa.Compare_Fidelity_cubes(ref_image = sdroregrid, 
-        #                       target_image=allcombims,
-        #                       save=True)      
-        #    
+		#xvalues, yvalues = iqa.plot_Apar(target_image[j]+"_convo2ref_Apar.fits",Nplots,j,str(target_image[j]))
+        #
+        iqa.Compare_Apar_cubes(ref_image = sdroregrid, 
+                               target_image=allcombims,
+                               save=True,
+                               plotname=assessment+'/Apar_channels_'+sourcename+cleansetup,
+                               labelname=allcombi, 
+                               titlename='Accuracy Parameter of cube: comparison for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.','')
+                               )
+        iqa.Compare_Fidelity_cubes(ref_image = sdroregrid, 
+                               target_image=allcombims,
+                               save=True,
+                               plotname=assessment+'/Fidelity_channels_'+sourcename+cleansetup,
+                               labelname=allcombi, 
+                               titlename='Fidelity of cube: comparison for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.','')
+                               )      
+            
         for i in range(0,len(allcombims)):
             os.system('rm -rf ' + allcombims[i]+'.mom0')
             immoments(imagename=allcombims[i],
@@ -671,20 +677,20 @@ if mystep in thesteps:
         # use mom0-maps as input for the cont-defined Apar/fidelity functions
         allcombims = [a.replace('.image.pbcor', '.image.pbcor.mom0') for a in allcombims]
         allcombimsfits = [a.replace('.image.pbcor.mom0','.image.pbcor.mom0.fits') for a in allcombims]
-
+	
         sdroregrid = sdroregrid+'.mom0'
         os.system('rm -rf ' + sdroregrid + '.fits')
         exportfits(imagename=sdroregrid, fitsimage=sdroregrid + '.fits', dropdeg=True)
-
+	
         iqa.get_IQA(ref_image = sdroregrid, target_image=allcombims)
      
-
+	
     
     
       
               
-
-
+	
+	
     # all Apar and fidelity plots
     iqa.Compare_Apar(ref_image = sdroregrid, 
                      target_image=allcombims, 
@@ -735,17 +741,17 @@ if mystep in thesteps:
                               plotname=assessment+'/Fidelity_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
                               labelname=allcombi[i],
                               titlename='Fidelity map for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
-
-
-
-
+	
+	
+	
+	
     iqa.genmultisps(allcombimsfits, save=True, 
                    plotname=assessment+'/Power_spectra_'+sourcename+cleansetup,
                    labelname=allcombi,
                    titlename='Power spectra for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
-
- 
- 
+	
+	
+	
     #################### NOT YET WORKING !!! problems #######
     #
     #iqa.get_aperture(allcombimsfits,position=(1,1),Nbeams=10)

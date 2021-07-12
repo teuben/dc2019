@@ -930,7 +930,9 @@ def Compare_Fidelity_signal(ref_image = '',target_image=[''],
 #  Tools for cubes
 
 #  Compare Accuracy parameter (cubes) 
-def Compare_Apar_cubes(ref_image = '',target_image=[''],save=False):
+def Compare_Apar_cubes(ref_image = '',target_image=[''],save=False, plotname='', 
+             labelname=[''], titlename=''
+             ):
     """
     Compare all Apar cubes (per channel) (A. Hacar, Univ. of Vienna)
 
@@ -958,12 +960,18 @@ def Compare_Apar_cubes(ref_image = '',target_image=[''],save=False):
     Nplots = np.shape(target_image)[0]
     # Generate figure
     plt.show()
+
     ysizeplots = 4.
     fig = plt.figure(figsize=(15,Nplots*ysizeplots))
+    if titlename=='':
+        fig.suptitle("Apar vs. channels",fontsize=16)
+    else: 
+        fig.suptitle(titlename,fontsize=16)
     grid = plt.GridSpec(ncols=3,nrows=Nplots, wspace=0.1, hspace=0.2)
     # Create plots per channel
     for j in np.arange(0,Nplots,1):
-        xvalues, yvalues = plot_Apar(image2plot=target_image[j]+"_convo2ref_Apar.fits",Nplots=Nplots,Ny=j,title=str(target_image[j]))
+        #xvalues, yvalues = plot_Apar(image2plot=target_image[j]+"_convo2ref_Apar.fits",Nplots=Nplots,Ny=j,title=str(target_image[j]))
+        xvalues, yvalues = plot_Apar(image2plot=target_image[j]+"_convo2ref_Apar.fits",Nplots=Nplots,Ny=j,title=str(labelname[j]))
         # Store results for comparison
         if (j == 0):
             results = yvalues
@@ -972,9 +980,15 @@ def Compare_Apar_cubes(ref_image = '',target_image=[''],save=False):
         #
         print(" Target image " + str(j+1) + " : " + str(target_image[j]))
         print("---------------------------------------------")
+
     # Save?
     if save == True:
-        plt.savefig("Apar_channels_tmp.png")
+        #plt.savefig("Apar_channels_tmp.png")
+        if plotname == '':
+            plotname="Apar_channels_tmp"
+        plt.savefig(plotname+'.png')
+        print(" See results: "+plotname+".png")
+        plt.close()
 
     # Global comparisons (all channels are considered together in cubes)
     plt.figure(figsize=(8,11))
@@ -984,7 +998,8 @@ def Compare_Apar_cubes(ref_image = '',target_image=[''],save=False):
     for m in np.arange(Nplots):
         # Get values
         nchans, b, mids, h = get_ALLvalues(FITSfile=target_image[m]+"_convo2ref_Apar.fits",xmin=-1.525,xmax=1.525,xstep=0.05)
-        plt.plot(mids,h,label=str(target_image[m]),linewidth=3,c=IQA_colours[m])
+        plt.plot(mids,h,label=str(labelname[m]),linewidth=3,c=IQA_colours[m])
+        #plt.plot(mids,h,label=str(target_image[m]),linewidth=3,c=IQA_colours[m])
         # Get mean + std
         meanvalue = np.round(np.average(mids,weights=h),2)
         sigmavalue = np.round(np.sqrt(np.cov(mids, aweights=h)),2)
@@ -1001,17 +1016,31 @@ def Compare_Apar_cubes(ref_image = '',target_image=[''],save=False):
     plt.legend(bbox_to_anchor=(0.5, -0.1),loc='upper center', borderaxespad=0.)
     plt.xlabel("Accuracy",fontsize=25)
     plt.ylabel(r'# pixels',fontsize=20)
+
+    if titlename=='':
+        plt.title("ALL Apar vs. channels",fontsize=16)
+    else: 
+        plt.title(titlename,fontsize=16)
     # Save?
     if save == True:
-        plt.savefig("AparALL_channels_tmp.png")
-        print(" See results: Apar_channels_tmp.png, Apar_channels_tmp.png")
+        #plt.savefig("AparALL_channels_tmp.png")
+        if plotname == '':
+            plotnameALL="AparALL_channels_tmp"
+        else:
+            plotnameALL=plotname+'_ALL'
+        plt.savefig(plotnameALL+'.png')
+        print(" See results: "+plotnameALL+".png")
+        plt.close()
+        print(' See results: '+plotname+'.png, '+plotnameALL+'.png')
     print("---------------------------------------------")
     print(" Display Accuracy parameter... DONE")
     print("=============================================")
     return True
 
 # Fidelity comparisons (cubes)
-def Compare_Fidelity_cubes(ref_image = '',target_image=[''],save=False):
+def Compare_Fidelity_cubes(ref_image = '',target_image=[''],save=False, plotname='', 
+             labelname=[''], titlename=''
+             ):
     """
     Compares all Fidelity cubes (per channel) (A. Hacar, Univ. of Vienna)
 
@@ -1041,10 +1070,15 @@ def Compare_Fidelity_cubes(ref_image = '',target_image=[''],save=False):
     plt.show()
     ysizeplots = 4.
     fig = plt.figure(figsize=(15,Nplots*ysizeplots))
+    if titlename=='':
+        fig.suptitle("Fidelity vs. channels",fontsize=16)
+    else: 
+        fig.suptitle(titlename,fontsize=16)    
     grid = plt.GridSpec(ncols=3,nrows=Nplots, wspace=0.1, hspace=0.2)
     # Create Q-plots
     for j in np.arange(0,Nplots,1):
-        xvalues, yvalues = plot_Fidelity(image2plot=target_image[j]+"_convo2ref_Fidelity.fits",Nplots=Nplots,Ny=j,title=str(target_image[j]))
+        #xvalues, yvalues = plot_Fidelity(image2plot=target_image[j]+"_convo2ref_Fidelity.fits",Nplots=Nplots,Ny=j,title=str(target_image[j]))
+        xvalues, yvalues = plot_Fidelity(image2plot=target_image[j]+"_convo2ref_Fidelity.fits",Nplots=Nplots,Ny=j,title=str(labelname[j]))
         # Store results for comparison
         if (j == 0):
             results = yvalues
@@ -1055,7 +1089,13 @@ def Compare_Fidelity_cubes(ref_image = '',target_image=[''],save=False):
         print("---------------------------------------------")
     # Save plot?
     if save == True:
-        plt.savefig("Fidelity_tmp.png")
+        #plt.savefig("Fidelity_tmp.png")
+        if plotname == '':
+            plotname="Fidelity_channels_tmp"
+        plt.savefig(plotname+'.png')
+        print(" See results: "+plotname+".png")
+        plt.close()        
+        
     # Global comparisons (all channels are considered together)
     plt.figure(figsize=(8,11))
     grid = plt.GridSpec(ncols=1,nrows=5, wspace=0.3, hspace=0.3)
@@ -1063,7 +1103,8 @@ def Compare_Fidelity_cubes(ref_image = '',target_image=[''],save=False):
     # Loop over images
     for m in np.arange(Nplots):
         nchans, b, mids, h = get_ALLvalues(FITSfile=target_image[m]+"_convo2ref_Fidelity.fits",xmin=0,xmax=100,xstep=0.5)
-        plt.plot(mids,h,label=str(target_image[m]),linewidth=3,c=IQA_colours[m])
+        plt.plot(mids,h,label=str(labelname[m]),linewidth=3,c=IQA_colours[m])
+        #plt.plot(mids,h,label=str(target_image[m]),linewidth=3,c=IQA_colours[m])
     # Plot parameters
     plt.yscale('log')   # Make y axis in log scale
     plt.xscale('log')
@@ -1072,11 +1113,26 @@ def Compare_Fidelity_cubes(ref_image = '',target_image=[''],save=False):
     #plt.legend()
     plt.legend(bbox_to_anchor=(0.5, -0.1),loc='upper center', borderaxespad=0.)
     plt.xlabel("Fidelity",fontsize=20)
-    plt.ylabel(r'log$_{10}(\# pixels)$',fontsize=20)
+    #plt.ylabel(r'log$_{10}(\# pixels)$',fontsize=20)
+    plt.ylabel(r'log$_{10}(\# pixels)$',fontsize=16)
+    
+    if titlename=='':
+        plt.title("ALL Apar vs. channels",fontsize=16)
+    else: 
+        plt.title(titlename,fontsize=16)
+        
     # Save plot?
     if save == True:
-        plt.savefig("FidelityALL_tmp.png")
-        print(" See results: Fidelity_tmp.png, FidelityALL_tmp.png")
+        #plt.savefig("FidelityALL_tmp.png")
+        if plotname == '':
+            plotnameALL="FidelityALL_channels_tmp"
+        else:
+            plotnameALL=plotname+'_ALL'
+        plt.savefig(plotnameALL+'.png')
+        print(" See results: "+plotnameALL+".png")
+        plt.close()
+        print(' See results: '+plotname+'.png, '+plotnameALL+'.png')        
+        #print(" See results: Fidelity_tmp.png, FidelityALL_tmp.png")
     print("---------------------------------------------")
     print(" Display Fidelity... DONE")
     print("=============================================")
@@ -1147,12 +1203,14 @@ def plot_Apar(image2plot,Nplots,Ny,title):
     h[h == -inf] = np.nan
     # 2D plot per channel
     ax1 = plt.subplot(grid[Ny, :2])
-    plt.title(title,fontsize=20,x=0,ha="left",position=(0.1,0.8))
+    #plt.title(title,fontsize=20,x=0,ha="left",position=(0.1,0.8))
+    plt.title(title,fontsize=20,x=0,ha="left",position=(0.1,0.7))
     #plt.title("Q parameter",fontsize=10,x=1,ha="right",color='grey', style='italic')
     plt.imshow(h, extent =(-0.5,nchans-0.5,xminplot,xmaxplot), aspect='auto',vmin=0,cmap="jet", interpolation='none',origin='lower')
     plt.hlines(0,-0.5,nchans-0.5,linestyle="--",color="black",linewidth=3,label="Goal") 
     plt.xlabel("Channel number",fontsize=15)
-    plt.ylabel("Accuracy (per channel)",fontsize=18)
+    #plt.ylabel("Accuracy (per channel)",fontsize=18)
+    plt.ylabel("Accuracy (per channel)",fontsize=15)
     h[np.isnan(h)] = 0.0
     cbar = plt.colorbar()
     cbar.set_label(r'log$_{10}(\# pixels)$',fontsize=15)
@@ -1175,7 +1233,8 @@ def plot_Apar(image2plot,Nplots,Ny,title):
     plt.hlines(meanvalue,0.1,max(h.flat),color="blue",linewidth=3,label="average",alpha=0.5,zorder=-2)
     # Plot parameters
     plt.xlim(0,max(h.flat))
-    plt.ylabel("Accuracy (per channel)",fontsize=18)
+    plt.ylabel("Accuracy (per channel)",fontsize=15)
+    #plt.ylabel("Accuracy (per channel)",fontsize=18)
     plt.xlabel(r'log$_{10}(\# pixels)$',fontsize=15)
     plt.legend(loc="upper left",prop={"size":10})
     ax2.tick_params(labelbottom=True, labelleft=False, labelright=True,bottom=True, top=True, left=True, right=True)
@@ -1191,12 +1250,14 @@ def plot_Fidelity(image2plot,Nplots,Ny,title):
     h[h == -inf] = np.nan
     # 2D plot per channel
     ax1 = plt.subplot(grid[Ny, :2])
-    plt.title(title,fontsize=20,x=0,ha="left",position=(0.1,0.8))
+    #plt.title(title,fontsize=20,x=0,ha="left",position=(0.1,0.8))
+    plt.title(title,fontsize=20,x=0,ha="left",position=(0.1,0.7))
     #plt.title("Q parameter",fontsize=10,x=1,ha="right",color='grey', style='italic')
     plt.imshow(h, extent =(-0.5,nchans-0.5,xminplot,xmaxplot), aspect='auto',vmin=0,cmap="jet", interpolation='none',origin='lower')
     #plt.hlines(0,-0.5,nchans-0.5,linestyle="--",color="black",linewidth=3,label="Goal")    
     plt.xlabel("Channel number",fontsize=15)
-    plt.ylabel("Fidelity (per channel)",fontsize=18)
+    #plt.ylabel("Fidelity (per channel)",fontsize=18)
+    plt.ylabel("Fidelity (per channel)",fontsize=15)
     h[np.isnan(h)] = 0.0
     cbar = plt.colorbar()
     cbar.set_label(r'log$_{10}(\# pixels)$',fontsize=15)
@@ -1218,7 +1279,8 @@ def plot_Fidelity(image2plot,Nplots,Ny,title):
     plt.title('{:.2f}'.format(meanvalue)+"+/-"+'{:.2f}'.format(sigmavalue),fontsize=15,x=0,ha="left",position=(0.6,0.1),color="blue")
     # Plot parameters
     plt.xlim(0,max(h.flat))
-    plt.ylabel("Fidelity (per channel)",fontsize=18)
+    plt.ylabel("Fidelity (per channel)",fontsize=15)
+    #plt.ylabel("Fidelity (per channel)",fontsize=18)
     plt.xlabel(r'log$_{10}(\# pixels)$',fontsize=15)
     plt.legend(loc="upper left",prop={"size":10})
     ax2.tick_params(labelbottom=True, labelleft=False, labelright=True,bottom=True, top=True, left=True, right=True)
