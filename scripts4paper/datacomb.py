@@ -712,74 +712,81 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
     os.system('rm -rf lowres.* ')
 
 
-    # Reorder the axes of the low to match high/pb 
-    #mysdimage = reorder_axes(myintimage,mysdimage,'lowres.ro')
-    mysdimage = reorder_axes(mysdimage,'lowres.ro')
-
-
-
-    # TO DO: Improve this bit, because it's messy
+    #  --- EXPECTING regridded and reordered images! ----> comment this out
     #
-    # #####################################
-    # #            PROCESS DATA           #
-    # #####################################
     # # Reorder the axes of the low to match high/pb 
-
-    # myfiles=[myintimage,mysdimage]
-    # mykeys=['cdelt1','cdelt2','cdelt3','cdelt4']
-
-    # os.system('rm -rf lowres.* ')
-  
-
-    # im_axes={}
-    # print('Making dictionary of axes information for high and lowres images')
-    # for f in myfiles:
-    #    print(f)
-    #    print('------------')
-    #    axes = {}
-    #    i=0
-    #    for key in mykeys:
-    #        q = imhead(f,mode='get',hdkey=key)
-    #        axes[i]=q
-    #        i=i+1
-    #        print(str(key)+' : '+str(q))
-    #    im_axes[f]=axes
-    #    print(' ')
-
-    # order=[]           
-
-    # for i in range(4):
-    #    hi_ax = im_axes[myintimage][i]['unit']
-    #    lo_ax = im_axes[myintimage][i]['unit']
-    #    if hi_ax == lo_ax:
-    #        order.append(str(i))
-    #    else:
-    #        lo_m1 = im_axes[mysdimage][i-1]['unit']
-    #        if hi_ax == lo_m1:
-    #            order.append(str(i-1))
-    #        else:
-    #            lo_p1 = im_axes[mysdimage][i+1]['unit']
-    #            if hi_ax == lo_p1:
-    #                order.append(str(i+1))
-    # order = ''.join(order)
-    # print('order is '+order)
-
-    # if order=='0,1,2,3':
-    #    print('No reordering necessary')
-    # else:
-    #   imtrans(imagename=mysdimage,outfile='lowres.ro',order=order)
-    #   lowres='lowres.ro'
-    #   print('Had to reorder!')
+    # #mysdimage = reorder_axes(myintimage,mysdimage,'lowres.ro')
+    # mysdimage = reorder_axes(mysdimage,'lowres.ro')
 
 
 
-    # Regrid low res Image to match high res image
+    #          TO DO: Improve this bit, because it's messy
+    #          
+    #          #####################################
+    #          #            PROCESS DATA           #
+    #          #####################################
+    #          # Reorder the axes of the low to match high/pb 
+	           
+    #          myfiles=[myintimage,mysdimage]
+    #          mykeys=['cdelt1','cdelt2','cdelt3','cdelt4']
+	           
+    #          os.system('rm -rf lowres.* ')
+	           
+	           
+    #          im_axes={}
+    #          print('Making dictionary of axes information for high and lowres images')
+    #          for f in myfiles:
+    #             print(f)
+    #             print('------------')
+    #             axes = {}
+    #             i=0
+    #             for key in mykeys:
+    #                 q = imhead(f,mode='get',hdkey=key)
+    #                 axes[i]=q
+    #                 i=i+1
+    #                 print(str(key)+' : '+str(q))
+    #             im_axes[f]=axes
+    #             print(' ')
+	           
+    #          order=[]           
+	           
+    #          for i in range(4):
+    #             hi_ax = im_axes[myintimage][i]['unit']
+    #             lo_ax = im_axes[myintimage][i]['unit']
+    #             if hi_ax == lo_ax:
+    #                 order.append(str(i))
+    #             else:
+    #                 lo_m1 = im_axes[mysdimage][i-1]['unit']
+    #                 if hi_ax == lo_m1:
+    #                     order.append(str(i-1))
+    #                 else:
+    #                     lo_p1 = im_axes[mysdimage][i+1]['unit']
+    #                     if hi_ax == lo_p1:
+    #                         order.append(str(i+1))
+    #          order = ''.join(order)
+    #          print('order is '+order)
+	           
+    #          if order=='0,1,2,3':
+    #             print('No reordering necessary')
+    #          else:
+    #            imtrans(imagename=mysdimage,outfile='lowres.ro',order=order)
+    #            lowres='lowres.ro'
+    #            print('Had to reorder!')
 
-    print('Regridding lowres image...')
-    cta.imregrid(imagename=mysdimage,
-                 template=myintimage,
-                 axes=[0,1,2],
-                 output='lowres.regrid')
+
+    #  --- EXPECTING regridded and reordered images! ----> comment this out
+    #
+    ## Regrid low res Image to match high res image --- 
+	#
+    #print('Regridding lowres image...')
+    #cta.imregrid(imagename=mysdimage,
+    #             template=myintimage,
+    #             axes=[0,1,2],
+    #             output='lowres.regrid')
+
+
+    os.system('cp -r '+mysdimage+' lowres.regrid')
+
 
     # Multiply the lowres image with the highres primary beam response
 
@@ -797,6 +804,18 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
                 lowres='lowres.multiplied',
                 sdfactor = sdfactor,
                 lowpassfiltersd = True )
+    
+    
+    # Testinf SDINT based feather
+    #
+    #chanwt = np.ones( len(getFreqList('lowres.multiplied')))
+    #
+    #feather_int_sd(sdcube='lowres.multiplied', 
+    #               intcube=myintimage, 
+    #               jointcube=featherim+'.image',
+    #               sdgain=sdfactor,
+    #               dishdia=12.0,
+    #               chanwt=chanwt)
 
     os.system('rm -rf '+featherim+'.image.pbcor')
     cta.immath(imagename=[featherim+'.image', myintpb],
@@ -812,6 +831,155 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
     return True
 
 
+
+######################################
+
+
+
+def feather_int_sd(sdcube='', intcube='', jointcube='',
+                   sdgain=1.0,dishdia=100.0, usedata='sdint',         
+                   chanwt = ''): 
+    #, pbcube='',applypb=False, pblimit=0.2):
+    """
+    Taken from the SDINT_helper module inside CASA 5.8 (originally called 
+    'setup_cube_params(self,sdcube='')', state: July, 2021), 
+    modified by Lydia Moser-Fischer
+    _____________________________________________________________________
+
+    Run the feather task to combine the SD and INT Cubes. 
+    
+    There's a bug in feather for cubes. Hence, do each channel separately.
+    FIX feather and then change this. CAS-5883 is the JIRA ticket that contains a fix for this issue.... 
+
+    TODO : Add the effdishdia  usage to get freq-indep feathering.
+
+    """
+     
+    ### Do the feathering.
+    if usedata=='sdint':
+        ## Feather runs in a loop on chans internally, but there are issues with open tablecache images
+        ## Also, no way to set effective dish dia separately for each channel.
+        #feather(imagename = jointcube, highres = intcube, lowres = sdcube, sdfactor = sdgain, effdishdiam=-1)
+
+        freqlist = getFreqList(sdcube)
+        
+        os.system('rm -rf '+jointcube)
+        os.system('cp -r ' + intcube + ' ' + jointcube)
+
+        _ia = iatool()
+        _ib = iatool() #image()
+        
+        from casatools import imager  as imtool
+
+        _ia.open(jointcube)
+        _ia.set(0.0) ## Initialize this to zero for all planes
+       
+        for i in range(len(freqlist)):	
+            if chanwt[i] != 0.0 : ## process only the nonzero channels
+                freqdishdia = dishdia ## * (freqlist[0] / freqlist[i]) # * 0.5
+            
+                os.system('rm -rf tmp_*')
+                #imsubimage(imagename = sdcube, outfile = 'tmp_sdplane', chans = str(i));
+                #imsubimage(imagename = intcube, outfile = 'tmp_intplane', chans = str(i));
+                createplaneimage(imagename=sdcube, outfile='tmp_sdplane', chanid = str(i));
+                createplaneimage(imagename=intcube, outfile='tmp_intplane', chanid = str(i));
+
+                #feather(imagename = 'tmp_jointplane', highres = 'tmp_intplane', lowres = 'tmp_sdplane', sdfactor = sdgain, effdishdiam=freqdishdia)
+                # feathering via toolkit
+                try: 
+                    cta.casalog.post("start Feathering.....")
+                    imFea=imtool( )
+                    imFea.setvp(dovp=True)
+                    imFea.setsdoptions(scale=sdgain)
+                    imFea.feather(image='tmp_jointplane',highres='tmp_intplane',lowres='tmp_sdplane', effdishdiam=freqdishdia)
+                    imFea.done( )
+                    del imFea
+                except Exception as instance:
+                    cta.casalog.post('*** Error *** %s' % instance, 'ERROR')
+                    raise 
+
+                _ib.open('tmp_jointplane')
+                pixjoint = _ib.getchunk()
+                _ib.close()
+                _ia.putchunk(pixjoint, blc=[0,0,0,i])
+        
+        _ia.close()
+
+    if usedata=='sd':
+        ## Copy sdcube to joint.
+        os.system('rm -rf '+jointcube)
+        os.system('cp -r ' + sdcube + ' ' + jointcube)
+    if usedata=='int':
+        ## Copy intcube to joint
+        os.system('rm -rf '+jointcube)
+        os.system('cp -r ' + intcube + ' ' + jointcube)
+
+    return True
+
+
+def getFreqList(imname=''):
+	
+	"""
+    Taken from the SDINT_helper module inside CASA 5.8 (originally called 
+    'setup_cube_params(self,sdcube='')', state: July, 2021), 
+    modified by Lydia Moser-Fischer
+    _____________________________________________________________________
+    
+    """
+
+    _ia = iatool()
+    
+    _ia.open(imname)
+    csys =_ia.coordsys()
+    shp = _ia.shape()
+    _ia.close()
+    
+    if(csys.axiscoordinatetypes()[3] == 'Spectral'):
+         restfreq = csys.referencevalue()['numeric'][3]#/1.0e+09; # convert more generally..
+         freqincrement = csys.increment()['numeric'][3]# /1.0e+09;
+         freqlist = [];
+         for chan in range(0,shp[3]):
+               freqlist.append(restfreq + chan * freqincrement);
+    elif(csys.axiscoordinatetypes()[3] == 'Tabular'):
+         freqlist = (csys.torecord()['tabular2']['worldvalues']) # /1.0e+09;
+    else:
+         cta.casalog.post('Unknown frequency axis. Exiting.','SEVERE');
+         return False;
+    
+    csys.done()
+    return freqlist
+  
+
+
+def createplaneimage(imagename, outfile, chanid):
+    """
+    Taken from the SDINT_helper module inside CASA 5.8 (originally called 
+    'setup_cube_params(self,sdcube='')', state: July, 2021), 
+    modified by Lydia Moser-Fischer
+    _____________________________________________________________________
+    
+    extract a channel plane image 
+    """
+    from casatools import regionmanager  as rgtool
+
+    _tmpia=iatool() #image()
+    _tmprg=rgtool()
+    outia=None
+
+    _tmpia.open(imagename)
+    theregion = _tmprg.frombcs(csys=_tmpia.coordsys().torecord(), shape=_tmpia.shape(), chans=chanid) 
+    try:
+        outia=_tmpia.subimage(outfile=outfile, region=theregion)
+    except Exception as instance:
+        cta.casalog.post("*** Error \'%s\' in creating subimage" % (instance), 'WARN')
+
+    _tmpia.close()
+    _tmpia.done()
+    _tmprg.done()
+    if outia != None and outia.isopen():
+        outia.done()
+        
+                  
 
 ######################################
 
@@ -1093,26 +1261,85 @@ def visHistory(vis, origin='applycal', search='version',includeVis=False):
         searches.append(os.path.basename(vis).replace('_target',''))
     for i in range(len(msg)):
         if (search == '' and origin == ''):
-            print(msg[i])
+            pass
+            #print(msg[i])
         elif (search == ''): # origin is set
             if (origins[i]==origin):
-                print(msg[i])
+                pass
+                #print(msg[i])
         else: # search is set
             for search in searches:
                 if msg[i].find(search)>=0:
                     if origin == '' or origin == origins[i]:
-                        print(msg[i])
+                        #print(msg[i])
                         return msg[i].split(' ')     # added
                         break
-    if search != '':
-        print("Searched %d messages" % (len(msg)))
+    #if search != '':
+    #    print("Searched %d messages" % (len(msg)))
+    
+    return msg    
+    # version: 4.3.0 branches rev. 31966 Tue 2014/12/23 13:10:39 UTC
+    
         
         
         
-        
-        
-
-
+def check_CASAcal(vis):
+    """
+    wrapper for visHistory to check the CASA version used for calibration 
+    and the use of the calibration pipeline in CASA 4.2.2, specifically.
+    Following the instructions on 
+    https://casaguides.nrao.edu/index.php/DataWeightsAndCombination
+    this funtion tells the user when to double check/correct the combination 
+    weights, i.e. weight != 1.0 anymore, for concat.
+    
+    """
+    msgVers = visHistory(vis, origin='applycal', search='version',includeVis=False)
+    print(msgVers)
+    if msgVers==['']:
+        print(' ')
+        print('---WARNING ---')
+        print(vis) 
+        print('seems to be a simulated data set.')
+        print('See how to set the weights correctly to consider the difference in antenna dish size at')
+        print('https://casaguides.nrao.edu/index.php/DataWeightsAndCombination')
+        #print('---WARNING ---')
+        print(' ')
+    else:    
+        #CASAcalVers='3.2.2' #msgVers[1] # for testing purpose
+        CASAcalVers = msgVers[1]
+        #print(CASAcalVers)
+        CalV=CASAcalVers.split('.')
+        if int(CalV[0])<4 or (int(CalV[0])==4 and int(CalV[1])<3 and int(CalV[2])<2):
+            print(' ')
+            print('---WARNING ---')
+            print('The CASA version used for the calibration of your data set')
+            print(vis) 
+            print('is', CASAcalVers,' and therefore older than 4.3.0.')
+            print('The weights might be wrong, please correct them following the instructions at')
+            print('https://casaguides.nrao.edu/index.php/DataWeightsAndCombination')
+            #print('---WARNING ---')
+            print(' ')
+        elif int(CalV[0])==4 and int(CalV[1])<3 and int(CalV[2])==2:
+            msgpipe = visHistory(vis, origin='applycal', search='ms.hifa',includeVis=False)
+            # "['/lustre/opsw/work/pipeproc/autopipeline/tmp/WORK7084/analysis/2018.1.01044.S/science_goal.uid___A001_X133d_X290f/group.uid___A001_X133d_X2910/member.uid___A001_X133d_X2911/calibrated/working/uid___A002_Xd60a42_X8600.ms.h_tsyscal.s6_1.tsyscal.tbl',",
+            # "'/lustre/opsw/work/pipeproc/autopipeline/tmp/WORK7084/analysis/2018.1.01044.S/science_goal.uid___A001_X133d_X290f/group.uid___A001_X133d_X2910/member.uid___A001_X133d_X2911/calibrated/working/uid___A002_Xd60a42_X8600.ms.hifa_antpos.s8_1.ants.tbl',",
+            # "'/lustre/opsw/work/pipeproc/autopipeline/tmp/WORK7084/analysis/2018.1.01044.S/science_goal.uid___A001_X133d_X290f/group.uid___A001_X133d_X2910/member.uid___A001_X133d_X2911/calibrated/working/uid___A002_Xd60a42_X8600.ms.hifa_wvrgcalflag.s9_4.sm2_016s.wvrcal.tbl',",
+            # "'/lustre/opsw/work/pipeproc/autopipeline/tmp/WORK7084/analysis/2018.1.01044.S/science_goal.uid___A001_X133d_X290f/group.uid___A001_X133d_X2910/member.uid___A001_X133d_X2911/calibrated/working/uid___A002_Xd60a42_X8600.ms.hifa_bandpassflag.s12_7.spw5_7_17_19.channel.solintinf.bcal.final.tbl',",
+            # "'/lustre/opsw/work/pipeproc/autopipeline/tmp/WORK7084/analysis/2018.1.01044.S/science_goal.uid___A001_X133d_X290f/group.uid___A001_X133d_X2910/member.uid___A001_X133d_X2911/calibrated/working/uid___A002_Xd60a42_X8600.ms.hifa_spwphaseup.s13_3.spw5_7_17_19.solintinf.gpcal.tbl',",
+            # "'/lustre/opsw/work/pipeproc/autopipeline/tmp/WORK7084/analysis/2018.1.01044.S/science_goal.uid___A001_X133d_X290f/group.uid___A001_X133d_X2910/member.uid___A001_X133d_X2911/calibrated/working/uid___A002_Xd60a42_X8600.ms.hifa_timegaincal.s16_3.spw5_7_17_19.solintinf.gpcal.tbl',",
+            # "'/lustre/opsw/work/pipeproc/autopipeline/tmp/WORK7084/analysis/2018.1.01044.S/science_goal.uid___A001_X133d_X290f/group.uid___A001_X133d_X2910/member.uid___A001_X133d_X2911/calibrated/working/uid___A002_Xd60a42_X8600.ms.hifa_timegaincal.s16_6.spw5_7_17_19.solintinf.gacal.tbl']"]
+            #print(msgpipe)
+            if msgpipe[-1].find('ms.hifa')<=0:
+                print(' ')
+                print('---WARNING ---')            
+                print('Your data set', vis)
+                print('is was manually calibrated in CASA', CASAcalVers)
+                print('The weights might be wrong, please correct them following the instructions at')
+                print('https://casaguides.nrao.edu/index.php/DataWeightsAndCombination')
+                #print('---WARNING ---')
+                print(' ')        
+            
+            #print('pipe', msgpipe)
 
 
 
@@ -1611,7 +1838,7 @@ def derive_threshold(vis, imname, threshmask,
     restfreq - the restfrequency to write to the image for velocity calculations
              default: None, example: '115.271GHz'
     overwrite - True: generate new template INT image: False: just derive 
-                threshold values from existing template INT image
+                threshold values and image mask from existing template INT image
     smoothing factor - smooth thresholdmask to multiples beamsizes (smoothing*beamaxis) 
             to avoid unphysical mask shapes (too few pixels, straight lines, sharp corners)
     RMSfactor - to apply to a continuum RMS of the full image to define a threshold at which 
@@ -1654,7 +1881,6 @@ def derive_threshold(vis, imname, threshmask,
                 spw=spw, field=field, imsize=imsize, cell=cell, specmode=specmode,
                 start = start, width = width, nchan = nchan, restfreq = restfreq,
                 niter=0, interactive=False)
-        #print('### Step 2 of 2: add first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
         #print('### Please check the result!') 
     else: 
         pass        
@@ -1671,7 +1897,8 @@ def derive_threshold(vis, imname, threshmask,
             #print('full_RMS', full_RMS)
             #peak_val = imstat(imnameth+'.image')['max'][0]
             thresh = full_RMS*RMSfactor
-        
+            print('The "RMS" of the entire image (incl emission) is ', full_RMS)
+            print('You set the threshold to ', full_RMS, 'times the RMS, i.e. ', thresh)
         
         #### cube
         elif specmode == 'cube':
@@ -1681,6 +1908,10 @@ def derive_threshold(vis, imname, threshmask,
             cube_RMS = cta.imstat(imnameth+'.mom6')['rms'][0]
         
             thresh = cube_RMS*cube_rms   # 3 sigma level
+ 
+            print('The RMS of the cube (check cont_chans for emission-free channels) is ', cube_RMS)
+            print('You set the threshold to ', cube_rms, 'times the RMS, i.e. ', thresh)
+         
         
             #immmoments(imagename=imname+'_template.image', mom=[8], 
             #           outfile=imname+'_template.mom8', chans='' )
@@ -1865,22 +2096,38 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
         print(highres+' does not exist')
         return False
 
+    if os.path.exists(pb):
+        pass
+    else:
+        print(pb+' does not exist')
+        return False
+
+
+
+
+
+
+
     #  @todo   this is dangerous, need to find temp names 
     os.system('rm -rf lowres.*')
 
-
-    # Reorder the axes of the low to match high/pb 
-    #lowres = reorder_axes(highres,lowres,'lowres.ro')
-    lowres = reorder_axes(lowres,'lowres.ro')
-
-    # Regrid low res Image to match high res image
     lowres_regrid1 = 'lowres.regrid'
-    
-    print('Regridding lowres image...[%s]' % lowres)
-    cta.imregrid(imagename=lowres,
-                 template=highres,
-                 axes=[0,1,2,3],
-                 output=lowres_regrid1)
+
+    #  --- EXPECTING regridded and reordered images! ----> comment this out
+    #
+    # # Reorder the axes of the low to match high/pb 
+    # #lowres = reorder_axes(highres,lowres,'lowres.ro')
+    # lowres = reorder_axes(lowres,'lowres.ro')
+	# 
+    # # Regrid low res Image to match high res image
+    # 
+    # print('Regridding lowres image...[%s]' % lowres)
+    # cta.imregrid(imagename=lowres,
+    #              template=highres,
+    #              axes=[0,1,2,3],
+    #              output=lowres_regrid1)
+
+    os.system('cp -r '+lowres+' '+lowres_regrid1)
                      
     #lowres_unit = imhead(lowres_regrid1, mode='get', hdkey='Bunit')['value']
     lowres_unit = cta.imhead(lowres_regrid1, mode='get', hdkey='Bunit')
@@ -1919,7 +2166,7 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     major = str(getBmaj(lowres_regrid)) + 'arcsec'
     minor = str(getBmin(lowres_regrid)) + 'arcsec'
     pa = str(getPA(highres)[0]) + str(getPA(highres)[1])
-    print('imsmooth',major,minor,pa)
+    #print('imsmooth',major,minor,pa)
     cta.imsmooth(highres, 'gauss', major, minor, pa, True, outfile=highres + '_conv', overwrite=True)
 
     highres_conv = highres + '_conv'
@@ -2401,9 +2648,9 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
     cta.listobs(vis)
     
     if specmode=='cube':
-    	specmode_used ='cubedata'
+        specmode_used ='cubedata'
     if specmode=='mfs':
-    	specmode_used ='mfs'    	
+        specmode_used ='mfs'        
     
     
     TP2VIS_arg = dict( 
