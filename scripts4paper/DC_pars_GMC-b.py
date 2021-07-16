@@ -12,11 +12,12 @@ step_title = {0: 'Concat',
               4: 'Faridani short spacings combination (SSC)',
               5: 'Hybrid (startmodel clean + Feather)',
               6: 'SDINT',
-              7: 'TP2VIS'
-              }
+              7: 'TP2VIS',
+              8: 'Assessment of the combination results'
+              }              
 
-thesteps=[0,1,2,3,4,5,6,7,8]
-#thesteps=[4]
+#thesteps=[0,1,2,3,4,5,6,7,8]
+thesteps=[0]
 
 ######## collect only the product name?          
 dryrun = True    # False to execute combination, True to gather filenames only
