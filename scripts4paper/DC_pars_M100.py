@@ -12,11 +12,12 @@ step_title = {0: 'Concat',
               4: 'Faridani short spacings combination (SSC)',
               5: 'Hybrid (startmodel clean + Feather)',
               6: 'SDINT',
-              7: 'TP2VIS'
+              7: 'TP2VIS',
+              8: 'Assessment of the combination results'
               }
 
 thesteps=[0,1,2,3,4,5,6,7,8]
-#thesteps=[1]
+#thesteps=[3]
 
 ######## collect only the product name?          
 dryrun = True    # False to execute combination, True to gather filenames only
@@ -48,7 +49,7 @@ weight12m = [1.]
 a7m =[#pathtoconcat + _7ms
      ]
 
-weight7m = []#0.193]  # weigthing for REAL data !
+weight7m = []#1.]  # weigthing for REAL data !  If CASA older than 4.3.0: weight: 0.193
 
 ##### non interactive - begin #####
 thevis = a12m
