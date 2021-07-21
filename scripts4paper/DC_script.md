@@ -61,16 +61,19 @@ Just make sure not to use the **_s4p_work** variable, but define the **pathtoima
 ## Example DC_pars_XXX.py scripts
 
 * M100 - the casaguide example
+* GMC-b - the skymodel b
+* GMC-c - the skymodel c
+* pointGauss  - point source and a Gaussian
 
-* GMC  - the skymodel c
 	
 
 ## DC_script overview
 
-The **DC_script.py** uses the **datacomb.py** module to combine 
+The **DC_script.py** uses the **datacomb.py**, **tp2vis.py**, and  **IQA_script.py** 
+module to combine 
 your data. The DC_script's goal is to provide a homogeneous input to all 
-combination methods (e.g. clean parameters) and a homogeneous output 
-style.
+combination methods (e.g. clean parameters), a homogeneous output 
+style, and a quality analysis.
 
 It offers several different actions to be selected via the python 'thesteps' list set in **DC_pars.py**
 
@@ -82,6 +85,10 @@ It offers several different actions to be selected via the python 'thesteps' lis
       5: Hybrid (startmodel clean + Feather)
       6: SDINT
       7: TP2VIS
+      8: Assessment of the combination results
+
+
+
 
 The naming scheme of the output images is the following
 
@@ -101,14 +108,18 @@ Example:
           <-  imbase ->   <-----   cleansetup -------> <-- combisetup ------------->
 		  
 		  
-* Q1:   why f1.0 and f1
+* Q1:   why f1.0 and f1  <--- hybrid_f is an intermediate product (before feather)
 * Q2:   need a function to reverse engineer this name  (par1,par2,....) = decode(filename)
 		  
 
 Various **USER INPUTS** are described below, which you should all find in **DC_pars.py**
 
 
-## USER INPUTS: Paths to the input and output files and for concatenation of several ms - data sets
+
+## intermission: DC_pars* overview
+
+
+#### USER INPUTS: Paths to the input and output files and for concatenation of several ms - data sets
 
       pathtoconcat = 'path-to-ms-datasets-(array-configs)-and-SD-image-to-combine'   
       # path to the folder with the files to be concatenated
@@ -128,7 +139,7 @@ and skip thesteps=[0].
 
       
    
-## USER INPUTS: files and names used by the combination methods 
+#### USER INPUTS: files and names used by the combination methods 
       
       vis       = concatms 
       sdimage   = pathtoconcat + 'gmc_120L.sd.image'
@@ -136,7 +147,7 @@ and skip thesteps=[0].
       sdbase    = pathtoimage + 'skymodel-b_120L_TP'         # path + sd image base name
 
 
-## USER INPUTS:  TP2VIS related setup
+#### USER INPUTS:  TP2VIS related setup
 
 TPpointingTemplate is an ALMA 12m dataset used in the combination, listobsOutput 
 holds the information that listobs produces, TPpointinglist contains the antenna 
@@ -156,7 +167,7 @@ in a continuum SD image, or a range of emission-free channels in the SD cube.
       TPnoiseChannels = '2~5'          # emission free channels in unregridded and un-cut SD cube!
 
 
-##  USER INPUTS: setup of the clean parameters
+####  USER INPUTS: setup of the clean parameters
 
 With this section, we set up the clean parameters common for all tclean 
 instances used in the combination methods including SDINT.
@@ -185,7 +196,7 @@ Using an infix-definition of
 
 gives us 
  
-       cleansetup = '.mfs_INTpar_HB_AM_nIA_n1000'
+       cleansetup = '.mfs_INTpar_HB_SD-AM_nIA_n0'
 
 
 This infix-definition could be made more flexible.
@@ -193,7 +204,8 @@ Maybe introduce a loop over some clean parameters like niter.
 
 
 For "SDpar" we can also define a channel-cut-out from the SD image to 
-reduce channel range translated into the combined product
+reduce channel range translated into the combined product. If specsetup = 'INTpar', 
+the cut-out-channel inputs are ignored.
 
        startchan = 30  #None  # start-value of the SD image channel range you want to cut out 
        endchan   = 39  #None  #   end-value of the SD image channel range you want to cut out
@@ -205,24 +217,71 @@ or user defined threshold (masking  = 'SD-AM'), requires additional input:
        RMSfactor  = 0.5  # continuum rms level (not noise from emission-free regions but entire image)
        cube_rms   = 3    # cube noise (true noise) x this factor
        cont_chans = ''   # line free channels for cube rms estimation
-       sdmasklev  = 0.3  # maximum x this factor = threshold for SD mask
+       sdmasklev  = 0.3  # image peak x this factor = threshold for SD mask
 
 
 
-##  USER INPUTS: SD scaling in combination
+The parameters defined above define some of the clean parameters common for all tclean 
+instances used in the combination methods including SDINT. Further parameters that can 
+be set by the user are spw, field, imsize, cell, phasecenter, start, width, nchan, 
+restfreq, threshold, maxscale, mask, pbmask, and the automasking parameters
+sidelobethreshold, noisethreshold, lownoisethreshold, minbeamfrac, growiterations,
+and negativethreshold.
+For SDINT, the user can specify the parameters sdpsf and dishdia in addition. 
+       
+      general_tclean_param = dict(#overwrite  = overwrite,
+                                 spw         = '0', 
+                                 field       = '0~68', 
+                                 specmode    = mode,            # ! change in mode-variable above dict !        
+                                 imsize      = [1120], 
+                                 cell        = '0.21arcsec',    
+                                 phasecenter = 'J2000 12:00:00 -35.00.00.0000',             
+                                 start       = 0, 
+                                 width       = 1, 
+                                 nchan       = -1, 
+                                 restfreq    = '',
+                                 threshold   = '',              
+                                 maxscale    = 10.,              
+                                 niter      = nit,               # ! change in nit-variable above dict !
+                                 mask        = '', 
+                                 pbmask      = 0.4,
+                                 #usemask           = 'auto-multithresh',    # defined via masking-variable!              
+                                 sidelobethreshold = 2.0, 
+                                 noisethreshold    = 4.25, 
+                                 lownoisethreshold = 1.5,               
+                                 minbeamfrac       = 0.3, 
+                                 growiterations    = 75, 
+                                 negativethreshold = 0.0) 
+      
+      sdint_tclean_param = dict(sdpsf   = '',
+                               dishdia = 12.0)
+      
+
+
+
+
+####  USER INPUTS: SD scaling in combination
 
 Here, we can list multiple scaling factors per scaling parameter 
 (e.g sdfac=[0.8, 1.0, 1.2] for feather) for the corresponding 
 combination method to iterate over. Default could be 1.0 for all.
 
 
-##  USER INPUTS: dryrun
+####  USER INPUTS: dryrun
 
        dryrun=True
 
 It generates the filenames with the wanted iterators and cleannames
 without executing the combination method (time saving).
 
+
+
+
+
+
+
+
+## resume: DC_script overview
 
 
 ## automated setup: naming scheme specific inputs
