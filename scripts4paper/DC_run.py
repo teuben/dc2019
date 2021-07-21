@@ -654,118 +654,118 @@ if mystep in thesteps:
                                titlename='Fidelity of cube: comparison for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.','')
                                )      
             
-    #    for i in range(0,len(allcombims)):
-    #        os.system('rm -rf ' + allcombims[i]+'.mom0')
-    #        immoments(imagename=allcombims[i],
-    #                   moments=[0],                                           
-    #                   chans='',                                         
-    #                   outfile=allcombims[i]+'.mom0')
-    #        os.system('rm -rf ' + allcombims[i]+'.mom0.fits')
-    #        exportfits(imagename=allcombims[i]+'.mom0', fitsimage=allcombims[i]+'.mom0.fits', dropdeg=True)
-    #        mapchan=general_tclean_param['nchan']/2.
-    #        iqa.show_Apar_map(    sdroregrid,allcombims[i],
-    #                              #pathtoimage, 
-    #                              channel=mapchan, 
-    #                              save=True, 
-    #                              plotname=assessment+'/Accuracy_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor','')+'_channel', #expecting only one file name entry per combi-method
-    #                              labelname=allcombi[i],
-    #                              titlename='Accuracy map in channel '+str(mapchan)+' for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
-    #       
-    #        iqa.show_Fidelity_map(sdroregrid,
-    #                              allcombims[i],
-    #                              pathtoimage, 
-    #                              channel=mapchan, 
-    #                              save=True, 
-    #                              plotname=assessment+'/Fidelity_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor','')+'_channel', #expecting only one file name entry per combi-method
-    #                              labelname=allcombi[i],
-    #                              titlename='Fidelity map in channel '+str(mapchan)+' for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
-    #   
-    #    os.system('rm -rf ' + sdroregrid+'.mom0')               
-    #    immoments(imagename=sdroregrid,
-    #               moments=[0],                                           
-    #               chans='',                                         
-    #               outfile=sdroregrid+'.mom0')
-    #    
-    #   
-    #    
-    #    
-    #    # use mom0-maps as input for the cont-defined Apar/fidelity functions
-    #    allcombims = [a.replace('.image.pbcor', '.image.pbcor.mom0') for a in allcombims]
-    #    allcombimsfits = [a.replace('.image.pbcor.mom0','.image.pbcor.mom0.fits') for a in allcombims]
-    #
-    #    sdroregrid = sdroregrid+'.mom0'
-    #    os.system('rm -rf ' + sdroregrid + '.fits')
-    #    exportfits(imagename=sdroregrid, fitsimage=sdroregrid + '.fits', dropdeg=True)
-    #
-    #    iqa.get_IQA(ref_image = sdroregrid, target_image=allcombims)
-    # 
-    #
-    #
-    #
-    #  
-    #          
-    #
-    #
-    ## all Apar and fidelity plots
-    #iqa.Compare_Apar(ref_image = sdroregrid, 
-    #                 target_image=allcombims, 
-    #                 #pathnametodrop = pathtoimage,
-    #                 save=True, 
-    #                 plotname=assessment+'/AparALL_'+sourcename+cleansetup,
-    #                 labelname=allcombi, 
-    #                 titlename='Accuracy Parameter: comparison for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))
-    #iqa.Compare_Fidelity(ref_image = sdroregrid, 
-    #                 target_image=allcombims,
-    #                 #pathnametodrop = pathtoimage,
-    #                 save=True, 
-    #                 plotname=assessment+'/FidelityALL_'+sourcename+cleansetup,
-    #                 labelname=allcombi, 
-    #                 titlename='Fidelity: comparison for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
-    #for i in range(0,len(allcombims)):
-    #    # Apar and fidelity vs signal plots
-    #    iqa.Compare_Apar_signal(ref_image = sdroregrid, 
-    #                             target_image=[allcombims[i]],
-    #                             #pathnametodrop = pathtoimage,
-    #                             save=True,
-    #                             noise=0.0, 
-    #                             plotname=assessment+'/Apar_signal_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
-    #                             labelname=[allcombi[i]],
-    #                             titlename='Accuracy vs. Signal for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
-    #    iqa.Compare_Fidelity_signal(ref_image = sdroregrid, 
-    #                             target_image=[allcombims[i]],
-    #                             pathnametodrop = pathtoimage,
-    #                             save=True,
-    #                             noise=0.0, 
-    #                             plotname=assessment+'/Fidelity_signal_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
-    #                             labelname=[allcombi[i]],
-    #                             titlename='Fidelity vs. Signal for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                                    
-    #    # Apar and fidelity image plots
-    #    iqa.show_Apar_map(    sdroregrid,allcombims[i],
-    #                          #pathtoimage, 
-    #                          channel=0, 
-    #                          save=True, 
-    #                          plotname=assessment+'/Accuracy_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
-    #                          labelname=allcombi[i],
-    #                          titlename='Accuracy map for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
-    #
-    #    iqa.show_Fidelity_map(sdroregrid,
-    #                          allcombims[i],
-    #                          pathtoimage, 
-    #                          channel=0, 
-    #                          save=True, 
-    #                          plotname=assessment+'/Fidelity_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
-    #                          labelname=allcombi[i],
-    #                          titlename='Fidelity map for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
-    #
-    #
-    #
-    #
-    #iqa.genmultisps(allcombimsfits, save=True, 
-    #               plotname=assessment+'/Power_spectra_'+sourcename+cleansetup,
-    #               labelname=allcombi,
-    #               titlename='Power spectra for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
-    #
-    #
+        for i in range(0,len(allcombims)):
+            os.system('rm -rf ' + allcombims[i]+'.mom0')
+            immoments(imagename=allcombims[i],
+                       moments=[0],                                           
+                       chans='',                                         
+                       outfile=allcombims[i]+'.mom0')
+            os.system('rm -rf ' + allcombims[i]+'.mom0.fits')
+            exportfits(imagename=allcombims[i]+'.mom0', fitsimage=allcombims[i]+'.mom0.fits', dropdeg=True)
+            mapchan=general_tclean_param['nchan']/2.
+            iqa.show_Apar_map(    sdroregrid,allcombims[i],
+                                  #pathtoimage, 
+                                  channel=mapchan, 
+                                  save=True, 
+                                  plotname=assessment+'/Accuracy_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor','')+'_channel', #expecting only one file name entry per combi-method
+                                  labelname=allcombi[i],
+                                  titlename='Accuracy map in channel '+str(mapchan)+' for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
+           
+            iqa.show_Fidelity_map(sdroregrid,
+                                  allcombims[i],
+                                  pathtoimage, 
+                                  channel=mapchan, 
+                                  save=True, 
+                                  plotname=assessment+'/Fidelity_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor','')+'_channel', #expecting only one file name entry per combi-method
+                                  labelname=allcombi[i],
+                                  titlename='Fidelity map in channel '+str(mapchan)+' for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
+       
+        os.system('rm -rf ' + sdroregrid+'.mom0')               
+        immoments(imagename=sdroregrid,
+                   moments=[0],                                           
+                   chans='',                                         
+                   outfile=sdroregrid+'.mom0')
+        
+       
+        
+        
+        # use mom0-maps as input for the cont-defined Apar/fidelity functions
+        allcombims = [a.replace('.image.pbcor', '.image.pbcor.mom0') for a in allcombims]
+        allcombimsfits = [a.replace('.image.pbcor.mom0','.image.pbcor.mom0.fits') for a in allcombims]
+    
+        sdroregrid = sdroregrid+'.mom0'
+        os.system('rm -rf ' + sdroregrid + '.fits')
+        exportfits(imagename=sdroregrid, fitsimage=sdroregrid + '.fits', dropdeg=True)
+    
+        iqa.get_IQA(ref_image = sdroregrid, target_image=allcombims)
+     
+    
+    
+    
+      
+              
+    
+    
+    # all Apar and fidelity plots
+    iqa.Compare_Apar(ref_image = sdroregrid, 
+                     target_image=allcombims, 
+                     #pathnametodrop = pathtoimage,
+                     save=True, 
+                     plotname=assessment+'/AparALL_'+sourcename+cleansetup,
+                     labelname=allcombi, 
+                     titlename='Accuracy Parameter: comparison for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))
+    iqa.Compare_Fidelity(ref_image = sdroregrid, 
+                     target_image=allcombims,
+                     #pathnametodrop = pathtoimage,
+                     save=True, 
+                     plotname=assessment+'/FidelityALL_'+sourcename+cleansetup,
+                     labelname=allcombi, 
+                     titlename='Fidelity: comparison for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
+    for i in range(0,len(allcombims)):
+        # Apar and fidelity vs signal plots
+        iqa.Compare_Apar_signal(ref_image = sdroregrid, 
+                                 target_image=[allcombims[i]],
+                                 #pathnametodrop = pathtoimage,
+                                 save=True,
+                                 noise=0.0, 
+                                 plotname=assessment+'/Apar_signal_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
+                                 labelname=[allcombi[i]],
+                                 titlename='Accuracy vs. Signal for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
+        iqa.Compare_Fidelity_signal(ref_image = sdroregrid, 
+                                 target_image=[allcombims[i]],
+                                 pathnametodrop = pathtoimage,
+                                 save=True,
+                                 noise=0.0, 
+                                 plotname=assessment+'/Fidelity_signal_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
+                                 labelname=[allcombi[i]],
+                                 titlename='Fidelity vs. Signal for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                                    
+        # Apar and fidelity image plots
+        iqa.show_Apar_map(    sdroregrid,allcombims[i],
+                              #pathtoimage, 
+                              channel=0, 
+                              save=True, 
+                              plotname=assessment+'/Accuracy_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
+                              labelname=allcombi[i],
+                              titlename='Accuracy map for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
+    
+        iqa.show_Fidelity_map(sdroregrid,
+                              allcombims[i],
+                              pathtoimage, 
+                              channel=0, 
+                              save=True, 
+                              plotname=assessment+'/Fidelity_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
+                              labelname=allcombi[i],
+                              titlename='Fidelity map for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
+    
+    
+    
+    
+    iqa.genmultisps(allcombimsfits, save=True, 
+                   plotname=assessment+'/Power_spectra_'+sourcename+cleansetup,
+                   labelname=allcombi,
+                   titlename='Power spectra for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
+    
+    
     
     #################### NOT YET WORKING !!! problems #######
     #
