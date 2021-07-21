@@ -726,13 +726,13 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
     #          #            PROCESS DATA           #
     #          #####################################
     #          # Reorder the axes of the low to match high/pb 
-	           
+               
     #          myfiles=[myintimage,mysdimage]
     #          mykeys=['cdelt1','cdelt2','cdelt3','cdelt4']
-	           
+               
     #          os.system('rm -rf lowres.* ')
-	           
-	           
+               
+               
     #          im_axes={}
     #          print('Making dictionary of axes information for high and lowres images')
     #          for f in myfiles:
@@ -747,9 +747,9 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
     #                 print(str(key)+' : '+str(q))
     #             im_axes[f]=axes
     #             print(' ')
-	           
+               
     #          order=[]           
-	           
+               
     #          for i in range(4):
     #             hi_ax = im_axes[myintimage][i]['unit']
     #             lo_ax = im_axes[myintimage][i]['unit']
@@ -765,7 +765,7 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
     #                         order.append(str(i+1))
     #          order = ''.join(order)
     #          print('order is '+order)
-	           
+               
     #          if order=='0,1,2,3':
     #             print('No reordering necessary')
     #          else:
@@ -777,7 +777,7 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
     #  --- EXPECTING regridded and reordered images! ----> comment this out
     #
     ## Regrid low res Image to match high res image --- 
-	#
+    #
     #print('Regridding lowres image...')
     #cta.imregrid(imagename=mysdimage,
     #             template=myintimage,
@@ -841,8 +841,7 @@ def feather_int_sd(sdcube='', intcube='', jointcube='',
                    chanwt = ''): 
     #, pbcube='',applypb=False, pblimit=0.2):
     """
-    Taken from the SDINT_helper module inside CASA 5.8 (originally called 
-    'setup_cube_params(self,sdcube='')', state: July, 2021), 
+    Taken from the SDINT_helper module inside CASA 5.8, state: July, 2021), 
     modified by Lydia Moser-Fischer
     _____________________________________________________________________
 
@@ -874,7 +873,7 @@ def feather_int_sd(sdcube='', intcube='', jointcube='',
         _ia.open(jointcube)
         _ia.set(0.0) ## Initialize this to zero for all planes
        
-        for i in range(len(freqlist)):	
+        for i in range(len(freqlist)):  
             if chanwt[i] != 0.0 : ## process only the nonzero channels
                 freqdishdia = dishdia ## * (freqlist[0] / freqlist[i]) # * 0.5
             
@@ -918,10 +917,9 @@ def feather_int_sd(sdcube='', intcube='', jointcube='',
 
 
 def getFreqList(imname=''):
-	
-	"""
-    Taken from the SDINT_helper module inside CASA 5.8 (originally called 
-    'setup_cube_params(self,sdcube='')', state: July, 2021), 
+    
+    """
+    Taken from the SDINT_helper module inside CASA 5.8, state: July, 2021), 
     modified by Lydia Moser-Fischer
     _____________________________________________________________________
     
@@ -953,8 +951,7 @@ def getFreqList(imname=''):
 
 def createplaneimage(imagename, outfile, chanid):
     """
-    Taken from the SDINT_helper module inside CASA 5.8 (originally called 
-    'setup_cube_params(self,sdcube='')', state: July, 2021), 
+    Taken from the SDINT_helper module inside CASA 5.8, state: July, 2021), 
     modified by Lydia Moser-Fischer
     _____________________________________________________________________
     
@@ -2118,7 +2115,7 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     # # Reorder the axes of the low to match high/pb 
     # #lowres = reorder_axes(highres,lowres,'lowres.ro')
     # lowres = reorder_axes(lowres,'lowres.ro')
-	# 
+    # 
     # # Regrid low res Image to match high res image
     # 
     # print('Regridding lowres image...[%s]' % lowres)
