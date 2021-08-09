@@ -16,8 +16,8 @@ step_title = {0: 'Concat',
               8: 'Assessment of the combination results'
               }              
 
-thesteps=[0,1,2,3,4,5,6,7,8]
-#thesteps=[0]
+#thesteps=[0,1,2,3,4,5,6,7,8]
+thesteps=[0]
 
 ######## collect only the product name?          
 dryrun = True    # False to execute combination, True to gather filenames only
@@ -66,6 +66,8 @@ thevis.extend(a7m)
 
 weightscale = weight12m
 weightscale.extend(weight7m)
+
+skymodel=a12m[0].replace('.ms','.skymodel')    # model used for simulating the observation, expected to be CASA-imported
 
 ##### non interactive - end #####
 
@@ -121,6 +123,10 @@ cont_chans = ''    # line free channels for cube rms estimation
 sdmasklev  = 0.3   # maximum x this factor = threshold for SD mask
 
 
+momchans = ''      # channels to compute moment maps (integrated intensity, etc.) 
+
+                     
+########## general tclean parameters
 
 general_tclean_param = dict(#overwrite  = overwrite,
                            spw         = '0', 
