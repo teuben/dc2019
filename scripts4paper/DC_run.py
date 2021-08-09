@@ -613,8 +613,11 @@ if mystep in thesteps:
     
     allcombims = tcleanims  + featherims + SSCims     + hybridims  + sdintims  + TP2VISims
     #print(allcombims)
+    print(' ')
+    print(' ')
     print('Running assessment with respect to SD image on ')
     print(*allcombims, sep = "\n")
+    print(' ')
 
 
     allcombims = [a.replace('.image','.image.pbcor') for a in allcombims]
@@ -792,9 +795,12 @@ if mystep in thesteps:
         
         allcombims = tcleanims  + featherims + SSCims     + hybridims  + sdintims  #+ TP2VISims   # need to fix TP2VIS for cont images without emission-free region first 
         #print(allcombims)
+        print(' ')
+        print(' ')
         print('Running assessment with respect to the SKYMODEL on ')
         print(*allcombims, sep = "\n")
-	    
+	    print(' ')
+
 	    
         allcombims = [a.replace('.image','.image.pbcor') for a in allcombims]
         allcombimsfits = [a.replace('.image.pbcor','.image.pbcor.fits') for a in allcombims]
@@ -840,12 +846,11 @@ if mystep in thesteps:
         
         skymodelreg=imbase +'.skymodel.regrid'
         os.system('rm -rf '+skymodelreg)
-        dc.regrid_SD(skymodel, skymodelreg, imnamethSD+'.image')
+        dc.regrid_SD(skymodel, skymodelreg, allcombims[0])
             
         skymodelconv=imbase +'.skymodel.regrid.conv'
         os.system('rm -rf '+skymodelconv+'*')
         
-        #from statistics import mean, median    
         import numpy as np  
             
         cta.imsmooth(imagename = skymodelreg,
