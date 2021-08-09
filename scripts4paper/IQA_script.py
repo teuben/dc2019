@@ -456,7 +456,6 @@ def get_IQA(ref_image = '',target_image=['']):
 
 # Accuracy parameter comparisons
 def Compare_Apar(ref_image = '',target_image=[''],
-                  #pathnametodrop = '', 
                   save=False, plotname='', 
                   labelname=[''], titlename=''):
     """
@@ -508,7 +507,6 @@ def Compare_Apar(ref_image = '',target_image=[''],
         # Plot results
         if labelname[m]=='':            
             ax1.plot(mids,h,label=target_image[m] + "; A = "+ str(meanvalue) + " +/- " + str(sigmavalue),linewidth=3,c=IQA_colours[m])
-            #ax1.plot(mids,h,label=target_image[m].replace(pathnametodrop,'') + "; A = "+ str(meanvalue) + " +/- " + str(sigmavalue),linewidth=3,c=IQA_colours[m])
         else:
             ax1.plot(mids,h,label=labelname[m] + "; A = "+ str(meanvalue) + " +/- " + str(sigmavalue),linewidth=3,c=IQA_colours[m])
         # Print results on screen
@@ -546,7 +544,6 @@ def Compare_Apar(ref_image = '',target_image=[''],
     return True
 
 def Compare_Apar_signal(ref_image = '',target_image=[''],
-            #pathnametodrop = '', 
             save=False, noise=0.0, plotname='', 
             labelname=[''], titlename=''
             ):
@@ -757,7 +754,6 @@ def Compare_Apar_signal(ref_image = '',target_image=[''],
 
 # Fidelity comparisons
 def Compare_Fidelity(ref_image = '',target_image=[''],
-                    #pathnametodrop = '', 
                     save=False, plotname='', 
                     labelname=[''], titlename=''):
     """
@@ -833,7 +829,7 @@ def Compare_Fidelity(ref_image = '',target_image=[''],
     print("=============================================")
 
 def Compare_Fidelity_signal(ref_image = '',target_image=[''],
-             pathnametodrop = '', save=False,noise=0.0, plotname='', 
+             save=False,noise=0.0, plotname='', 
              labelname=[''], titlename=''
              ):
     """
@@ -1288,7 +1284,7 @@ def plot_Fidelity(image2plot,Nplots,Ny,title):
     # return for comparisons
     return mids, np.nanmean(h,axis=1)[:]
 
-def show_Apar_map(ref_image,target_image,#pathnametodrop,
+def show_Apar_map(ref_image,target_image,
                   channel=0, 
                   save=False, plotname='',
                   labelname='', titlename=''
@@ -1311,11 +1307,10 @@ def show_Apar_map(ref_image,target_image,#pathnametodrop,
 
     """
     # Figure
-    fig = plt.figure(figsize=(10,15))
+    fig = plt.figure(figsize=(11,12))
     #fig = plt.figure(figsize=(15,10))
     if titlename=='':   
         fig.suptitle('Accurray map', fontsize=16)
-        #fig.suptitle('Accurray map for \n'+target_image.replace(pathnametodrop,''), fontsize=16)
     else:    
         fig.suptitle(titlename, fontsize=16)
 
@@ -1342,7 +1337,6 @@ def show_Apar_map(ref_image,target_image,#pathnametodrop,
     cbar = plt.colorbar(im, ax=ax1,orientation='vertical')
     cbar.ax.set_ylabel('Flux (image units)', fontsize=15)
     plt.text(0.1,0.1,"Reference", bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
-    #plt.text(0.1,0.1,"Ref: " + str(ref_image.replace(pathnametodrop,'')), bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
     plt.xlabel("X (pixel units)",fontsize=15)
     plt.ylabel("Y (pixel units)",fontsize=15)
     plt.title(" Reference (Chan.# " + str(channel) + ")")
@@ -1363,7 +1357,6 @@ def show_Apar_map(ref_image,target_image,#pathnametodrop,
     cbar = plt.colorbar(im, ax=ax1,orientation='vertical')
     cbar.ax.set_ylabel('Flux (image units)', fontsize=15)
     plt.text(0.1,0.1,"Target", bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
-    #plt.text(0.1,0.1,"Target: " + str(target_image.replace(pathnametodrop,'')), bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
     plt.xlabel("X (pixel units)",fontsize=15)
     plt.ylabel("Y (pixel units)",fontsize=15)
     plt.title(" Target at ref. resolution (Chan.# " + str(channel) + ")")
@@ -1390,7 +1383,7 @@ def show_Apar_map(ref_image,target_image,#pathnametodrop,
     cbar = plt.colorbar(im, ax=ax1,orientation='vertical')
     cbar.ax.set_ylabel('Accuracy parameter', fontsize=15)
     plt.gca().invert_yaxis()
-    #plt.show()
+    plt.show()
     plt.xlabel("X (pixel units)",fontsize=15)
     plt.ylabel("Y (pixel units)",fontsize=15)
     plt.title(" Accuracy map (Chan.# " + str(channel) + ")")
@@ -1418,9 +1411,6 @@ def show_Apar_map(ref_image,target_image,#pathnametodrop,
     plt.ylabel(r'Number of pixels',fontsize=20)
     # Save plot?
     if save == True:
-        #shortname=target_image.replace(pathnametodrop,'').replace('.image','')
-        #plt.savefig('Accuracy_map_'+shortname+'.png')
-        #print(' See results: Accuracy_map_'+shortname+'.png')
         if plotname == '':
             plotname="Accuracy_map_tmp"
         plt.savefig(plotname+'.png')
@@ -1436,7 +1426,6 @@ def show_Apar_map(ref_image,target_image,#pathnametodrop,
 
 
 def show_Fidelity_map(ref_image,target_image,
-                       pathnametodrop,
                        channel=0, save=False, plotname='',
                        labelname='', titlename=''
                        ):
@@ -1458,11 +1447,10 @@ def show_Fidelity_map(ref_image,target_image,
 
     """
     # Figure
-    fig = plt.figure(figsize=(10,15))
+    fig = plt.figure(figsize=(11,12))
     #fig = plt.figure(figsize=(15,10))
     if titlename=='':   
         fig.suptitle('Fidelity map', fontsize=16)
-        #fig.suptitle('Fidelity map for \n'+target_image.replace(pathnametodrop,''), fontsize=16)
     else:    
         fig.suptitle(titlename, fontsize=16)
     grid = plt.GridSpec(ncols=2,nrows=2, wspace=0.5, hspace=0.3)
@@ -1488,7 +1476,6 @@ def show_Fidelity_map(ref_image,target_image,
     cbar = plt.colorbar(im, ax=ax1,orientation='vertical')
     cbar.ax.set_ylabel('Flux (image units)', fontsize=15)
     plt.text(0.1,0.1,"Reference", bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
-    #plt.text(0.1,0.1,"Ref: " + str(ref_image.replace(pathnametodrop,'')), bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
     plt.xlabel("X (pixel units)",fontsize=15)
     plt.ylabel("Y (pixel units)",fontsize=15)
     plt.title(" Reference (Chan.# " + str(channel) + ")")
@@ -1509,7 +1496,6 @@ def show_Fidelity_map(ref_image,target_image,
     cbar = plt.colorbar(im, ax=ax1,orientation='vertical')
     cbar.ax.set_ylabel('Flux (image units)', fontsize=15)
     plt.text(0.1,0.1,"Target", bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
-    #plt.text(0.1,0.1,"Target: " + str(target_image.replace(pathnametodrop,'')), bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
     plt.xlabel("X (pixel units)",fontsize=15)
     plt.ylabel("Y (pixel units)",fontsize=15)
     plt.title(" Target at ref. resolution (Chan.# " + str(channel) + ")")
@@ -1552,9 +1538,6 @@ def show_Fidelity_map(ref_image,target_image,
     plt.ylabel(r'Number of pixels',fontsize=20)
     # Save plot?
     if save == True:
-        #shortname=target_image.replace(pathnametodrop,'').replace('.image','')
-        #plt.savefig('Fidelity_map_'+shortname+'.png')
-        #print(' See results: Fidelity_map_'+shortname+'.png')
         if plotname == '':
             plotname="Fidelity_map_tmp"
         plt.savefig(plotname+'.png')        
