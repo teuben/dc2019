@@ -17,7 +17,7 @@ step_title = {0: 'Concat',
               }              
 
 thesteps=[0,1,2,3,4,5,6,7,8]
-#thesteps=[0]
+#thesteps=[5]
 
 ######## collect only the product name?          
 dryrun = True    # False to execute combination, True to gather filenames only
@@ -37,24 +37,24 @@ pathtoimage  = _s4p_work + '/'
 #  otherwise concatms must contain the MS for combination
 
 a12m=[pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-02.ms',
-      #pathtoconcat + 'skymodel-c_120L.alma.cycle6.1.2018-10-02.ms',
-      #pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-03.ms',
-      #pathtoconcat + 'skymodel-c_120L.alma.cycle6.1.2018-10-03.ms',
-      #pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-04.ms',
-      #pathtoconcat + 'skymodel-c_120L.alma.cycle6.1.2018-10-04.ms',
-      #pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-05.ms',
-      #pathtoconcat + 'skymodel-c_120L.alma.cycle6.1.2018-10-05.ms'
+      pathtoconcat + 'skymodel-c_120L.alma.cycle6.1.2018-10-02.ms',
+      pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-03.ms',
+      pathtoconcat + 'skymodel-c_120L.alma.cycle6.1.2018-10-03.ms',
+      pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-04.ms',
+      pathtoconcat + 'skymodel-c_120L.alma.cycle6.1.2018-10-04.ms',
+      pathtoconcat + 'skymodel-c_120L.alma.cycle6.4.2018-10-05.ms',
+      pathtoconcat + 'skymodel-c_120L.alma.cycle6.1.2018-10-05.ms'
       ]
       
-weight12m = [1.]#, 1., 1., 1., 1., 1., 1., 1.]
+weight12m = [1., 1., 1., 1., 1., 1., 1., 1.]
         
-a7m =[#pathtoconcat + 'skymodel-c_120L.aca.cycle6.2018-10-20.ms',
-      #pathtoconcat + 'skymodel-c_120L.aca.cycle6.2018-10-21.ms',
-      #pathtoconcat + 'skymodel-c_120L.aca.cycle6.2018-10-22.ms',
-      #pathtoconcat + 'skymodel-c_120L.aca.cycle6.2018-10-23.ms'
+a7m =[pathtoconcat + 'skymodel-c_120L.aca.cycle6.2018-10-20.ms',
+      pathtoconcat + 'skymodel-c_120L.aca.cycle6.2018-10-21.ms',
+      pathtoconcat + 'skymodel-c_120L.aca.cycle6.2018-10-22.ms',
+      pathtoconcat + 'skymodel-c_120L.aca.cycle6.2018-10-23.ms'
       ]
 
-weight7m = []#0.116, 0.116, 0.116, 0.116]  # weigthing for SIMULATED data !
+weight7m = [0.116, 0.116, 0.116, 0.116]  # weigthing for SIMULATED data !
 
 ##### non interactive - begin #####
 thevis = a12m
@@ -64,6 +64,8 @@ thevis.extend(a7m)
 
 weightscale = weight12m
 weightscale.extend(weight7m)
+
+skymodel=a12m[0].replace('.ms','.skymodel')    # model used for simulating the observation, expected to be CASA-imported
 
 ##### non interactive - end #####
 
@@ -89,7 +91,7 @@ listobsOutput             = imbase+'.12m.log'
 TPpointinglist            = imbase+'.12m.ptg'
 TPpointinglistAlternative = 'user-defined.ptg' 
 
-TPnoiseRegion             = '150,200,150,200'  # in unregridded SD image (i.e. sdreordered = sdbase +'.SD_ro.image')
+TPnoiseRegion             = '980,980,1010,1010'  # in unregridded SD image (i.e. sdreordered = sdbase +'.SD_ro.image')
 TPnoiseChannels           = '2~5'              # in unregridded and un-cut SD cube (i.e. sdreordered = sdbase +'.SD_ro.image')!
 
 
@@ -98,7 +100,7 @@ mode      = 'mfs'      # 'mfs' or 'cube'
 mscale    = 'HB'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
 masking   = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 inter     = 'nIA'      # interactive ('IA') or non-interactive ('nIA')
-nit       = 0          # max = 9.9 * 10**9 
+nit       = 1000000          # max = 9.9 * 10**9 
 
 specsetup =  'INTpar'  # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
 
@@ -112,13 +114,17 @@ endchan   = 39  #None  #   end-value of the SD image channel range you want to c
 # cleansetup = '.'+ mode +'_'+ specsetup +'_'+ mscale +'_'+ masking +'_'+ inter +'_n'+ str(nit)
 
 
-smoothing  = 5     # smoothing of the threshold mask (by 'smoothing x beam')
+smoothing  = 5.     # smoothing of the threshold mask (by 'smoothing x beam')
 RMSfactor  = 0.5   # continuum rms level (not noise from emission-free regions but entire image)
-cube_rms   = 3     # cube noise (true noise) x this factor
+cube_rms   = 3.     # cube noise (true noise) x this factor
 cont_chans = ''    # line free channels for cube rms estimation
 sdmasklev  = 0.3   # maximum x this factor = threshold for SD mask
 
 
+momchans = ''      # channels to compute moment maps (integrated intensity, etc.) 
+
+                     
+########## general tclean parameters
 
 general_tclean_param = dict(#overwrite  = overwrite,
                            spw         = '0', 
@@ -155,7 +161,7 @@ sdfac   = [1.0]          # feather parameters:
 SSCfac  = [1.0]          # Faridani parameters:
 sdfac_h = [1.0]          # Hybrid feather paramteters:
 sdg     = [1.0]          # SDINT parameters:
-TPfac   = [1000000.]     # TP2VIS parameters:
+TPfac   = [1.0]     # TP2VIS parameters:
           
 
           

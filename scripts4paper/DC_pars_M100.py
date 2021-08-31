@@ -60,6 +60,8 @@ thevis.extend(a7m)
 weightscale = weight12m
 weightscale.extend(weight7m)
 
+skymodel=''    # model used for simulating the observation, expected to be CASA-imported
+
 ##### non interactive - end #####
 
 
@@ -123,9 +125,9 @@ cont_chans =''   # line free channels for cube rms estimation
 sdmasklev = 0.3  # maximum x this factor = threshold for SD mask
 
 
+momchans = ''      # channels to compute moment maps (integrated intensity, etc.) 
 
-
-                      
+                     
 ########## general tclean parameters
 
 general_tclean_param = dict(#overwrite  = overwrite,

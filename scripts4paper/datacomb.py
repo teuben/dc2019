@@ -367,7 +367,34 @@ def runsdintimg(vis,
     #    os.system('mv '+nam+' '+nam.replace('.joint.cube',''))
                           
 
+    ### SDINT Traditional OUTPUTS
+    
+    ## MTMFS
+    
+    #   *.int.cube.model/
+    #   *.int.cube.pb/
+    #   *.int.cube.psf/
+    #   *.int.cube.residual/
+    #   *.int.cube.sumwt/
+    #   *.int.cube.weight/
+    #   *.joint.cube.psf/
+    #   *.joint.cube.residual/
+    #   *.joint.multiterm.image.tt0/
+    #   *.joint.multiterm.image.tt0.pbcor/
+    #   *.joint.multiterm.image.tt0.pbcor.fits
+    #   *.joint.multiterm.mask/
+    #   *.joint.multiterm.model.tt0/
+    #   *.joint.multiterm.pb.tt0/
+    #   *.joint.multiterm.psf.tt0/
+    #   *.joint.multiterm.residual.tt0/
+    #   *.joint.multiterm.sumwt.tt0/
+    #   *.joint.multiterm.weight.tt0/
+    #   *.sd.cube.image/
+    #   *.sd.cube.psf/
+    #   *.sd.cube.residual/
+    
 
+    # rename SDINT outputs to common style
     print('Exporting final pbcor image to FITS ...')
     if mydeconvolver=='mtmfs' and niter>0:
         oldnames=glob.glob(jointname+'.joint.multiterm*')
@@ -787,6 +814,7 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
 
     os.system('cp -r '+mysdimage+' lowres.regrid')
 
+    lowres_unit = cta.imhead('lowres.regrid', mode='get', hdkey='Bunit')
 
     # Multiply the lowres image with the highres primary beam response
 
@@ -795,6 +823,7 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
                expr='IM0*IM1',
                outfile='lowres.multiplied')
 
+    cta.imhead('lowres.multiplied', mode='put', hdkey='Bunit', hdvalue=lowres_unit)
 
     # Feather together the low*pb and hi images
 
@@ -821,6 +850,11 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
     cta.immath(imagename=[featherim+'.image', myintpb],
                expr='IM0/IM1',
                outfile=featherim+'.image.pbcor')
+    
+    highres_unit = cta.imhead(featherim+'.image', mode='get', hdkey='Bunit')
+    cta.imhead(featherim+'.image.pbcor', mode='put', hdkey='Bunit', hdvalue=highres_unit)
+    
+    
     
     print('Exporting final pbcor image to FITS ...')
     os.system('rm -rf '+featherim+'.image.pbcor.fits')
@@ -1291,8 +1325,8 @@ def check_CASAcal(vis):
     
     """
     msgVers = visHistory(vis, origin='applycal', search='version',includeVis=False)
-    print(msgVers)
-    if msgVers==['']:
+    #print(msgVers)
+    if msgVers==[''] or msgVers[0]=='':
         print(' ')
         print('---WARNING ---')
         print(vis) 
@@ -2221,6 +2255,10 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
                expr='IM0/IM1',
                outfile=combined +'.pbcor')
 
+    highres_unit = cta.imhead(combined, mode='get', hdkey='Bunit')
+    cta.imhead(combined +'.pbcor', mode='put', hdkey='Bunit', hdvalue=highres_unit)
+
+
     myimages = [combined]
     
     for myimagebase in myimages:
@@ -2453,8 +2491,9 @@ def create_TP2VIS_ms(imTP=None, TPresult=None,
 
     os.system('rm -rf '+TPresult)    
 
-    t2v.tp2vis(imTP,TPresult,TPpointinglist,nvgrp=5,rms=rms)# winpix=3)  # in CASA 6.x
-
+    #t2v.tp2vis(imTP,TPresult,TPpointinglist,nvgrp=5,rms=rms)# winpix=3)  # in CASA 6.x
+    t2v.tp2vis(imTP,TPresult,TPpointinglist,deconv=True,maxuv=10,nvgrp=4)
+  
     #### weights-plot for INT and unscaled TP
 
     t2v.tp2vispl([TPresult, vis],outfig=imname+'_weightplot.png')  # in CASA 6.x
