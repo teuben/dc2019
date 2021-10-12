@@ -20,7 +20,7 @@ thesteps=[0,1,2,3,4,5,6,7,8]
 #thesteps=[7]
 
 ######## collect only the product name?          
-dryrun = True    # False to execute combination, True to gather filenames only
+dryrun = False    # False to execute combination, True to gather filenames only
  
 
 #  you can use _s4p_data if you want to use the configure'd setup,
@@ -29,27 +29,27 @@ dryrun = True    # False to execute combination, True to gather filenames only
 #  _s4p_work :  for reading/writing
 
 pathtoconcat = _s4p_data + '/pointSky/point05_2L/'
-pathtoimage  = _s4p_work + '/'
+pathtoimage  = _s4p_work + '/pointGauss/'
 
 
 
 #  for optional step 0:   thevis[] -> concatms
 #  otherwise concatms must contain the MS for combination
 
-a12m=[ pathtoconcat + 'point05_2L.alma.cycle6.1.2018-10-02.ms',
-      #pathtoconcat + 'point05_2L.alma.cycle6.4.2018-10-02.ms',
-      #pathtoconcat + 'point05_2L.alma.cycle6.1.2018-10-03.ms',
-      #pathtoconcat + 'point05_2L.alma.cycle6.4.2018-10-03.ms'
+a12m=[pathtoconcat + 'point05_2L.alma.cycle6.1.2018-10-02.ms',
+      pathtoconcat + 'point05_2L.alma.cycle6.4.2018-10-02.ms',
+      pathtoconcat + 'point05_2L.alma.cycle6.1.2018-10-03.ms',
+      pathtoconcat + 'point05_2L.alma.cycle6.4.2018-10-03.ms'
       ]
    
-weight12m = [1.]#, 1., 1., 1.]
+weight12m = [1., 1., 1., 1.]
   
       
-a7m =[#pathtoconcat + 'point05_2L.aca.cycle6.2018-10-06.ms',
-      #pathtoconcat + 'point05_2L.aca.cycle6.2018-10-07.ms'
+a7m =[pathtoconcat + 'point05_2L.aca.cycle6.2018-10-06.ms',
+      pathtoconcat + 'point05_2L.aca.cycle6.2018-10-07.ms'
       ]
 
-weight7m = []#0.116, 0.116]  # weigthing for SIMULATED data !
+weight7m = [0.116, 0.116]  # weigthing for SIMULATED data !
 
 ##### non interactive - begin #####
 thevis = a12m
@@ -92,10 +92,10 @@ TPnoiseChannels           = '2~5'              # in unregridded and un-cut SD cu
 
 
 mode      = 'mfs'      # 'mfs' or 'cube'
-mscale    = 'HB'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
+mscale    = 'MS'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
 masking   = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 inter     = 'nIA'      # interactive ('IA') or non-interactive ('nIA')
-nit       = 0          # max = 9.9 * 10**9 
+nit       = 1000000          # max = 9.9 * 10**9 
 
 specsetup =  'INTpar'  # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
 
@@ -156,7 +156,7 @@ sdfac   = [1.0]          # feather parameters:
 SSCfac  = [1.0]          # Faridani parameters:
 sdfac_h = [1.0]          # Hybrid feather paramteters:
 sdg     = [1.0]          # SDINT parameters:
-TPfac   = [1.]     # TP2VIS parameters:
+TPfac   = [1.0]     # TP2VIS parameters:
           
 
           
