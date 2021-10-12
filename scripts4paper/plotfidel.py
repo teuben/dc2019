@@ -10,7 +10,7 @@ def plotfidel(target, reference, smooth='2.0arcsec'):
        smooth - Recomended (circularize the beam of your reference with a small convolution)
 
     """
-    import IQA_scripts as iqa
+    import IQA_script as iqa
 
     importfits(fitsimage=reference, imagename="myreference",overwrite=True) 
     importfits(fitsimage=target, imagename="mytarget",overwrite=True)

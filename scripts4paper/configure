@@ -584,6 +584,7 @@ PACKAGE_URL=
 ac_unique_file="README.md"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+S4P_MODEL
 S4P_WORK
 S4P_DATA
 EDIT_MSG
@@ -632,6 +633,7 @@ ac_user_opts='
 enable_option_checking
 with_s4p_data
 with_s4p_work
+with_s4p_problem
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1253,8 +1255,9 @@ if test -n "$ac_init_help"; then
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-s4p-data=DIR     Directory where S4$ data are (or their symlinks)
-  --with-s4p-work=DIR     Directory where S4P data can be written
+  --with-s4p-data=DIR          Directory where S4P data are (or their symlinks) Default: ../data
+  --with-s4p-work=DIR          Directory where S4P data can be written.  Default: tmp
+  --with-s4p-problem=PROBLEM   Example problem (GMC, M100, ....)
 
 Report bugs to the package provider.
 _ACEOF
@@ -1710,18 +1713,33 @@ S4P_DATA=$(realpath $s4p_data)
 if test "${with_s4p_work+set}" = set; then :
   withval=$with_s4p_work; s4p_work="$withval"
 else
-  s4p_work="../data"
+  s4p_work="tmp"
 fi
 
 S4P_WORK=$(realpath $s4p_work)
 
+mkdir -p $S4P_WORK
+
+
+# Check whether --with-s4p-problem was given.
+if test "${with_s4p_problem+set}" = set; then :
+  withval=$with_s4p_problem; s4p_problem="$withval"
+else
+  s4p_problem="GMC"
+fi
+
+S4P_PROBLEM=$s4p_problem
+
+#cp DC_pars_${s4p_problem}.py DC_pars.py
 
 
 # report
 echo ""
-echo "S4P:       $S4P"
-echo "S4P_DATA:  $S4P_DATA"
-echo "S4P_WORK:  $S4P_WORK"
+echo "S4P:          $S4P"
+echo "S4P_DATA:     $S4P_DATA"
+echo "S4P_WORK:     $S4P_WORK"
+echo "S4P_PROBLEM:  $S4P_PROBLEM (not used yet)"
+#echo "Copied DC_pars_${s4p_problem}.py  to  DC_pars.py"
 
 
 # keep files in a single AC_OUTPUT command so config.status is not called multiple times.
@@ -2885,8 +2903,7 @@ fi
 
 # keep user happily informed
 echo ''
-echo 'Use this line in your CASA session:'
+echo 'Use this line in your CASA6 session: (CASA5 is not supperted anymore)'
 echo '     execfile("'$S4P/DC_locals.py'",globals())'
-echo 'or place that line in:   ~/.casa/init.py     (for CASA5)'
-echo '               and/or:   ~/.casa/startup.py  (for CASA6)'
+echo 'and/or:   ~/.casa/startup.py  (for CASA6)'
 

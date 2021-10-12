@@ -1,7 +1,14 @@
 #
+TIME = OMP_NUM_THREADS=1 /usr/bin/time
+#TIME = /usr/bin/time
+CASA = casa-config --version; $(TIME) casa --nogui -c
 
-TIME = /usr/bin/time
-CASA = casa-config --version; $(TIME) casa --nogui -c 
+help:
+	@echo "Various targets related to M100"
+	@echo "  M100        - basically the full casaguide, used 40+ GB"
+	@echo "  M100trim    - trim 23GB down to 105MB for faster testing"
+	@echo "  M100feather - "
+	@echo "  M100sdint   - "
 
 all: FeatheringPresentation.ipynb
 
@@ -38,13 +45,13 @@ M100feather:
 
 # second
 # 56911.62user 12147.88system 4:33:03elapsed 421%CPU 
-M100tp2vis: M100qac
+M100tp2vis: M100feather
 	$(CASA) M100_combine4.py > M100_combine4.log  2>&1
 
 # third
 # 4555.63user 1056.86system 1:21:02elapsed 115%CPU  (old sdint)
 # 3875.22user 827.46system 55:52.46elapsed 140%CPU  (sdintimaging)
-M100sdint: M100qac
+M100sdint: M100feather
 	$(CASA) M100_combine3.py use12m=0 > M100_combine3a.log  2>&1
 	$(CASA) M100_combine3.py use12m=1 > M100_combine3b.log  2>&1
 
