@@ -31,6 +31,8 @@ import casatasks as cta
 from casatools import table  as tbtool
 from casatools import image  as iatool
 from casatools import quanta as qatool
+from casatools import msmetadata as msmdtool
+
 
 reload(t2v)
 
@@ -66,7 +68,10 @@ def runsdintimg(vis,
                 pbmask = 0.4,
                 interactive=True,               
                 multiscale=False, 
-                maxscale=0.              
+                maxscale=0.,
+                continueclean=False,
+                renameexport=True,
+                loadmask=False
                 ):
 
     """
@@ -229,11 +234,15 @@ def runsdintimg(vis,
             mycoords['spectral2']['wcs']['crval'] += mycoords['spectral2']['wcs']['cdelt']
             myia.setcoordsys(mycoords)
             myia.close()
-            tmpia = myia.imageconcat(outfile=mysdimage+'_mod', infiles=[mysdimage, mysdimage+'_copy'], 
+            tmpia = myia.imageconcat(outfile=mysdimage+'_pcb', infiles=[mysdimage, mysdimage+'_copy'], 
                                    axis=3, overwrite=True)
             tmpia.close()
-            mysdimage = mysdimage+'_mod'
+            #mysdimage = mysdimage+'_pcb'
             numchan = 2
+        else:
+            os.system('cp -R '+mysdimage+' '+mysdimage+'_pcb')
+            
+        mysdimage = mysdimage+'_pcb'
 
         myia.open(mysdimage)
         myia.setrestoringbeam(remove=True)
@@ -285,10 +294,9 @@ def runsdintimg(vis,
 
     if niter==0:
         niter = 1
-        cta.casalog.post('You set niter to 0 (zero, the default), but sdintimaging can only produce an output for niter>1. niter = 1 set automatically. ', 'WARN')
+        cta.casalog.post('You set niter to 0 (zero, the default), but sdintimaging can only produce an output for niter>0. niter = 1 set automatically. ', 'WARN')
 
 
-    os.system('rm -rf '+jointname+'.*')
 
 
     sdint_arg=dict(vis=myvis,
@@ -352,10 +360,48 @@ def runsdintimg(vis,
         #sdint_arg['usemask']='auto-multithresh' #,
         
 
-                 
-    cta.sdintimaging(**sdint_arg)
+    # old:                 
+    #cta.sdintimaging(**sdint_arg)
 
+    if continueclean == False:   
+        # continueclean=True needs previous runsdint call to be executed 
+        # with renameexport=False !!!! 
+        os.system('rm -rf '+jointname+'.*')  
+        # if to be switched off add command to delete "*.pbcor.fits"
+
+
+    if loadmask==True:
+
+        sdint_arg['usemask']='user'
+        sdint_arg['niter']=1
+        # load mask into tclean with 1 iteration
+        cta.sdintimaging(**sdint_arg)
+        
+        sdint_arg['usemask']=usemask
+        sdint_arg['mask']=''
+        sdint_arg['niter']=niter
+        sdint_arg['startmodel']=''
+
+        # clean and get tclean-feedback 
+        tcleansresults = cta.sdintimaging(**sdint_arg)
+	    
+        # store feedback in a file 
+        pydict_to_file2(tcleansresults, jointname)
+	    
+        os.system('cp -r summaryplot_1.png '+jointname+'.png')   
                  
+    else: 
+        # clean and get tclean-feedback 
+        tcleansresults = cta.sdintimaging(**sdint_arg)
+	    
+        # store feedback in a file 
+        pydict_to_file2(tcleansresults, jointname)
+	    
+        os.system('cp -r summaryplot_1.png '+jointname+'.png')   
+              
+
+
+
     #oldnames=glob.glob(imname+'.joint.multiterm*')
     #for nam in oldnames:
     #    os.system('mv '+nam+' '+nam.replace('.joint.multiterm',''))
@@ -393,33 +439,36 @@ def runsdintimg(vis,
     #   *.sd.cube.psf/
     #   *.sd.cube.residual/
     
-
-    # rename SDINT outputs to common style
-    print('Exporting final pbcor image to FITS ...')
-    if mydeconvolver=='mtmfs' and niter>0:
-        oldnames=glob.glob(jointname+'.joint.multiterm*')
-        for nam in oldnames:
-            os.system('mv '+nam+' '+nam.replace('.joint.multiterm',''))
-        oldnames=glob.glob(jointname+'*.tt0*')
-        for nam in oldnames:
-            os.system('mv '+nam+' '+nam.replace('.tt0',''))     
-
-        os.system('rm -rf '+jointname+'.int.cube*')
-        os.system('rm -rf '+jointname+'.sd.cube*')
-        os.system('rm -rf '+jointname+'.joint.cube*')
-
-        cta.exportfits(jointname+'.image.pbcor', jointname+'.image.pbcor.fits')
+    if renameexport == True:
+        # rename SDINT outputs to common style
+        print('Exporting final pbcor image to FITS ...')
+        if mydeconvolver=='mtmfs' and niter>0:
+            oldnames=glob.glob(jointname+'.joint.multiterm*')
+            for nam in oldnames:
+                os.system('mv '+nam+' '+nam.replace('.joint.multiterm',''))
+            oldnames=glob.glob(jointname+'*.tt0*')
+            for nam in oldnames:
+                os.system('mv '+nam+' '+nam.replace('.tt0',''))     
         
-    elif mydeconvolver=='hogbom':
-        os.system('rm -rf '+jointname+'.int.cube*')
-        os.system('rm -rf '+jointname+'.sd.cube*')     
+            os.system('rm -rf '+jointname+'.int.cube*')
+            os.system('rm -rf '+jointname+'.sd.cube*')
+            os.system('rm -rf '+jointname+'.joint.cube*')
         
-        oldnames=glob.glob(jointname+'.joint.cube*')
-        for nam in oldnames:
-            os.system('mv '+nam+' '+nam.replace('.joint.cube',''))
-        
-        #exportfits(jointname+'.joint.cube.image.pbcor', jointname+'.joint.cube.image.pbcor.fits')
-        cta.exportfits(jointname+'.image.pbcor', jointname+'.image.pbcor.fits')
+            cta.exportfits(jointname+'.image.pbcor', jointname+'.image.pbcor.fits')
+            
+        elif mydeconvolver=='hogbom' or mydeconvolver=='multiscale':
+            os.system('rm -rf '+jointname+'.int.cube*')
+            os.system('rm -rf '+jointname+'.sd.cube*')     
+            
+            oldnames=glob.glob(jointname+'.joint.cube*')
+            for nam in oldnames:
+                os.system('mv '+nam+' '+nam.replace('.joint.cube',''))
+            
+            #exportfits(jointname+'.joint.cube.image.pbcor', jointname+'.joint.cube.image.pbcor.fits')
+            cta.exportfits(jointname+'.image.pbcor', jointname+'.image.pbcor.fits')
+    else:
+        print('Keeping native file names - no export!')
+
 
     return True
 
@@ -455,7 +504,9 @@ def runWSM(vis,
            interactive=True, 
            multiscale=False, 
            maxscale=0.,
-           sdfactorh=1.0
+           sdfactorh=1.0,
+           continueclean=False,
+           loadmask=False
            ):
 
     """
@@ -522,7 +573,7 @@ def runWSM(vis,
              Recommended value: 10 arcsec
              default: 0.
     sdfactorh - Scale factor to apply to Single Dish image (same as for feather)
-
+    continueclean - see runtclean
 
 
     Example: runtclean('gmc_120L.alma.all_int-weighted.ms', 
@@ -643,10 +694,8 @@ def runWSM(vis,
 
     ## TCLEAN METHOD WITH START MODEL
     print('### Start hybrid clean')                    
-    runtclean(myvis,
-              imname, 
-              startmodel=scaled_name,
-              spw=spw, 
+    runtclean
+    WSM_arg=dict(spw=spw, 
               field=field, 
               specmode=specmode,
               imsize=imsize, 
@@ -669,8 +718,19 @@ def runWSM(vis,
               pbmask=pbmask,
               interactive=interactive,
               multiscale=multiscale,
-              maxscale=maxscale)
-    
+              maxscale=maxscale,
+              continueclean=continueclean,
+              loadmask=loadmask)
+
+    runtclean(myvis, imname, startmodel=scaled_name, **WSM_arg)
+ 
+
+    #if doautomask == True:
+    #    WSM_arg['continueclean'] = True 
+    #    WSM_arg['usemask'] = 'auto-multithresh' 
+    #    runtclean(myvis, imname, **WSM_arg)
+   
+
     ## then FEATHER METHOD 
     highres = imname+'.image'
     pb= imname+'.pb'
@@ -1042,7 +1102,8 @@ def runtclean(vis,
               multiscale=False, 
               maxscale=0.,
               restart=True,
-              continueclean = False
+              continueclean = False,
+              loadmask=False
               ):
 
     """
@@ -1234,10 +1295,41 @@ def runtclean(vis,
         os.system('rm -rf '+imname+'.*') #+'.TCLEAN.*')   
         # if to be switched off add command to delete "*.pbcor.fits"
     
-    cta.tclean(**tclean_arg)
+
+    if loadmask==True:
+
+        tclean_arg['usemask']='user'
+        tclean_arg['niter']=1
+        # load mask into tclean with 1 iteration
+        cta.tclean(**tclean_arg)
+        
+        tclean_arg['usemask']=usemask
+        tclean_arg['mask']=''
+        tclean_arg['niter']=niter
+        tclean_arg['startmodel']=''
+
+        # clean and get tclean-feedback 
+        tcleansresults = cta.tclean(**tclean_arg)
+	    
+        # store feedback in a file 
+        pydict_to_file2(tcleansresults, imname)
+        
+        os.system('cp -r summaryplot_1.png '+imname+'.png')   
+
+    else: 
+        # clean and get tclean-feedback 
+        tcleansresults = cta.tclean(**tclean_arg)
+	    
+        # store feedback in a file 
+        pydict_to_file2(tcleansresults, imname)
+        
+        os.system('cp -r summaryplot_1.png '+imname+'.png') 
+
+
 
     print('Exporting final pbcor image to FITS ...')
     #exportfits(imname+'.TCLEAN.image.pbcor', imname+'.TCLEAN.pbcor.fits')
+    os.system('rm -rf '+imname+'.image.pbcor.fits') #+'.TCLEAN.*')   
     cta.exportfits(imname+'.image.pbcor', imname+'.image.pbcor.fits')
 
     return True
@@ -1928,8 +2020,8 @@ def derive_threshold(vis, imname, threshmask,
             #print('full_RMS', full_RMS)
             #peak_val = imstat(imnameth+'.image')['max'][0]
             thresh = full_RMS*RMSfactor
-            print('The "RMS" of the entire image (incl emission) is ', full_RMS)
-            print('You set the threshold to ', full_RMS, 'times the RMS, i.e. ', thresh)
+            print('The "RMS" of the entire image (incl emission) is ', round(full_RMS,6), 'Jy')
+            print('You set the threshold to ', full_RMS, 'times the RMS, i.e. ', round(thresh,6), 'Jy')
         
         #### cube
         elif specmode == 'cube':
@@ -1940,8 +2032,8 @@ def derive_threshold(vis, imname, threshmask,
         
             thresh = cube_RMS*cube_rms   # 3 sigma level
  
-            print('The RMS of the cube (check cont_chans for emission-free channels) is ', cube_RMS)
-            print('You set the threshold to ', cube_rms, 'times the RMS, i.e. ', thresh)
+            print('The RMS of the cube (check cont_chans for emission-free channels) is ', round(cube_RMS,6), 'Jy')
+            print('You set the threshold to ', cube_rms, 'times the RMS, i.e. ', round(thresh,6), 'Jy')
          
         
             #immmoments(imagename=imname+'_template.image', mom=[8], 
@@ -2463,7 +2555,11 @@ def create_TP2VIS_ms(imTP=None, TPresult=None,
     TPnoiseRegion - if mode='mfs', emission-free box in cont image is used to determine noise
     TPnoiseChannels - if mode='cube', line-free channels in cube are used to determine noise
 
-    """
+ 
+   """
+
+    os.system('rm -rf '+TPresult)    
+
 
     # define region/channel range in your input TP image/cube to derive the rms
     specmode=mode
@@ -2474,7 +2570,13 @@ def create_TP2VIS_ms(imTP=None, TPresult=None,
         #peak_val = imstat(imnameth+'.image')['max'][0]
         #thresh = full_RMS*RMSfactor
         rms = cont_RMS
-    
+        
+        #t2v.tp2vis(imTP,TPresult,TPpointinglist,nvgrp=5,rms=rms)# winpix=3)  # in CASA 6.x
+        print('Deriving TP.ms from deconvolved image')        
+        t2v.tp2vis(imTP,TPresult,TPpointinglist,deconv=True,maxuv=10,nvgrp=4)
+
+
+  
     
     #### cube
     elif specmode == 'cube':
@@ -2486,14 +2588,15 @@ def create_TP2VIS_ms(imTP=None, TPresult=None,
         rms = cube_RMS
     
         #thresh = cube_RMS*cube_rms   # 3 sigma level
-    
-    print('rms in image:', rms)
+        
+        print('Deriving TP.ms using image rms')
+        print('rms in image:', rms)    
+        t2v.tp2vis(imTP,TPresult,TPpointinglist,nvgrp=5,rms=rms)# winpix=3)  # in CASA 6.x
+        #t2v.tp2vis(imTP,TPresult,TPpointinglist,deconv=True,maxuv=10,nvgrp=4)
+        #print('Derived TP.ms from deconvolved image')
 
-    os.system('rm -rf '+TPresult)    
 
-    #t2v.tp2vis(imTP,TPresult,TPpointinglist,nvgrp=5,rms=rms)# winpix=3)  # in CASA 6.x
-    t2v.tp2vis(imTP,TPresult,TPpointinglist,deconv=True,maxuv=10,nvgrp=4)
-  
+
     #### weights-plot for INT and unscaled TP
 
     t2v.tp2vispl([TPresult, vis],outfig=imname+'_weightplot.png')  # in CASA 6.x
@@ -2514,6 +2617,12 @@ def transform_INT_to_SD_freq_spec(TPresult, imTP, vis,
     steps:
     - use get_SD_cube_params to derive the frequency range covered by the SD cube
     - mstransform fo given datacolumn to SD cube's freq-range and reference frame
+    
+    ----- not applied: mstransforms to spectral setup of the spw with the least number of 
+    spectral  channels and takes its spectral setup over to all other spw in the data. 
+    This assumes a similar frequency range for all spws so that not much information 
+    would be lost. Therefore, beware of mixed data set with strongly differing 
+    frequnecy coverages!
 
     _____________________________________________________________________
 
@@ -2559,6 +2668,31 @@ def transform_INT_to_SD_freq_spec(TPresult, imTP, vis,
 
     print('im_min_freq, im_max_freq', im_min_freq, im_max_freq)
     print(' ')                      
+
+
+    # #### workaround for not allowed combinespw=True in case of differing numbers of channels in the spws:
+    # # bring all spw on the same channels a the spw with lowest number of channels
+    # # get smallest number of channels (expected to have largest chan width in concat file...?)
+    # 
+    # mymsmd=msmdtool()
+    # mymsmd.open(vis)  
+    # # get the spectral window IDs associated with "*"  
+    # num_spws = mymsmd.spwsforintent("*")  
+    # # got all the spw IDs associated with all intents which contain ’WVR’  
+    # mymsmd.done()     
+    # 
+    # 
+    # mytb.open(vis+'/SPECTRAL_WINDOW', nomodify=False)
+    # # expect several spw
+    # numchan=[]
+    # for i in range(0,len(num_spws)):
+    #     numchan.append(mytb.getcell("NUM_CHAN",i))
+    # minnumchan=min(numchan)
+    # idx=numchan.index(minnumchan)
+    # min_freq = min(mytb.getcell("CHAN_FREQ",idx)/10**9)  # in GHz
+    # chan_width = abs(mytb.getcell("CHAN_WIDTH",idx)[0]/10**9)  # in GHz
+    # mytb.close()    
+        
     
     
     os.system('rm -rf '+transvis)
@@ -2567,11 +2701,24 @@ def transform_INT_to_SD_freq_spec(TPresult, imTP, vis,
                     outputvis=transvis,
                     datacolumn=datacolumn,
                     regridms=True,
+                    #nchan=minnumchan,
+                    #start=str(min_freq)+'GHz',
+                    #width=str(chan_width)+'GHz',
                     outframe=outframe,
                     #field='',
                     spw = str(im_min_freq)+'~'+str(im_max_freq)+'GHz', # general_tclean_param['spw'], 
-                    combinespws=True
+                    combinespws=False          # combinespw=True not allowed in case of differing numbers of channels in the spws
     ) 
+    
+    # PS: turns out that parmeter spw does not reproduce the given frequency range 
+    # but selects the full spw that is covered by these frequencies 
+    # (what happens for df > 2 neighborung spw --- would it select both or give an error?)
+
+    
+    
+    
+    
+    
 
 
 def runtclean_TP2VIS_INT(TPresult, TPfac, 
@@ -2605,11 +2752,11 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
     interactive=True, 
     multiscale=False, 
     maxscale=0.,
-    restart=True,
-    continueclean = False,
     RMSfactor=1.0,
     cube_rms=3.0,
-    cont_chans ='2~4'
+    cont_chans ='2~4',
+    #doautomask=False,
+    loadmask=False 
     ):
     
     """ 
@@ -2684,7 +2831,8 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
     cta.listobs(vis)
     
     if specmode=='cube':
-        specmode_used ='cubedata'
+        #specmode_used ='cubedata'
+        specmode_used ='cube'
     if specmode=='mfs':
         specmode_used ='mfs'        
     
@@ -2715,8 +2863,8 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
                   interactive=interactive,
                   multiscale=multiscale,
                   maxscale=maxscale,
-                  restart=restart,
-                  continueclean = continueclean)    
+                  continueclean = False,
+                  loadmask=False)    
         
     
     # make dirty image to correct for beam area
@@ -2761,7 +2909,15 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
     print('### Threshold from TP+INT data is ', TP2VIS_arg['threshold'])    
     print(' ')
 
+    TP2VIS_arg['loadmask'] = loadmask
+
     runtclean(myvis, imname, **TP2VIS_arg)
+    
+    #if doautomask == True:
+    #    TP2VIS_arg['continueclean'] = True 
+    #    TP2VIS_arg['usemask'] = 'auto-multithresh' 
+    #    runtclean(myvis, imname, **TP2VIS_arg)
+
  
  
     # tclean(vis=['M100-B3.alma.all_int-weighted.ms', 
@@ -2799,4 +2955,66 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
     
      
     #os.system('mv ' +combipraefix+'*.png '+imResult)   
+
+
+
+def pydict_to_file(pydict, filename):   
+    """ 
+    save dictionaries (L. Moser-Fischer)
+    pydict - a python dictionary
+    filename - will store dict under this string +'.txt' 
+
+    """ 
+    f = open(filename+'.txt','w')
+    f.write(str(pydict))
+    f.close()
+    
+    return True 
+
+
+
+def file_to_pydict(filename):
+    """ 
+    load dictionaries (L. Moser-Fischer)
+    filename - will load dict from this string +'.txt'
+    return: python dictionary 
+    
+    problems with arrays, int32, 
+
+    """     
+    f = open(filename+'.txt','r')
+    data=f.read()
+    f.close()
+    return eval(data)
+
+
+
+
+def pydict_to_file2(pydict, filename):   
+    """ 
+    save dictionaries (L. Moser-Fischer)
+    pydict - a python dictionary
+    filename - will store dict under this string +'.txt' 
+
+    """ 
+    import pickle as pk 
+    with open(filename+'.pickle', 'wb') as handle:
+        pk.dump(pydict, handle, protocol=pk.HIGHEST_PROTOCOL)
+    return True 
+
+
+
+def file_to_pydict2(filename):
+    """ 
+    load dictionaries (L. Moser-Fischer)
+    filename - will load dict from this string +'.txt'
+    return: python dictionary 
+    
+    """   
+    import pickle as pk 
+    with open(filename+'.pickle', 'rb') as handle:
+        pydict = pk.load(handle)
+    return pydict     
+
+
 
