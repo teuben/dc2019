@@ -3,11 +3,12 @@
 These should be the steps that allow you to reproduce the
 figures in the paper:
 
-1. Ensure your CASA has astropy installed
-2. Gather the data (see ../data/README_DC2019_data)
-3. Run configure to be able to run the casa based scripts
-4. Run DC_script.py to run through your selected data set
-5. Run IQA_script.py create our standard assessment tests
+1. Ensure your CASA has **astropy** installed
+2. Ensure the **analysisUtilities** are installed for your CASA
+3. Gather the data (see ../data/README_DC2019_data)
+4. Run configure to be able to run the CASA based scripts
+5. Execfile DC_script.py to run through your selected data set
+6. Execfile IQA_script.py create our standard assessment tests
    (this might go into DC_scripts.py ?)
    
 ## 1. astropy  (et al.)
@@ -17,8 +18,8 @@ In case your CASA does not have astropy, which you can test by trying
       casa -c "import astropy"
 	  
 	  
-you will need to install it.  Since casa has it's own python, you can
-install it using **pip3** from the casa prompt (it's cumbersome to
+you will need to install it.  Since CASA has it's own python, you can
+install it using **pip3** from the CASA prompt (it's cumbersome to
 try this from the unix command line):
 
 	  CASA <1>:    !pip3 install astropy
@@ -33,19 +34,43 @@ some kind of
 
       sys.path.append(pathtoastropy) 
 	  
-to your personal casa setup (e.g. via ~/.casa/startup.py), but making sure there
-is no version skew between casa's python and the one astropy is expecting.
+to your personal CASA setup (e.g. via ~/.casa/startup.py), but making sure there
+is no version skew between CASA's python and the one astropy is expecting.
 
-## 2. Data
+      CASA <1>:    !pip3 install --user astropy
+
+## 2. analysisUtilities
+
+The https://casaguides.nrao.edu/index.php/Analysis_Utilities gives instructions
+how to get and install the Analysis Utilities.  Here's our suggested example of 
+installing it:
+
+      cd ~/.casa
+	  wget ftp://ftp.cv.nrao.edu/pub/casaguides/analysis_scripts.tar
+	  tar xf analysis_scripts.tar
+	  
+and add the following lines to your **~/.casa/startup.py** script:
+
+      import sys
+	  sys.path.append(os.environ['HOME'] + '/.casa/analysis_scripts')
+	  import analysisUtils as au
+	  import analysisUtils as aU
+	  
+TBD about the casing.
+
+## 3. Data
 
 Details are in [../data/README_DC2019_data](../data/README_DC2019_data)
 
-## 3. Configure
+This suggests that the data is present in **../data**, physically or via
+a symlink.
 
-In order to configure your casa environment for these script, one
+## 4. Configure
+
+In order to configure your CASA environment for these script, one
 suggested solution is the use of the included **configure** script. By
 default it will expect your data to be locally present, but the
-command
+(shell) command
 
         ./configure --help
 
@@ -53,10 +78,11 @@ will remind you what to configure.  It will report something like
 
         execfile("/home/teuben/dc2019/scripts4paper/DC_locals.py")
 
-which you will need to add to your scripts, or better yet, addd this to
-your ~/.casa/init.py (CASA5) or ~/.casa/startup.py (CASA6).
+which you will need to add to your scripts, or better yet, add this to
+your **~/.casa/startup.py** file.
 
-NOTE:  MAC users may need to install the needed command **realpath** via "brew install coreutils"
+NOTE:  MAC users may need to install the needed command **realpath** 
+via "brew install coreutils" for configure to work.
 
 ## 
 
@@ -64,11 +90,11 @@ This is a discussion how the DC2019 data should be circulated, and
 easily match a CASA tasks API for the different combination techniques
 discussed in the paper
 
-## 4. DC_script.py
+## 5. DC_script.py
 
 There is currently described in more detail in [DC_script](DC_script.md)
 
-## 5. IQA_script.py
+## 6. IQA_script.py
 
 TBD 
 
