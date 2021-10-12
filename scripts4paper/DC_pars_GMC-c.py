@@ -17,10 +17,10 @@ step_title = {0: 'Concat',
               }              
 
 thesteps=[0,1,2,3,4,5,6,7,8]
-#thesteps=[5]
+#thesteps=[1,6]
 
 ######## collect only the product name?          
-dryrun = True    # False to execute combination, True to gather filenames only
+dryrun = False    # False to execute combination, True to gather filenames only
  
 
 #  you can use _s4p_data if you want to use the configure'd setup,
@@ -29,7 +29,7 @@ dryrun = True    # False to execute combination, True to gather filenames only
 #  _s4p_work :  for reading/writing
 
 pathtoconcat = _s4p_data + '/skymodel-c.sim/skymodel-c_120L/'
-pathtoimage  = _s4p_work + '/'
+pathtoimage  = _s4p_work + '/GMC-c/'
 
 
 
@@ -97,7 +97,7 @@ TPnoiseChannels           = '2~5'              # in unregridded and un-cut SD cu
 
 
 mode      = 'mfs'      # 'mfs' or 'cube'
-mscale    = 'HB'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
+mscale    = 'MS'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
 masking   = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 inter     = 'nIA'      # interactive ('IA') or non-interactive ('nIA')
 nit       = 1000000          # max = 9.9 * 10**9 
