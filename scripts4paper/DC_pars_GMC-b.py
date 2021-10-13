@@ -16,21 +16,20 @@ step_title = {0: 'Concat',
               8: 'Assessment of the combination results'
               }              
 
-#thesteps=[0,1,2,3,4,5,6,7,8]
-thesteps=[0]
+thesteps=[0,1,2,3,4,5,6,7,8]
+#thesteps=[6,7]
 
 ######## collect only the product name?          
-dryrun = True    # False to execute combination, True to gather filenames only
+dryrun = False    # False to execute combination, True to gather filenames only
  
  
-
 #  you can use _s4p_data if you want to use the configure'd setup,
 #  but feel free to override
 #  _s4p_data :  for read-only data
 #  _s4p_work :  for reading/writing
 
 pathtoconcat = _s4p_data + '/gmcSkymodel_120L/gmc_120L/'
-pathtoimage  = _s4p_work + '/'
+pathtoimage  = _s4p_work + '/GMC-b/'
 
 
 
@@ -38,25 +37,25 @@ pathtoimage  = _s4p_work + '/'
 #  otherwise concatms must contain the MS for combination
 
 a12m=[pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms',
-      #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-02.ms',
-      #pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-03.ms',
-      #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-03.ms',
-      #pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-04.ms',
-      #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-04.ms',
-      #pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-05.ms',
-      #pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-05.ms'
+      pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-02.ms',
+      pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-03.ms',
+      pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-03.ms',
+      pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-04.ms',
+      pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-04.ms',
+      pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-05.ms',
+      pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-05.ms'
       ]
       
-weight12m = [1.]#, 1., 1., 1., 1., 1., 1., 1.]
+weight12m = [1., 1., 1., 1., 1., 1., 1., 1.]
   
       
-a7m =[#pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-20.ms',
-      #pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-21.ms',
-      #pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-22.ms',
-      #pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-23.ms'
+a7m =[pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-20.ms',
+      pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-21.ms',
+      pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-22.ms',
+      pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-23.ms'
       ]
 
-weight7m = []#0.116, 0.116, 0.116, 0.116]  # weigthing for SIMULATED data !
+weight7m = [0.116, 0.116, 0.116, 0.116]  # weigthing for SIMULATED data !
 
 ##### non interactive - begin #####
 thevis = a12m
@@ -99,10 +98,10 @@ TPnoiseChannels           = '2~5'              # in unregridded and un-cut SD cu
 
 
 mode      = 'mfs'      # 'mfs' or 'cube'
-mscale    = 'HB'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
+mscale    = 'MS'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
 masking   = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 inter     = 'nIA'      # interactive ('IA') or non-interactive ('nIA')
-nit       = 0          # max = 9.9 * 10**9 
+nit       = 1000000          # max = 9.9 * 10**9 
 
 specsetup =  'INTpar'  # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
 
@@ -163,7 +162,7 @@ sdfac   = [1.0]          # feather parameters:
 SSCfac  = [1.0]          # Faridani parameters:
 sdfac_h = [1.0]          # Hybrid feather paramteters:
 sdg     = [1.0]          # SDINT parameters:
-TPfac   = [1000000.]     # TP2VIS parameters:
+TPfac   = [1.0]     # TP2VIS parameters:
           
 
           

@@ -17,16 +17,16 @@ step_title = {0: 'Concat',
               }
 
 thesteps=[0,1,2,3,4,5,6,7,8]
-#thesteps=[3]
+#thesteps=[2]
 
 ######## collect only the product name?          
-dryrun = True    # False to execute combination, True to gather filenames only
+dryrun = False    # False to execute combination, True to gather filenames only
 
 
 # this script assumes the DC_locals.py has been execfiled'd - see the README.md how to do this
 
 pathtoconcat = _s4p_data + '/M100/'
-pathtoimage  = _s4p_work + '/'
+pathtoimage  = _s4p_work + '/M100/'
 
 
 ############ USER INPUT needed - beginning ##############
@@ -46,10 +46,10 @@ a12m=[pathtoconcat + _12ms
       
 weight12m = [1.]
         
-a7m =[#pathtoconcat + _7ms
+a7m =[pathtoconcat + _7ms
      ]
 
-weight7m = []#1.]  # weigthing for REAL data !  If CASA older than 4.3.0: weight: 0.193
+weight7m = [1.]  # weigthing for REAL data !  If CASA older than 4.3.0: weight: 0.193
 
 ##### non interactive - begin #####
 thevis = a12m
@@ -88,7 +88,7 @@ TPpointinglist     = imbase+'.12m.ptg'
 TPpointinglistAlternative = 'user-defined.ptg' 
 
 TPnoiseRegion   = '150,200,150,200'  # in unregridded SD image (i.e. sdreordered = sdbase +'.SD_ro.image')
-TPnoiseChannels = '2~5'              # in unregridded and un-cut SD cube (i.e. sdreordered = sdbase +'.SD_ro.image')!
+TPnoiseChannels = '1~7'              # in unregridded and un-cut SD cube (i.e. sdreordered = sdbase +'.SD_ro.image')!
 
 
 
@@ -98,10 +98,10 @@ TPnoiseChannels = '2~5'              # in unregridded and un-cut SD cube (i.e. s
 #    imname = imbase + cleansetup + combisetup 
 
 mode     = 'cube'      # 'mfs' or 'cube'
-mscale   = 'HB'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
+mscale   = 'MS'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
 masking  = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 inter    = 'nIA'      # interactive ('IA') or non-interactive ('nIA')
-nit     = 0           # max = 9.9 * 10**9 
+nit     = 1000000           # max = 9.9 * 10**9 
 
 specsetup =  'INTpar' # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
 ######### if "SDpar", want to use just a channel-cut-out of the SD image? , 
@@ -125,7 +125,7 @@ cont_chans =''   # line free channels for cube rms estimation
 sdmasklev = 0.3  # maximum x this factor = threshold for SD mask
 
 
-momchans = ''      # channels to compute moment maps (integrated intensity, etc.) 
+momchans = '8~63' #line-free: '1~7,64~69'      # channels to compute moment maps (integrated intensity, etc.) 
 
                      
 ########## general tclean parameters
@@ -137,9 +137,9 @@ general_tclean_param = dict(#overwrite  = overwrite,
                            imsize      = 560,  
                            cell        = '0.5arcsec', 
                            phasecenter = 'J2000 12h22m54.9 +15d49m15',             
-                           start       = '1550km/s', #'1400km/s',  
+                           start       = '1400km/s', #'1550km/s', #'1400km/s',  
                            width       = '5km/s',  
-                           nchan       = 10, #70,  
+                           nchan       = 70, #10, #70,  
                            restfreq    = '115.271202GHz',
                            threshold   = '',               # SDINT: None 
                            maxscale    = 10.,              # recommendations/explanations 
