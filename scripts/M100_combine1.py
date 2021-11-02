@@ -123,7 +123,7 @@ tclean(vis=vis,
 myimage=prename+'_dirty.image'
 bigstat=imstat(imagename=myimage)
 peak= bigstat['max'][0]
-print 'peak (Jy/beam) in cube = '+str(peak)
+print('peak (Jy/beam) in cube = '+str(peak))
 
 # find the RMS of a line free channel (should be around 0.011
 chanstat=imstat(imagename=myimage,chans='4')
@@ -132,7 +132,7 @@ chanstat=imstat(imagename=myimage,chans='66')
 rms2= chanstat['rms'][0]
 rms=0.5*(rms1+rms2)        
 
-print 'rms (Jy/beam) in a channel = '+str(rms)
+print('rms (Jy/beam) in a channel = '+str(rms))
 
 
 sidelobethresh = 2.0
@@ -175,7 +175,7 @@ tclean(vis=vis,
     pbcor=True)
 
 #
-# viewer('M100_combine_CO_cube.image',gui=True)
+# viewer('M100_combine_CO_cube.image')
 
 myimage='M100_combine_CO_cube.image'
 chanstat=imstat(imagename=myimage,chans='4')
@@ -183,7 +183,7 @@ rms1= chanstat['rms'][0]
 chanstat=imstat(imagename=myimage,chans='66')
 rms2= chanstat['rms'][0]
 rms=0.5*(rms1+rms2)
-print 'rms in a channel = '+str(rms)
+print('rms in a channel = '+str(rms))
 
 
 os.system('rm -rf M100_combine_CO_cube.image.mom0')
@@ -412,3 +412,4 @@ print("%g %g %g" % (f1,f2,f3))
 # 5.5 => 2825.9993648   2825.99752571  3054.25147157
 # 5.6 => 2826.22910583  2826.22718072  3050.38152141
 #        2826.23        2826.23        3050.38
+# 5.8 =>
