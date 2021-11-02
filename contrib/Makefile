@@ -30,6 +30,7 @@ qac:    QAC
 QAC:
 	git clone https://github.com/teuben/QAC/
 
+# https://casaguides.nrao.edu/index.php/Analysis_Utilities
 analysis_scripts.tar:
 	wget ftp://ftp.cv.nrao.edu/pub/casaguides/analysis_scripts.tar
 
