@@ -31,7 +31,6 @@ with these, we can write out data combination procedures as follows:
       (im,pb,psf,model) = tclean(vis+tpms)
 
 
-
 ## Polka Dot pattern
 
 If your image seems to show a polka dot pattern, this can happen
@@ -83,6 +82,13 @@ flux scaling (kernel beam/real beam) - this factor is not included in
 the **simanalyze** code.  The comments in **simalma** say that the simulated
 beam deviates from the real (diffraction) beam so that it needs this
 correction.
+
+## Foreigh Single Dish Maps
+
+An anekdote: SMT map with a 3x3 pixel area of 16", where the beam is 34", of identical
+intensities in Kelvin.  Regridding to the smaller ALMA map caused flux to be lost because
+not the full SMT map was used. To compensate for this, the single dish map would need to
+be scaled, possibly with immath() or if just feather is used, its sdfactor= keyword.
 
 
 ## Too many open files
