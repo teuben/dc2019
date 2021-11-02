@@ -35,7 +35,7 @@ rms = 0.13
 
 winpix = 0   # not used yet
 
-niter = [0, 1000, 3000, 10000, 30000, 50000]
+niter = [0, 10000]
 
 #   do the work inside this directory
 pdir = 'M100qac'
@@ -64,7 +64,7 @@ else:
 
 qac_log("TP2VIS with rms=%g" % rms)       # rms from imstat() on edge channels   [0.13 seems to be a better value]
 qac_project('test6/tp0')
-qac_tp_vis('test6/tp0',tpim,ptg,rms=rms,phasecenter=phasecenter)  
+qac_tp_vis('test6/tp0',tpim,ptg,rms=rms)
 qac_log("TP2VISWT - should show no change; about 0.0107354")
 tp2viswt('test6/tp0/tp.ms',value=rms,mode='rms')
 qac_clean1('test6/tp0/clean0','test6/tp0/tp.ms',nsize,pixel,niter=0,phasecenter=phasecenter,**line)
@@ -74,7 +74,7 @@ if True:
     deconvolve(tpim,'test6/tp.model',psf=psf,alg='clark')
     
     qac_project('test6/tp1')
-    qac_tp_vis('test6/tp1','test6/tp.model',ptg,rms=rms,phasecenter=phasecenter,deconv=False)
+    qac_tp_vis('test6/tp1','test6/tp.model',ptg,rms=rms,deconv=False)
     qac_clean1('test6/tp1/clean0','test6/tp1/tp.ms',nsize,pixel,niter=0,phasecenter=phasecenter,**line)
 
 if True:
@@ -85,7 +85,7 @@ if True:
     # imhead('test6/M100_TP_CO_cube.bl.model','put','unit','Jy/pixel')      should file a ticket on this
     imhead('test6/M100_TP_CO_cube.bl.model','put','bunit','Jy/pixel')
     qac_project('test6/tp2')    
-    qac_tp_vis('test6/tp2','test6/M100_TP_CO_cube.bl.model',ptg,rms=rms,phasecenter=phasecenter,deconv=False)
+    qac_tp_vis('test6/tp2','test6/M100_TP_CO_cube.bl.model',ptg,rms=rms,deconv=False)
     qac_clean1('test6/tp2/clean0','test6/tp2/tp.ms',nsize,pixel,niter=0,phasecenter=phasecenter,**line)
 
 # decide on which tp.ms we will use (tp1 and tp2 were progressively worse)

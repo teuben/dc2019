@@ -45,7 +45,7 @@ M100feather:
 
 # second
 # 56911.62user 12147.88system 4:33:03elapsed 421%CPU 
-M100tp2vis: M100feather
+M100tp2vis: 
 	$(CASA) M100_combine4.py > M100_combine4.log  2>&1
 
 # third
