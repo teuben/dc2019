@@ -17,7 +17,7 @@ step_title = {0: 'Concat',
               }              
 
 thesteps=[0,1,2,3,4,5,6,7,8]
-#thesteps=[6,7]
+#thesteps=[0,6]
 
 ######## collect only the product name?          
 dryrun = False    # False to execute combination, True to gather filenames only
@@ -66,10 +66,10 @@ thevis.extend(a7m)
 weightscale = weight12m
 weightscale.extend(weight7m)
 
-skymodel=a12m[0].replace('.ms','.skymodel')    # model used for simulating the observation, expected to be CASA-imported
-
 ##### non interactive - end #####
 
+
+skymodel=a12m[0].replace('.ms','.skymodel')    # model used for simulating the observation, expected to be CASA-imported
 
 
 
