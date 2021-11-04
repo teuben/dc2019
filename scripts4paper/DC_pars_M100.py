@@ -17,7 +17,7 @@ step_title = {0: 'Concat',
               }
 
 thesteps=[0,1,2,3,4,5,6,7,8]
-#thesteps=[2]
+#thesteps=[6]
 
 ######## collect only the product name?          
 dryrun = False    # False to execute combination, True to gather filenames only
@@ -49,7 +49,7 @@ weight12m = [1.]
 a7m =[pathtoconcat + _7ms
      ]
 
-weight7m = [1.]  # weigthing for REAL data !  If CASA older than 4.3.0: weight: 0.193
+weight7m = [1.]  # weigthing for REAL data !  If CASA calibration older than 4.3.0: weight: 0.193
 
 ##### non interactive - begin #####
 thevis = a12m
@@ -60,10 +60,10 @@ thevis.extend(a7m)
 weightscale = weight12m
 weightscale.extend(weight7m)
 
-skymodel=''    # model used for simulating the observation, expected to be CASA-imported
-
 ##### non interactive - end #####
 
+
+skymodel=''    # model used for simulating the observation, expected to be CASA-imported
 
 
 
