@@ -39,10 +39,12 @@ start = time.time()
 
 ### switch this off, if you run multiple casa instances/DC_runs in the same work folder !
 #          
-#  ### delete garbage from aboprted script ###
-#  os.system('rm -rf '+pathtoimage + 'TempLattice*')
+### delete garbage from aboprted script ###
+os.system('rm -rf '+pathtoimage + 'TempLattice*')
 #  
 ####### else switch on #######
+
+
 
 
 ### naming scheme specific inputs:
@@ -90,20 +92,24 @@ TP2VISsetup  = '.TP2VIS_t'  #+ str(TPfac)
 ##### intermediate products name for step 1 = gather information - no need to change!
 
 # SD image: axis-reordering and regridding
+
 sdreordered = sdbase +'.SD_ro.image'                 # SD image axis-reordering
 
 if startchan!=None and endchan!=None and specsetup == 'SDpar':
     sdbase = sdbase + '_ch'+str(startchan)+'-'+str(endchan)
-
+else:
+    pass 
+    
 sdreordered_cut = sdbase +'.SD_ro.image'                 # SD image axis-reordering
 #print('sdreordered_cut', sdreordered_cut)
 sdroregrid = sdbase +'.SD_ro-rg_'+specsetup+'.image' # SD image regridding
 #print(sdroregrid)
 
-imnamethSD      = imbase + '.'+mode +'_'+ specsetup +'_template'   # dirty image for thershold and mask generation
-threshmask      = imbase + '.'+mode +'_'+ specsetup+ '_RMS'           # thresold mask name
-SDint_mask_root = sdbase + '.'+mode +'_'+ specsetup+ '_SD-AM'         # SD+AM mask name
-combined_mask   = SDint_mask_root + '-RMS.mask'            # SD+AM+threshold mask name
+imnamethSD      = imbase + '.'+mode +'_'+ specsetup +'_template'  # dirty image for thershold and mask generation
+threshmask      = imbase + '.'+mode +'_'+ specsetup+ '_RMS'       # thresold mask name
+#SDint_mask_root = sdbase + '.'+mode +'_'+ specsetup+ '_SD-AM'     # SD+AM mask name
+SDint_mask_root = sdbase + '.'+mode +'_'+ specsetup+ '_SD'        # SD mask name
+combined_mask   = SDint_mask_root + '-RMS.mask'                   # SD+AM+threshold mask name
 
 
 
@@ -125,8 +131,8 @@ if masking == 'SD-AM':
             print('Need to execute step 1 to generate an image mask')
     general_tclean_param['usemask']     = 'auto-multithresh'   
     general_tclean_param['loadmask']    = True   
+    general_tclean_param['fniteronusermask']    = 0.3   
     
-    #general_tclean_param['mask']        = imbase + 'SD-AM.mask' 
 
 
 # masks per combination method
@@ -170,41 +176,53 @@ elif specsetup == 'INTpar':
 
 
 
+
 # common tclean parameters needed for generating a simple dirty image in step 1
 
-mask_tclean_param = dict(phasecenter=general_tclean_param['phasecenter'],
-                         spw=        general_tclean_param['spw'], 
-                         field=      general_tclean_param['field'], 
-                         imsize=     general_tclean_param['imsize'], 
-                         cell=       general_tclean_param['cell'],
-                         specmode=general_tclean_param['specmode'],
-                         start = general_tclean_param['start'],
-                         width = general_tclean_param['width'],
-                         nchan = general_tclean_param['nchan'],
+
+rederivethresh=True   # TP2VIS parameter to derive threshold for SD+INT.ms  
+
+
+mask_tclean_param = dict(phasecenter = general_tclean_param['phasecenter'],
+                         spw =      general_tclean_param['spw'], 
+                         field =    general_tclean_param['field'], 
+                         imsize =   general_tclean_param['imsize'], 
+                         cell =     general_tclean_param['cell'],
+                         specmode = general_tclean_param['specmode'],
+                         start =    general_tclean_param['start'],
+                         width =    general_tclean_param['width'],
+                         nchan =    general_tclean_param['nchan'],
                          restfreq = general_tclean_param['restfreq']
                          )
 
 
-if general_tclean_param['threshold'] == '':
-    if not os.path.exists(threshmask + '.mask') or not os.path.exists(imnamethSD + '.image'):
-        if 1 in thesteps:
-            pass
-        else:    
-            thesteps.append(1)      
-            thesteps.sort()           # force execution of SDint mask creation (Step 1)
-            print('Need to execute step 1 to estimate a thresold')
+    
+if not os.path.exists(threshmask + '.mask') or not os.path.exists(imnamethSD + '.image'):
+    if 1 in thesteps:
+        pass
+    else:    
+        thesteps.append(1)      
+        thesteps.sort()           # force execution of SDint mask creation (Step 1)
+        print('Need to execute step 1 to estimate a thresold')
+else:
+    thresh = dc.derive_threshold(vis, imnamethSD , threshmask,
+                                 overwrite=False,   # False for read-only
+                                 smoothing = smoothing,
+                                 RMSfactor = RMSfactor,
+                                 cube_rms   = cube_rms,    
+                                 cont_chans = cont_chans,
+                                 **mask_tclean_param
+                                 )
+              
+    if general_tclean_param['threshold'] == '':                         # don't forget to run *_pars_* before
+        general_tclean_param['threshold']  = str(thresh)+'Jy' 
+        print('Use mask threshold as clean threshold ', general_tclean_param['threshold']) 
+            
     else:
-        thresh = dc.derive_threshold(vis, imnamethSD , threshmask,
-                                     overwrite=False,   # False for read-only
-                                     smoothing = smoothing,
-                                     RMSfactor = RMSfactor,
-                                     cube_rms   = cube_rms,    
-                                     cont_chans = cont_chans,
-                                     **mask_tclean_param
-        )
+        rederivethresh=False  # TP2VIS parameter 
+        print('Use user-defined clean threshold ', general_tclean_param['threshold'])          
+            
 
-        general_tclean_param['threshold']  = str(thresh)+'Jy'   
-        
 
 if not os.path.exists(vis):
     if dryrun==True:
@@ -213,7 +231,7 @@ if not os.path.exists(vis):
         pass
     else:    
         thesteps.append(0)      
-        thesteps.sort()           # force execution of SDint mask creation (Step 1)
+        thesteps.sort()           # force execution of vis creation (Step 0)
         print('Need to execute step 0 to generate a concatenated ms')
 
 
@@ -244,15 +262,6 @@ steplist2='_s'+stepsjoin  # for runtime measurement
 
 
 
-
-
-
-
-
-# methods for combining agg. bandwidth image with TP image - cube not yet tested/provided
-
-
-
     
 mystep = 0    ###################----- CONCAT -----####################
 if mystep in thesteps:
@@ -271,10 +280,11 @@ if mystep in thesteps:
 
 
     if dryrun == True:
-        pass
+        print('Skip execution!')
     else:   
         if thevis ==[]:
-            pass
+            print('No data to concat!')
+            
         else:   
             for i in range(0,len(thevis)):
                 dc.check_CASAcal(thevis[i])    
@@ -288,7 +298,10 @@ if mystep in thesteps:
             print('--- Done! ---')         
 
 
-mystep = 1    ############# ----- PREPARE SD-IMAGE and MASKS-----###############
+
+
+
+mystep = 1    #########----- PREPARE SD-IMAGE and MASKS -----##########
 if mystep in thesteps:
     cta.casalog.post('### ','INFO')
     cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
@@ -300,28 +313,31 @@ if mystep in thesteps:
     print(' ')
 
     if dryrun == True:
-        pass
+        print('Skip execution!')
     else:    
 
         # axis reordering       
         print(' ')         
-        print('Reorder SD image axes')                          
+        print('--- Reorder SD image axes ---')                          
         dc.reorder_axes(sdimage_input, sdreordered)
         print('--- Axis reorder done! --- ')         
+       
+       
         
         # make a channel-cut-out from the SD image?
         if sdreordered!=sdreordered_cut:
             print(' ')         
-            print('Make a channel-cut-out from the SD image from channel', startchan, 'to', endchan)  
+            print('--- Make a channel-cut-out from the SD image from channel', startchan, 'to', endchan, '--- ')  
             dc.channel_cutout(sdreordered, sdreordered_cut, startchan = startchan,
                               endchan = endchan)
             print('--- Channel-cut-out done! --- ')         
+
 
         
         # read SD image frequency setup as input for tclean    
         if specsetup == 'SDpar':
             print(' ')         
-            print('Read SD image frequency setup as input for tclean')              
+            print('--- Read SD image frequency setup as input for tclean ---')              
             cube_dict = dc.get_SD_cube_params(sdcube = sdreordered_cut) #out: {'nchan':nchan, 'start':start, 'width':width}
             general_tclean_param['start'] = cube_dict['start']  
             general_tclean_param['width'] = cube_dict['width']
@@ -333,7 +349,7 @@ if mystep in thesteps:
         
         # derive a simple threshold and make a mask from it 
         print(' ')         
-        print('Derive a simple threshold from concatms dirty image and make a mask from it')                                  
+        print('--- Derive a simple threshold from concatms dirty image and make a mask from it --- ')                                  
         thresh = dc.derive_threshold(vis, imnamethSD , threshmask,
                                      overwrite=True,
                                      smoothing = smoothing,
@@ -343,32 +359,37 @@ if mystep in thesteps:
                                      **mask_tclean_param) 
                                      
         if general_tclean_param['threshold'] == '':
-            general_tclean_param['threshold']  = str(thresh)+'Jy'   
-            print('Set the tclean-threshold to ', general_tclean_param['threshold'])
+            userthresh=False  
+            general_tclean_param['threshold']  = str(thresh)+'Jy' 
+            print('Use mask threshold as clean threshold ', general_tclean_param['threshold'])          
+            #print('Set the tclean-threshold to ', general_tclean_param['threshold'])
+        else:
+            userthresh=True 
+            print('Use user-defined clean threshold ', general_tclean_param['threshold'])          
+           
         print('--- Threshold and mask done! --- ')         
-                                     
-                         
 
-                         
-        
+
+  
         # regrid SD image frequency axis to tclean (requires derive_threshold to be run)    
         if specsetup == 'SDpar':
             sdimage = sdreordered_cut  # for SD cube params used
         else:
             print('')
-            print('Regrid SD image')
+            print('--- Regrid SD image --- ')
             os.system('rm -rf '+sdroregrid)
             dc.regrid_SD(sdreordered_cut, sdroregrid, imnamethSD+'.image')
             sdimage = sdroregrid  # for INT cube params used
             print('--- Regridding done! --- ')     
-            # just for testing - if it fails then the common beam in regridSD didn't work 
-            hdr = imhead(sdimage,mode='summary')
-            beam_major = hdr['restoringbeam']['major']    
+            ## just for testing - if it fails then the common beam in regridSD didn't work 
+            #hdr = imhead(sdimage,mode='summary')
+            #beam_major = hdr['restoringbeam']['major']    
+     
         
            
         # make SD+AM mask (requires regridding to be run; currently)
         print(' ')         
-        print('Make single dish (SD) + automasking (AM) mask')                                          
+        print('--- Make single dish (SD) + automasking (AM) mask --- ')                                          
         SDint_mask = dc.make_SDint_mask(vis, sdimage, imnamethSD, 
                                         sdmasklev, 
                                         SDint_mask_root,
@@ -376,13 +397,17 @@ if mystep in thesteps:
         print('--- SD+AM mask done! --- ')         
 
 
+
+        # merge masks 
         cta.immath(imagename=[SDint_mask_root+'.mask', threshmask+'.mask'],
                    expr='iif((IM0+IM1)>'+str(0)+',1,0)',
                    outfile=combined_mask)    
                    
                    # ! terminal complains about bunit issues !
-        print('Combined SD+AM and threshold mask')                                          
+        print('--- Combined SD+AM and threshold mask --- ')                                          
 
+       
+       
            
 
 mystep = 2    ############----- CLEAN FOR FEATHER/SSC -----############
@@ -398,30 +423,22 @@ if mystep in thesteps:
     
 
     imname = imbase + cleansetup + tcleansetup
-    
-    
+       
     if masking == 'SD-AM': 
         general_tclean_param['mask']  = tclean_mask
 
-
-    ### for CASA 5.7:
     z = general_tclean_param.copy()   
 
-
     if dryrun == True:
-        pass
+        print('Skip execution!')        
     else:
-        #os.system('rm -rf '+imname+'*')
         dc.runtclean(vis, imname, startmodel='', 
                      **z)
-        #**general_tclean_param, **special_tclean_param)   # in CASA 6.x
-        #if masking == 'SD-AM':
-        #    z['continueclean'] = True 
-        #    z['usemask'] = 'auto-multithresh' 
-        #    dc.runtclean(vis, imname, startmodel='', 
-        #             **z)
+
 
     tcleanims.append(imname+'.image')
+
+
 
 
 
@@ -436,8 +453,6 @@ if mystep in thesteps:
     print('### ')
     print(' ')
 
-    #intimage = imbase + cleansetup + '.tclean.image'
-    #intpb    = imbase + cleansetup + '.tclean.pb'
 
     intimage = imbase + cleansetup + tcleansetup + '.image'
     intpb    = imbase + cleansetup + tcleansetup + '.pb'
@@ -445,15 +460,16 @@ if mystep in thesteps:
     for i in range(0,len(sdfac)):
         
         imname = imbase + cleansetup + feathersetup + str(sdfac[i]) 
-        
-             
+                    
         if dryrun == True:
-            pass
+            print('Skip execution!')
         else:
             dc.runfeather(intimage, intpb, sdimage, sdfactor = sdfac[i],
                           featherim = imname)
 
+
         featherims.append(imname+'.image')
+
 
 
 
@@ -469,6 +485,7 @@ if mystep in thesteps:
     print('### ')
     print(' ')
 
+
     intimage = imbase + cleansetup + tcleansetup + '.image'
     intpb    = imbase + cleansetup + tcleansetup + '.pb'
 
@@ -476,12 +493,13 @@ if mystep in thesteps:
         imname = imbase + cleansetup + SSCsetup + str(SSCfac[i]) 
         
         if dryrun == True:
-            pass
+            print('Skip execution!')
         else:
             os.system('rm -rf '+imname+'*')
 
             dc.ssc(highres=intimage, lowres=sdimage, pb=intpb,
                    sdfactor = SSCfac[i], combined=imname) 
+   
                    
         SSCims.append(imname+'.image')
 
@@ -504,32 +522,20 @@ if mystep in thesteps:
     if masking == 'SD-AM': 
         general_tclean_param['mask']  = hybrid_mask
 
-
-    ### for CASA 5.7:
     z = general_tclean_param.copy()   
 
-
     for i in range(0,len(sdfac_h)):
-        imname = imbase + cleansetup + hybridsetup #+ str(sdfac_h[i]) 
-
+        imname = imbase + cleansetup + hybridsetup 
         
         if dryrun == True:
-            pass
-        else:
-            #os.system('rm -rf '+imname+'.*')
-            #os.system('rm -rf '+imname.replace('_f'+str(sdfac_h[i]),'')+'.*') 
-            # delete tclean files ending on 'hybrid.*'  (dot '.' is important!)
-
-            
+            print('Skip execution!')
+        else:                       
             dc.runWSM(vis, sdimage, imname, sdfactorh = sdfac_h[i],
                       **z)
-            #if masking == 'SD-AM':
-            #    z['continueclean'] = True 
-            #    z['usemask'] = 'auto-multithresh' 
-            #    dc.runWSM(vis, sdimage, imname, sdfactorh = sdfac_h[i], doautomask = True
-            #          **z)
+
                                 
         hybridims.append(imname+str(sdfac_h[i])+'.image')
+
 
 
 mystep = 6    ####################----- SDINT -----####################
@@ -544,45 +550,26 @@ if mystep in thesteps:
     print(' ')
     
     
-    
     if masking == 'SD-AM': 
         general_tclean_param['mask']  = sdint_mask
 
-
-
-
-    ### for CASA 5.7:
     z = general_tclean_param.copy()   
     z.update(sdint_tclean_param)
-
-
     
     for i in range(0,len(sdg)) :
         jointname = imbase + cleansetup + sdintsetup + str(sdg[i]) 
         
         if dryrun == True:
-            pass
+            print('Skip execution!')
         else:
-            #os.system('rm -rf '+jointname+'*')
-            
             dc.runsdintimg(vis, sdimage, jointname, sdgain = sdg[0],
                            **z)
-            #if masking == 'SD-AM':
-            #    z['renameexport'] = False 
-            #    dc.runsdintimg(vis, sdimage, jointname, sdgain = sdg[0], 
-            #               **z)
-            #    z['renameexport'] = True  
-            #    z['continueclean'] = True 
-            #    z['usemask'] = 'auto-multithresh' 
-            #    dc.runsdintimg(vis, sdimage, jointname, sdgain = sdg[0],
-            #               **z)
-            #else:
-            #    dc.runsdintimg(vis, sdimage, jointname, sdgain = sdg[0], 
-            #               **z)
 
 
-                      
         sdintims.append(jointname+'.image')                
+     
+     
+     
                 
                 
 mystep = 7    ###################----- TP2VIS -----####################
@@ -597,14 +584,10 @@ if mystep in thesteps:
     print(' ')
 
 
-
-    # inputs: concatms, sdreordered, a12m[0]
     # get 12m pointings to simulate TP observation as interferometric
-        
-    # if a12m[0] exists:        
-
+     
     if dryrun == True:
-        pass
+        print('Skip execution!')
     else:    
         if a12m!=[]:    # if 12m-data exists ...
             #dc.ms_ptg(TPpointingTemplate, outfile=TPpointinglist, uniq=True)
@@ -612,67 +595,64 @@ if mystep in thesteps:
         else:
             TPpointinglist = TPpointinglistAlternative    
     
-
-    imTP = sdreordered
-    TPresult= sdreordered.replace('.image','.ms')
+    
+    # create 'TP.ms', i.e. SD visibilities  
+    
+    if specsetup == 'SDpar':
+        imTP = sdreordered_cut
+    else:
+        imTP = sdreordered
+    TPresult= imTP.replace('.image','.ms')
     imname1 = imbase + cleansetup + TP2VISsetup  # first plot
-      
-      
+     
     if dryrun == True:
         pass
     else:    
         dc.create_TP2VIS_ms(imTP=imTP, TPresult=TPresult,
             TPpointinglist=TPpointinglist, mode=mode,  
             vis=vis, imname=imname1, TPnoiseRegion=TPnoiseRegion, 
-            TPnoiseChannels=TPnoiseChannels)  # in CASA 6.x
-
-    if masking == 'SD-AM': 
-        general_tclean_param['mask']  = TP2VIS_mask
+            TPnoiseChannels=TPnoiseChannels)  
 
 
-
-    # tclean segmentation fault -
-    # maybe due to different numbers of spw in INT and SD ms-files
-    # we can expect TP.ms to have only one spw
-    # put relevant INT data range (i.e SD range) on one spw
-
-    transvis = vis+'_LSRK' #'_1spw'
-
+    # bring TP.ms and INT.ms on same spectral reference frame before tclean 
+    
+    transvis = vis+'_LSRK' 
 
     if dryrun == True:
         pass
     else:
         dc.transform_INT_to_SD_freq_spec(TPresult, imTP, vis, 
-            transvis, datacolumn='DATA', outframe='LSRK')  # in CASA 6.x
+            transvis, datacolumn='DATA', outframe='LSRK')  
 
 
-    ### for CASA 5.7:
-    z = general_tclean_param.copy()   
-    #z.update(sdint_tclean_param)
-    #z.update(special_tclean_param)
+    # make TP2VIS image (tclean)
     
+    if masking == 'SD-AM': 
+        general_tclean_param['mask']  = TP2VIS_mask
+
+    z = general_tclean_param.copy()   
+    z['rederivethresh']=rederivethresh
+   
     for i in range(0,len(TPfac)) :
-        imname = imbase + cleansetup + TP2VISsetup + str(TPfac[i]) #+ '_CD'     #don't remember the reason for this "CD" ending
+        imname = imbase + cleansetup + TP2VISsetup + str(TPfac[i])
         
         vis=transvis #!
         
         if dryrun == True:
             pass
         else:
-            #if masking == 'SD-AM':
-            #    dc.runtclean_TP2VIS_INT(TPresult, TPfac[i], vis, imname,
-            #                        RMSfactor=RMSfactor, cube_rms=cube_rms, 
-            #                        cont_chans = cont_chans, doautomask = True, **z) 
-            #else:
             dc.runtclean_TP2VIS_INT(TPresult, TPfac[i], vis, imname,
                                     RMSfactor=RMSfactor, cube_rms=cube_rms, 
-                                    cont_chans = cont_chans, **z)   # in CASA 6.x
+                                    cont_chans = cont_chans, **z)   
+
  
         TP2VISims.append(imname+'.tweak.image')
         
 
 
-mystep = 8    ###################----- ASSESSMENT -----####################
+
+
+mystep = 8    #################----- ASSESSMENT -----##################
 if mystep in thesteps:
     cta.casalog.post('### ','INFO')
     cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
@@ -951,7 +931,7 @@ if mystep in thesteps:
         if mode=='cube':   
             allcombims0 = tcleanims  + featherims + SSCims     + hybridims  + sdintims  + TP2VISims   # need to fix TP2VIS for cont images without emission-free region first 
         else:
-			print('Skip TP2VIS results in this selection - most likely no good result in mfs-mode')
+            print('Skip TP2VIS results in this selection - most likely no good result in mfs-mode')
             allcombims0 = tcleanims  + featherims + SSCims     + hybridims  + sdintims  #+ TP2VISims   # need to fix TP2VIS for cont images without emission-free region first 
         #print(allcombims)
         print(' ')
