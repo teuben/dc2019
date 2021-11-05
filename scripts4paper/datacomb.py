@@ -24,7 +24,7 @@ from importlib import reload
 import tp2vis as t2v
 
 # new style
-import casatools as cto
+#import casatools as cto   # is it used anywhere? 
 import casatasks as cta
 
 # old style
@@ -132,16 +132,42 @@ def runsdintimg(vis,
              default: -1
     restfreq - the restfrequency to write to the image for velocity calculations
              default: None, example: '115.271GHz'
+    niter - the standard tclean niter parameter
+             default: 0, example: niter=1000000
+    usemask - the standard tclean mask parameter.  If usemask='auto-multithresh', can specify:
+             sidelobethreshold, noisethreshold, lownoisethreshold, minbeamfrac, growiterations - 
+             if usemask='user', must specify mask='maskname.mask' 
+             if usemask='pb', can specify pbmask=0.4, or some level.
+             default: 'auto-multithresh'
     interactive - if True (default) use interactive cleaning with initial mask
                   set using pbmask=0.4
                   if False use non-interactive clean with automasking (you will
                   need to provide the threshold parameter)
 
     multiscale - if False (default) use hogbom cleaning, otherwise multiscale
-       
+      
     maxscale - for multiscale cleaning, use scales up to this value (arcsec)
-             Recommended value: 10 arcsec
-             default: 0.
+              Recommended value: 10 arcsec
+             default: 0.  
+    continueclean - if True, continue the runsdintimg on the sdintimaging products
+              from a previous run. ALERT: previous run must have used renameexport=False,
+              else the needed products have been renamed or deleted 
+             default: False
+    renameexport - sort out the relevant imaging products and rename them according to 
+              the DC naming scheme, delete the rest.
+              ALERT: if you plan to call runsdintimg again to continue work on the 
+              image products of the current run, set renameexport=False to keep the sdintimaging 
+              products in their native output form
+             default: True
+    loadmask - run sdintimaging with user-specified mask for fniteronusermask*niter iterations 
+              and continue with auto-masking (usemask='auto-multithresh') for the remaining 
+              niter*(1-fniteronusermask) iterations 
+             default: False
+    fniteronusermask - adjusting the amount of iterations spend on a usermask for loadmask=True
+              allowed values: 0.0 (none in theory, in fact: 1 iteration) - 1.0 (all)
+             default: 0.3         
+             
+             
 
     Examples: runsdintimg('gmc_120L.alma.all_int-weighted.ms','gmc_120L.sd.image', 
                 'gmc_120L.joint-sdgain2.5', phasecenter='J2000 12:00:00 -35.00.00.0000', 
@@ -382,7 +408,7 @@ def runsdintimg(vis,
             sdint_arg['niter']=1
         else:   
             sdint_arg['niter']=int(niter*fniteronusermask)
-        # load mask into tclean with 1 iteration
+        # load mask into tclean with fniteronusermask*niter
         cta.sdintimaging(**sdint_arg)
         
         sdint_arg['usemask']=usemask
@@ -449,35 +475,35 @@ def runsdintimg(vis,
     #   *.sd.cube.psf/
     #   *.sd.cube.residual/
     
-    #if renameexport == True:
-    #    # rename SDINT outputs to common style
-    #    print('Exporting final pbcor image to FITS ...')
-    #    if mydeconvolver=='mtmfs' and niter>0:
-    #        oldnames=glob.glob(jointname+'.joint.multiterm*')
-    #        for nam in oldnames:
-    #            os.system('mv '+nam+' '+nam.replace('.joint.multiterm',''))
-    #        oldnames=glob.glob(jointname+'*.tt0*')
-    #        for nam in oldnames:
-    #            os.system('mv '+nam+' '+nam.replace('.tt0',''))     
-    #    
-    #        os.system('rm -rf '+jointname+'.int.cube*')
-    #        os.system('rm -rf '+jointname+'.sd.cube*')
-    #        os.system('rm -rf '+jointname+'.joint.cube*')
-    #    
-    #        cta.exportfits(jointname+'.image.pbcor', jointname+'.image.pbcor.fits')
-    #        
-    #    elif mydeconvolver=='hogbom' or mydeconvolver=='multiscale':
-    #        os.system('rm -rf '+jointname+'.int.cube*')
-    #        os.system('rm -rf '+jointname+'.sd.cube*')     
-    #        
-    #        oldnames=glob.glob(jointname+'.joint.cube*')
-    #        for nam in oldnames:
-    #            os.system('mv '+nam+' '+nam.replace('.joint.cube',''))
-    #        
-    #        #exportfits(jointname+'.joint.cube.image.pbcor', jointname+'.joint.cube.image.pbcor.fits')
-    #        cta.exportfits(jointname+'.image.pbcor', jointname+'.image.pbcor.fits')
-    #else:
-    #    print('Keeping native file names - no export!')
+    if renameexport == True:
+        # rename SDINT outputs to common style
+        print('Exporting final pbcor image to FITS ...')
+        if mydeconvolver=='mtmfs' and niter>0:
+            oldnames=glob.glob(jointname+'.joint.multiterm*')
+            for nam in oldnames:
+                os.system('mv '+nam+' '+nam.replace('.joint.multiterm',''))
+            oldnames=glob.glob(jointname+'*.tt0*')
+            for nam in oldnames:
+                os.system('mv '+nam+' '+nam.replace('.tt0',''))     
+        
+            os.system('rm -rf '+jointname+'.int.cube*')
+            os.system('rm -rf '+jointname+'.sd.cube*')
+            os.system('rm -rf '+jointname+'.joint.cube*')
+        
+            cta.exportfits(jointname+'.image.pbcor', jointname+'.image.pbcor.fits')
+            
+        elif mydeconvolver=='hogbom' or mydeconvolver=='multiscale':
+            os.system('rm -rf '+jointname+'.int.cube*')
+            os.system('rm -rf '+jointname+'.sd.cube*')     
+            
+            oldnames=glob.glob(jointname+'.joint.cube*')
+            for nam in oldnames:
+                os.system('mv '+nam+' '+nam.replace('.joint.cube',''))
+            
+            #exportfits(jointname+'.joint.cube.image.pbcor', jointname+'.joint.cube.image.pbcor.fits')
+            cta.exportfits(jointname+'.image.pbcor', jointname+'.image.pbcor.fits')
+    else:
+        print('Keeping native file names - no export!')
 
 
     return True
@@ -516,7 +542,8 @@ def runWSM(vis,
            maxscale=0.,
            sdfactorh=1.0,
            continueclean=False,
-           loadmask=False
+           loadmask=False,
+           fniteronusermask=0.3
            ):
 
     """
@@ -572,8 +599,8 @@ def runWSM(vis,
              if usemask='user', must specify mask='maskname.mask' 
              if usemask='pb', can specify pbmask=0.4, or some level.
              default: 'auto-multithresh'
-    sdmasklev - if usemask='user', then use SD image at this level to draw a mask.
-             default: 0.3
+    ##### sdmasklev - if usemask='user', then use SD image at this level to draw a mask.
+    #####          default: 0.3
     interactive - the standard tclean interactive option
              default: True
     
@@ -584,7 +611,13 @@ def runWSM(vis,
              default: 0.
     sdfactorh - Scale factor to apply to Single Dish image (same as for feather)
     continueclean - see runtclean
-
+    loadmask - run sdintimaging with user-specified mask for fniteronusermask*niter iterations 
+              and continue with auto-masking (usemask='auto-multithresh') for the remaining 
+              niter*(1-fniteronusermask) iterations 
+             default: False
+    fniteronusermask - adjusting the amount of iterations spend on a usermask for loadmask=True
+              allowed values: 0.0 (none in theory, in fact: 1 iteration) - 1.0 (all)
+             default: 0.3 
 
     Example: runtclean('gmc_120L.alma.all_int-weighted.ms', 
                 'gmc_120L', phasecenter='J2000 12:00:00 -35.00.00.0000', 
@@ -1178,6 +1211,14 @@ def runtclean(vis,
              default: 0.
     restart - True (default): Re-use existing images. False: Increment imagename
     continueclean - True: same as 'restart', False(default): Delete old version
+    loadmask - run sdintimaging with user-specified mask for fniteronusermask*niter iterations 
+              and continue with auto-masking (usemask='auto-multithresh') for the remaining 
+              niter*(1-fniteronusermask) iterations 
+             default: False
+    fniteronusermask - adjusting the amount of iterations spend on a usermask for loadmask=True
+              allowed values: 0.0 (none in theory, in fact: 1 iteration) - 1.0 (all)
+             default: 0.3 
+
 
     Example: runtclean('gmc_120L.alma.all_int-weighted.ms', 
                 'gmc_120L', phasecenter='J2000 12:00:00 -35.00.00.0000', 
