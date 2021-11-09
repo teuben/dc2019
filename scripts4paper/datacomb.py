@@ -413,7 +413,7 @@ def runsdintimg(vis,
         
         sdint_arg['usemask']=usemask
         sdint_arg['mask']=''
-        sdint_arg['niter']=niter-tclean_arg['niter']
+        sdint_arg['niter']=niter-sdint_arg['niter']
         # if startmodel used, it would have been loaded in tclean step before 
         # -> clear startmodel parameter for next tclean call, else crash!
         sdint_arg['startmodel']=''
