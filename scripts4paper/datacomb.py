@@ -24,7 +24,7 @@ from importlib import reload
 import tp2vis as t2v
 
 # new style
-import casatools as cto
+#import casatools as cto   # is it used anywhere? 
 import casatasks as cta
 
 # old style
@@ -71,7 +71,8 @@ def runsdintimg(vis,
                 maxscale=0.,
                 continueclean=False,
                 renameexport=True,
-                loadmask=False
+                loadmask=False,
+                fniteronusermask=0.3
                 ):
 
     """
@@ -131,16 +132,42 @@ def runsdintimg(vis,
              default: -1
     restfreq - the restfrequency to write to the image for velocity calculations
              default: None, example: '115.271GHz'
+    niter - the standard tclean niter parameter
+             default: 0, example: niter=1000000
+    usemask - the standard tclean mask parameter.  If usemask='auto-multithresh', can specify:
+             sidelobethreshold, noisethreshold, lownoisethreshold, minbeamfrac, growiterations - 
+             if usemask='user', must specify mask='maskname.mask' 
+             if usemask='pb', can specify pbmask=0.4, or some level.
+             default: 'auto-multithresh'
     interactive - if True (default) use interactive cleaning with initial mask
                   set using pbmask=0.4
                   if False use non-interactive clean with automasking (you will
                   need to provide the threshold parameter)
 
     multiscale - if False (default) use hogbom cleaning, otherwise multiscale
-       
+      
     maxscale - for multiscale cleaning, use scales up to this value (arcsec)
-             Recommended value: 10 arcsec
-             default: 0.
+              Recommended value: 10 arcsec
+             default: 0.  
+    continueclean - if True, continue the runsdintimg on the sdintimaging products
+              from a previous run. ALERT: previous run must have used renameexport=False,
+              else the needed products have been renamed or deleted 
+             default: False
+    renameexport - sort out the relevant imaging products and rename them according to 
+              the DC naming scheme, delete the rest.
+              ALERT: if you plan to call runsdintimg again to continue work on the 
+              image products of the current run, set renameexport=False to keep the sdintimaging 
+              products in their native output form
+             default: True
+    loadmask - run sdintimaging with user-specified mask for fniteronusermask*niter iterations 
+              and continue with auto-masking (usemask='auto-multithresh') for the remaining 
+              niter*(1-fniteronusermask) iterations 
+             default: False
+    fniteronusermask - adjusting the amount of iterations spend on a usermask for loadmask=True
+              allowed values: 0.0 (none in theory, in fact: 1 iteration) - 1.0 (all)
+             default: 0.3         
+             
+             
 
     Examples: runsdintimg('gmc_120L.alma.all_int-weighted.ms','gmc_120L.sd.image', 
                 'gmc_120L.joint-sdgain2.5', phasecenter='J2000 12:00:00 -35.00.00.0000', 
@@ -275,9 +302,12 @@ def runsdintimg(vis,
             mydeconvolver = 'hogbom'
             numchan = nchan        #not really needed here?
 
+    if specmode == 'mfs':
+        weightingscheme ='briggs'   # cont mode 
+    elif specmode == 'cube':
+        weightingscheme ='briggs' #bwtaper'   # special briggs for cubes --- WAIT FOR IMPLEMENTATION IN SDINT 
 
-    #mygridder='mosaic'
-
+        
     # image and cell size
     npnt = 0
     if imsize==[] or cell=='':
@@ -310,13 +340,14 @@ def runsdintimg(vis,
                    specmode=specmode,
                    deconvolver=mydeconvolver,
                    scales=myscales,
-                   nterms=1,                  # turns mtmfs into mfs
+                   nterms=1,                  # nterms=1 turns mtmfs into mfs, CASA 6.2 needs nterms=2 to run (bug?)
                    start=start,
                    width=width,
                    nchan = numchan, 
                    restfreq=therf,
                    gridder='mosaic',          #mygridder,
-                   weighting='briggs',
+                   #weighting='briggs',
+                   weighting = weightingscheme,
                    robust = 0.5,
                    restoringbeam = 'common',   # SD-cube has only one beam - INT-cube needs it, too, else feather etc. fail
                    niter=niter,
@@ -373,30 +404,35 @@ def runsdintimg(vis,
     if loadmask==True:
 
         sdint_arg['usemask']='user'
-        sdint_arg['niter']=1
-        # load mask into tclean with 1 iteration
+        if fniteronusermask==0 or fniteronusermask==0.0:
+            sdint_arg['niter']=1
+        else:   
+            sdint_arg['niter']=int(niter*fniteronusermask)
+        # load mask into tclean with fniteronusermask*niter
         cta.sdintimaging(**sdint_arg)
         
         sdint_arg['usemask']=usemask
         sdint_arg['mask']=''
-        sdint_arg['niter']=niter
+        sdint_arg['niter']=niter-sdint_arg['niter']
+        # if startmodel used, it would have been loaded in tclean step before 
+        # -> clear startmodel parameter for next tclean call, else crash!
         sdint_arg['startmodel']=''
 
         # clean and get tclean-feedback 
         tcleansresults = cta.sdintimaging(**sdint_arg)
-	    
+        
         # store feedback in a file 
         pydict_to_file2(tcleansresults, jointname)
-	    
+        
         os.system('cp -r summaryplot_1.png '+jointname+'.png')   
                  
     else: 
         # clean and get tclean-feedback 
         tcleansresults = cta.sdintimaging(**sdint_arg)
-	    
+        
         # store feedback in a file 
         pydict_to_file2(tcleansresults, jointname)
-	    
+        
         os.system('cp -r summaryplot_1.png '+jointname+'.png')   
               
 
@@ -415,7 +451,7 @@ def runsdintimg(vis,
 
     ### SDINT Traditional OUTPUTS
     
-    ## MTMFS
+    ## MTMFS - nterms=1
     
     #   *.int.cube.model/
     #   *.int.cube.pb/
@@ -506,7 +542,8 @@ def runWSM(vis,
            maxscale=0.,
            sdfactorh=1.0,
            continueclean=False,
-           loadmask=False
+           loadmask=False,
+           fniteronusermask=0.3
            ):
 
     """
@@ -562,8 +599,8 @@ def runWSM(vis,
              if usemask='user', must specify mask='maskname.mask' 
              if usemask='pb', can specify pbmask=0.4, or some level.
              default: 'auto-multithresh'
-    sdmasklev - if usemask='user', then use SD image at this level to draw a mask.
-             default: 0.3
+    ##### sdmasklev - if usemask='user', then use SD image at this level to draw a mask.
+    #####          default: 0.3
     interactive - the standard tclean interactive option
              default: True
     
@@ -574,7 +611,13 @@ def runWSM(vis,
              default: 0.
     sdfactorh - Scale factor to apply to Single Dish image (same as for feather)
     continueclean - see runtclean
-
+    loadmask - run sdintimaging with user-specified mask for fniteronusermask*niter iterations 
+              and continue with auto-masking (usemask='auto-multithresh') for the remaining 
+              niter*(1-fniteronusermask) iterations 
+             default: False
+    fniteronusermask - adjusting the amount of iterations spend on a usermask for loadmask=True
+              allowed values: 0.0 (none in theory, in fact: 1 iteration) - 1.0 (all)
+             default: 0.3 
 
     Example: runtclean('gmc_120L.alma.all_int-weighted.ms', 
                 'gmc_120L', phasecenter='J2000 12:00:00 -35.00.00.0000', 
@@ -1103,7 +1146,8 @@ def runtclean(vis,
               maxscale=0.,
               restart=True,
               continueclean = False,
-              loadmask=False
+              loadmask=False,
+              fniteronusermask=0.3
               ):
 
     """
@@ -1167,6 +1211,14 @@ def runtclean(vis,
              default: 0.
     restart - True (default): Re-use existing images. False: Increment imagename
     continueclean - True: same as 'restart', False(default): Delete old version
+    loadmask - run sdintimaging with user-specified mask for fniteronusermask*niter iterations 
+              and continue with auto-masking (usemask='auto-multithresh') for the remaining 
+              niter*(1-fniteronusermask) iterations 
+             default: False
+    fniteronusermask - adjusting the amount of iterations spend on a usermask for loadmask=True
+              allowed values: 0.0 (none in theory, in fact: 1 iteration) - 1.0 (all)
+             default: 0.3 
+
 
     Example: runtclean('gmc_120L.alma.all_int-weighted.ms', 
                 'gmc_120L', phasecenter='J2000 12:00:00 -35.00.00.0000', 
@@ -1197,7 +1249,13 @@ def runtclean(vis,
         else:
             myvis = vis 
             
-    
+    if loadmask==True and fniteronusermask>1 or fniteronusermask<0:
+        print('fniteronusermask is out of range: ' +fniteronusermask+' Please choose a value between 0 and 1 (inclusively)')
+        return False        
+    else:
+        pass
+            
+        
     #print('')
     print('Start tclean ...')
     #mymaskname = ''
@@ -1240,6 +1298,10 @@ def runtclean(vis,
     if niter==0:
         cta.casalog.post('You set niter to 0 (zero, the default). Only a dirty image will be created.', 'WARN', origin='runtclean')
 
+    if specmode == 'mfs':
+        weightingscheme ='briggs'   # cont mode
+    elif specmode == 'cube':
+        weightingscheme ='briggs' #bwtaper'   # special briggs for cubes --- WAIT FOR IMPLEMENTATION IN SDINT 
 
 
     tclean_arg=dict(vis = myvis,
@@ -1262,7 +1324,8 @@ def runtclean(vis,
                     nchan = nchan, 
                     restfreq = restfreq,
                     gridder = 'mosaic',
-                    weighting = 'briggs',
+                    weighting = weightingscheme,
+                    #weighting = 'briggsbwtaper',
                     robust = 0.5,
                     restoringbeam = 'common',   # SD-cube has only one beam - INT-cube needs it, too, else feather etc. fail
                     niter = niter,
@@ -1299,18 +1362,23 @@ def runtclean(vis,
     if loadmask==True:
 
         tclean_arg['usemask']='user'
-        tclean_arg['niter']=1
+        if fniteronusermask==0 or fniteronusermask==0.0:
+            tclean_arg['niter']=1
+        else:   
+            tclean_arg['niter']=int(niter*fniteronusermask)
         # load mask into tclean with 1 iteration
         cta.tclean(**tclean_arg)
         
         tclean_arg['usemask']=usemask
         tclean_arg['mask']=''
-        tclean_arg['niter']=niter
+        tclean_arg['niter']=niter-tclean_arg['niter']
+        # if startmodel used, it would have been loaded in tclean step before 
+        # -> clear startmodel parameter for next tclean call, else crash!
         tclean_arg['startmodel']=''
 
         # clean and get tclean-feedback 
         tcleansresults = cta.tclean(**tclean_arg)
-	    
+        
         # store feedback in a file 
         pydict_to_file2(tcleansresults, imname)
         
@@ -1319,7 +1387,7 @@ def runtclean(vis,
     else: 
         # clean and get tclean-feedback 
         tcleansresults = cta.tclean(**tclean_arg)
-	    
+        
         # store feedback in a file 
         pydict_to_file2(tcleansresults, imname)
         
@@ -1793,8 +1861,8 @@ def make_SDint_mask(vis, SDimage, imname, sdmasklev, SDint_mask_root,
 
     vis - the MS containing the interferometric data
     sdimage - the Single Dish image
-             Note that in case you are creating a cube, this image must be a cube
-             with the same spectral grid as the one you are trying to create.
+             Note that in case you are creating a cube, this SD image must be a cube
+             with the same spectral grid as the one you are trying to create from vis.
     imname - the root name of the output images
     sdmasklev - if usemask='user', then use SD image at this level to draw a mask.
              typically: 0.3
@@ -1850,50 +1918,55 @@ def make_SDint_mask(vis, SDimage, imname, sdmasklev, SDint_mask_root,
     finalSDoutname = SDint_mask_root + '.mask'
     
     os.system('rm -rf '+SDint_mask_root + '*mask')     
-    #try: 
-    cta.immath(imagename=[SDimage],expr='iif(IM0>'+str(round(sdmaskval,6))+',1,0)',
-               outfile=SDoutname1)
-    #except: print('### SD.mask already exists, will proceed')
+     
+    #cta.immath(imagename=[SDimage],expr='iif(IM0>'+str(round(sdmaskval,6))+',1,0)',
+    #           outfile=SDoutname1)
 
-    print('')
-    print('### Creating a mask based on SD mask and auto-mask')
-    print('### Step 1 of 2: load the SD mask into interferometric tclean image data' )
-    print('### Please check the result!')
-    os.system('rm -rf '+imname+'*')        
-    
-    runtclean(vis,imname, 
-            phasecenter=phasecenter, 
-            spw=spw, field=field, imsize=imsize, cell=cell, specmode=specmode,
-            start = start, width = width, nchan = nchan, restfreq = restfreq,
-            niter=1,usemask='user',mask=SDoutname1,restart=True,interactive=False, continueclean=True)
-    print('### Step 2 of 2: add first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
-    print('### Please check the result!')        
-    os.system('cp -r '+imname+'.mask '+SDoutname2)
-    os.system('rm -rf '+imname+'.image.pbcor.fits')        
-    runtclean(vis,imname,
-            phasecenter=phasecenter, 
-            spw=spw, field=field, imsize=imsize, cell=cell, specmode=specmode,
-            start = start, width = width, nchan = nchan, restfreq = restfreq,
-            niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=False, continueclean=True)
-    os.system('cp -r '+imname+'.mask '+finalSDoutname)
-    
+    cta.immath(imagename=[SDimage],expr='iif(IM0>'+str(round(sdmaskval,6))+',1,0)',
+               outfile=finalSDoutname)               
+                  
+
+    #print('')
     #print('### Creating a mask based on SD mask and auto-mask')
-    #print('### Step 2 of 2: first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
-    #print('### Please check the result!')
-    #runtclean(myvis,imname+'_setmask', phasecenter=phasecenter, 
-    #        spw=spw, field=field, imsize=imsize, cell=cell,
-    #        niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=False, continueclean=True)
-    #os.system('cp -rf '+imname+'_setmask.mask int-AM0.mask')
-    #os.system('rm -rf '+imname+'_setmask.pbcor.fits')                 
     #print('### Step 1 of 2: load the SD mask into interferometric tclean image data' )
-    #print('### Please check the result!')                  
-    #runtclean(myvis,imname+'_setmask',
+    #print('### Please check the result!')
+    #os.system('rm -rf '+imname+'*')        
+    #
+    #runtclean(vis,imname, 
     #        phasecenter=phasecenter, 
-    #        spw=spw, field=field, imsize=imsize, cell=cell,
-    #        niter=1,usemask='user',mask='SD.mask',restart=True,interactive=False, continueclean=True)
-    #os.system('cp -rf '+imname+'_setmask.mask SDint.mask')
+    #        spw=spw, field=field, imsize=imsize, cell=cell, specmode=specmode,
+    #        start = start, width = width, nchan = nchan, restfreq = restfreq,
+    #        niter=1,usemask='user',mask=SDoutname1,restart=True,interactive=False, continueclean=True)
+    #print('### Step 2 of 2: add first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
+    #print('### Please check the result!')        
+    #os.system('cp -r '+imname+'.mask '+SDoutname2)
+    #os.system('rm -rf '+imname+'.image.pbcor.fits')        
+    #runtclean(vis,imname,
+    #        phasecenter=phasecenter, 
+    #        spw=spw, field=field, imsize=imsize, cell=cell, specmode=specmode,
+    #        start = start, width = width, nchan = nchan, restfreq = restfreq,
+    #        niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=False, continueclean=True)
+    #os.system('cp -r '+imname+'.mask '+finalSDoutname)
     
-    print('### Done! Created an SDint mask from SD and auto-mask')                
+    #    #print('### Creating a mask based on SD mask and auto-mask')
+    #    #print('### Step 2 of 2: first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
+    #    #print('### Please check the result!')
+    #    #runtclean(myvis,imname+'_setmask', phasecenter=phasecenter, 
+    #    #        spw=spw, field=field, imsize=imsize, cell=cell,
+    #    #        niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=False, continueclean=True)
+    #    #os.system('cp -rf '+imname+'_setmask.mask int-AM0.mask')
+    #    #os.system('rm -rf '+imname+'_setmask.pbcor.fits')                 
+    #    #print('### Step 1 of 2: load the SD mask into interferometric tclean image data' )
+    #    #print('### Please check the result!')                  
+    #    #runtclean(myvis,imname+'_setmask',
+    #    #        phasecenter=phasecenter, 
+    #    #        spw=spw, field=field, imsize=imsize, cell=cell,
+    #    #        niter=1,usemask='user',mask='SD.mask',restart=True,interactive=False, continueclean=True)
+    #    #os.system('cp -rf '+imname+'_setmask.mask SDint.mask')
+    
+    #print('### Done! Created an SDint mask from SD and auto-mask')                
+    print('### Done! Created an SDint mask from SD image')                
+
     mask=finalSDoutname  
     #mask='SD.mask'  
 
@@ -2006,7 +2079,7 @@ def derive_threshold(vis, imname, threshmask,
                 niter=0, interactive=False)
         #print('### Please check the result!') 
     else: 
-        pass        
+        print('Use existing template ',  imnameth+'.image', 'to derive threshold and mask')       
 
     #### get threshold 
 
@@ -2021,7 +2094,7 @@ def derive_threshold(vis, imname, threshmask,
             #peak_val = imstat(imnameth+'.image')['max'][0]
             thresh = full_RMS*RMSfactor
             print('The "RMS" of the entire image (incl emission) is ', round(full_RMS,6), 'Jy')
-            print('You set the threshold to ', full_RMS, 'times the RMS, i.e. ', round(thresh,6), 'Jy')
+            print('You set the mask threshold to ', round(RMSfactor,6), ' times the RMS, i.e. ', round(thresh,6), 'Jy')
         
         #### cube
         elif specmode == 'cube':
@@ -2033,7 +2106,7 @@ def derive_threshold(vis, imname, threshmask,
             thresh = cube_RMS*cube_rms   # 3 sigma level
  
             print('The RMS of the cube (check cont_chans for emission-free channels) is ', round(cube_RMS,6), 'Jy')
-            print('You set the threshold to ', cube_rms, 'times the RMS, i.e. ', round(thresh,6), 'Jy')
+            print('You set the mask threshold to ', round(cube_rms,6), ' times the RMS, i.e. ', round(thresh,6), 'Jy')
          
         
             #immmoments(imagename=imname+'_template.image', mom=[8], 
@@ -2755,8 +2828,8 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
     RMSfactor=1.0,
     cube_rms=3.0,
     cont_chans ='2~4',
-    #doautomask=False,
-    loadmask=False 
+    loadmask=False,
+    rederivethresh=True 
     ):
     
     """ 
@@ -2872,42 +2945,49 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
     runtclean(myvis, imname+'_dirty', **TP2VIS_arg)
     
 
-    # define region/channel range in your input TP image/cube to derive the rms
-    specmode=specmode
-    TPINTim = imname+'_dirty.image'
-    
-    #### continuum
-    if specmode == 'mfs':
-        cont_RMS = cta.imstat(TPINTim)['rms'][0]
-        #peak_val = imstat(imnameth+'.image')['max'][0]
-        #thresh = full_RMS*RMSfactor
-        thresh = cont_RMS*RMSfactor
-    
-    
-    #### cube
-    elif specmode == 'cube':
-        TPINTmom6=TPINTim.replace('.image','.mom6')
-        os.system('rm -rf '+TPINTmom6)
-        cta.immoments(imagename=TPINTim, moments=[6], 
-                      outfile=TPINTmom6, chans=cont_chans)
-        cube_RMS = cta.imstat(TPINTmom6)['rms'][0]
-        thresh = cube_RMS*cube_rms
-    
-        #thresh = cube_RMS*cube_rms   # 3 sigma level
+    if rederivethresh==False:
+        print('### Use input threshold of ', TP2VIS_arg['threshold']) 
+    else:
+        # define region/channel range in your input TP image/cube to derive the rms
+        specmode=specmode
+        TPINTim = imname+'_dirty.image'
+        
+        #### continuum
+        if specmode == 'mfs':
+            cont_RMS = cta.imstat(TPINTim)['rms'][0]
+            #peak_val = imstat(imnameth+'.image')['max'][0]
+            #thresh = full_RMS*RMSfactor
+            thresh = cont_RMS*RMSfactor
+        
+        
+        #### cube
+        elif specmode == 'cube':
+            TPINTmom6=TPINTim.replace('.image','.mom6')
+            os.system('rm -rf '+TPINTmom6)
+            cta.immoments(imagename=TPINTim, moments=[6], 
+                          outfile=TPINTmom6, chans=cont_chans)
+            cube_RMS = cta.imstat(TPINTmom6)['rms'][0]
+            thresh = cube_RMS*cube_rms
+        
+            #thresh = cube_RMS*cube_rms   # 3 sigma level
+        
+        
+        
+        
+        # make clean image for the given niter
+        
+        print(' ')
+        print('### Old threshold was ', TP2VIS_arg['threshold']) 
+        
+        TP2VIS_arg['niter'] = niter
+        TP2VIS_arg['threshold'] = str(thresh)+'Jy'
+        
+        print('### Threshold from TP+INT data is ', TP2VIS_arg['threshold'])    
+        print(' ')
 
 
 
 
-    # make clean image for the given niter
-
-    print(' ')
-    print('### Threshold from purely INT data was ', TP2VIS_arg['threshold']) 
-   
-    TP2VIS_arg['niter'] = niter
-    TP2VIS_arg['threshold'] = str(thresh)+'Jy'
-
-    print('### Threshold from TP+INT data is ', TP2VIS_arg['threshold'])    
-    print(' ')
 
     TP2VIS_arg['loadmask'] = loadmask
 
@@ -3018,3 +3098,49 @@ def file_to_pydict2(filename):
 
 
 
+def docstrings_list(filename):
+    """ 
+    save docstrings of all functions defined for DC project  (L. Moser-Fischer)
+    filename - will store docstrings under this string +'.txt' 
+
+    """ 
+    
+    # get list with dir(dc) and remove imported modules
+    
+    doclist = [channel_cutout.__doc__,
+               check_CASAcal.__doc__,
+               create_TP2VIS_ms.__doc__,
+               createplaneimage.__doc__,
+               derive_threshold.__doc__,
+               docstrings_list.__doc__,
+               feather_int_sd.__doc__,
+               file_to_pydict.__doc__,
+               file_to_pydict2.__doc__,
+               getFreqList.__doc__,
+               get_SD_cube_params.__doc__,
+               listobs_ptg.__doc__,
+               make_SDint_mask.__doc__,
+               ms_ptg.__doc__,
+               pydict_to_file.__doc__,
+               pydict_to_file2.__doc__,
+               regrid_SD.__doc__,
+               reorder_axes.__doc__,
+               reorder_axes2.__doc__,
+               runWSM.__doc__,
+               runfeather.__doc__,
+               runsdintimg.__doc__,
+               runtclean.__doc__,
+               runtclean_TP2VIS_INT.__doc__,
+               ssc.__doc__,
+               transform_INT_to_SD_freq_spec.__doc__,
+               visHistory.__doc__]
+    
+    f = open(filename+'.txt','w')
+    for doc in doclist:
+        f.write(str(doc))      
+        f.write(str('\n'))      
+        f.write(str('----------------------------------------------------------------------------------')) 
+        f.write(str('\n'))      
+    f.close()
+    
+    

@@ -108,7 +108,7 @@ Example:
           <-  imbase ->   <-----   cleansetup -------> <-- combisetup ------------->
 		  
 		  
-* Q1:   why f1.0 and f1  <--- hybrid_f is an intermediate product (before feather)
+* Q1:   why f1.0 and f  <--- hybrid_f is an intermediate product (before feather)
 * Q2:   need a function to reverse engineer this name  (par1,par2,....) = decode(filename)
 		  
 
@@ -351,7 +351,7 @@ If you want to combine several interferometric datasets specify
    the SD cube is trimmed to these channels (exclusively; channel_cutout).
 
 3) the channel setup of the reordered (channel-cut-out0) SD cube is read out (get_SD_cube_params). 
-   If wanted, the results are used as inputs for all following tcleans etc (need to implement!).
+   If wanted, the results are used as inputs for all following tcleans etc.
 
 4) a dirty image from the concatvis is created and the RMS of the entire image obtained. 
    This is used to define a threshold and from this a clean mask (derive_threshold).
