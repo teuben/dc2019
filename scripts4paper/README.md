@@ -26,7 +26,8 @@ try this from the unix command line):
 
 If this results in some kind of permission related problem, you will need to
 ask the owner of CASA to do this. Just to be clear, we are using only python3 now,
-hence CASA 6.2 and above.
+hence CASA 6. (TBD on exactly what CASA version we require, but this is a moving
+target).
 
 **TBD** Unclear at this stage if/how a user based install will work, but
 we do need to provide a solution here. Another suggested solution is to add
