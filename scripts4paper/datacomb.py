@@ -409,31 +409,35 @@ def runsdintimg(vis,
         else:   
             sdint_arg['niter']=int(niter*fniteronusermask)
         # load mask into tclean with fniteronusermask*niter
-        cta.sdintimaging(**sdint_arg)
+        tcleansresults = cta.sdintimaging(**sdint_arg)
         
         sdint_arg['usemask']=usemask
         sdint_arg['mask']=''
-        sdint_arg['niter']=niter-sdint_arg['niter']
         # if startmodel used, it would have been loaded in tclean step before 
         # -> clear startmodel parameter for next tclean call, else crash!
         sdint_arg['startmodel']=''
 
-        # clean and get tclean-feedback 
-        tcleansresults = cta.sdintimaging(**sdint_arg)
+        sdint_arg['niter']=niter-sdint_arg['niter']
+
+        if sdint_arg['niter']<=0:    #avoid negative niter values and pointless executions 
+            pass
+        else:
+            # clean and get tclean-feedback 
+            tcleansresults = cta.sdintimaging(**sdint_arg)
         
-        # store feedback in a file 
-        pydict_to_file2(tcleansresults, jointname)
-        
-        os.system('cp -r summaryplot_1.png '+jointname+'.png')   
+        ##### store feedback in a file 
+        ####pydict_to_file2(tcleansresults, jointname)
+        ####
+        ####os.system('cp -r summaryplot_1.png '+jointname+'.png')   
                  
     else: 
         # clean and get tclean-feedback 
         tcleansresults = cta.sdintimaging(**sdint_arg)
         
-        # store feedback in a file 
-        pydict_to_file2(tcleansresults, jointname)
-        
-        os.system('cp -r summaryplot_1.png '+jointname+'.png')   
+    # store feedback in a file 
+    pydict_to_file2(tcleansresults, jointname)
+    
+    os.system('cp -r summaryplot_1.png '+jointname+'.png')   
               
 
 
@@ -1367,31 +1371,35 @@ def runtclean(vis,
         else:   
             tclean_arg['niter']=int(niter*fniteronusermask)
         # load mask into tclean with 1 iteration
-        cta.tclean(**tclean_arg)
+        tcleansresults = cta.tclean(**tclean_arg)
         
         tclean_arg['usemask']=usemask
         tclean_arg['mask']=''
-        tclean_arg['niter']=niter-tclean_arg['niter']
         # if startmodel used, it would have been loaded in tclean step before 
         # -> clear startmodel parameter for next tclean call, else crash!
-        tclean_arg['startmodel']=''
-
-        # clean and get tclean-feedback 
-        tcleansresults = cta.tclean(**tclean_arg)
+        tclean_arg['startmodel']=''        
         
-        # store feedback in a file 
-        pydict_to_file2(tcleansresults, imname)
+        tclean_arg['niter']=niter-tclean_arg['niter']
         
-        os.system('cp -r summaryplot_1.png '+imname+'.png')   
+        if tclean_arg['niter']<=0:    #avoid negative niter values and pointless executions 
+            pass
+        else:    			
+            # clean and get tclean-feedback 
+            tcleansresults = cta.tclean(**tclean_arg)
+        
+        #### store feedback in a file 
+        ###pydict_to_file2(tcleansresults, imname)
+        ###
+        ###os.system('cp -r summaryplot_1.png '+imname+'.png')   
 
     else: 
         # clean and get tclean-feedback 
         tcleansresults = cta.tclean(**tclean_arg)
         
-        # store feedback in a file 
-        pydict_to_file2(tcleansresults, imname)
-        
-        os.system('cp -r summaryplot_1.png '+imname+'.png') 
+    # store feedback in a file 
+    pydict_to_file2(tcleansresults, imname)
+    
+    os.system('cp -r summaryplot_1.png '+imname+'.png') 
 
 
 
@@ -2829,7 +2837,8 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
     cube_rms=3.0,
     cont_chans ='2~4',
     loadmask=False,
-    rederivethresh=True 
+    fniteronusermask=0.3,
+    rederivethresh=True
     ):
     
     """ 
@@ -2937,7 +2946,8 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
                   multiscale=multiscale,
                   maxscale=maxscale,
                   continueclean = False,
-                  loadmask=False)    
+                  loadmask=False,
+                  fniteronusermask=fniteronusermask)    
         
     
     # make dirty image to correct for beam area
@@ -2979,7 +2989,6 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
         print(' ')
         print('### Old threshold was ', TP2VIS_arg['threshold']) 
         
-        TP2VIS_arg['niter'] = niter
         TP2VIS_arg['threshold'] = str(thresh)+'Jy'
         
         print('### Threshold from TP+INT data is ', TP2VIS_arg['threshold'])    
@@ -2987,7 +2996,7 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
 
 
 
-
+    TP2VIS_arg['niter'] = niter
 
     TP2VIS_arg['loadmask'] = loadmask
 

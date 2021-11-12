@@ -704,35 +704,36 @@ if mystep in thesteps:
     stop_crit=[]
     cleanthresh=[]
     cleaniterdone = []
-
-    for i in range(0, len(allcombitxt)):
-        os.system('rm -rf ' + allcombires[i] + '.fits')
-        os.system('rm -rf ' + allcombimask[i] + '.fits')
-        cta.exportfits(imagename=allcombires[i], fitsimage=allcombires[i] + '.fits', dropdeg=True)
-        cta.exportfits(imagename=allcombimask[i], fitsimage=allcombimask[i] + '.fits', dropdeg=True)
-        tcleanresults = dc.file_to_pydict2(allcombitxt[i])
-        dc.pydict_to_file(tcleanresults, allcombitxt[i])       # export to human readable format 
-        #print(tcleanresults['threshold'])
-        stop_crit.append(tcleanresults['stopcode'])
-        cleanthresh.append(tcleanresults['threshold'])
-        cleaniterdone.append(tcleanresults['iterdone'])
-
-    #allcombiresfits = [a.replace('.residual','.residual.fits') for a in allcombires]
-    #allcombimaskfits = [a.replace('.mask','.mask.fits') for a in allcombimask]
-
-    #labelnames
-    allcombireslabel = [a.replace(pathtoimage+sourcename+cleansetup+'.','') for a in allcombitxt]
-
-    mapchan=int(general_tclean_param['nchan']/2.)
-    iqa.show_residual_maps(allcombires, allcombimask,
-                          channel=mapchan, 
-                          save=True, 
-                          plotname=assessment+'/Residual_maps_'+sourcename+cleansetup+steplist, 
-                          labelname=allcombireslabel,
-                          titlename='Residual maps in channel '+str(mapchan)+' from the tclean instances used by the chosen \n  combination methods for '+sourcename+cleansetup,
-                          stop_crit=stop_crit,
-                          cleanthresh=cleanthresh,
-                          cleaniterdone=cleaniterdone)                                    
+    
+    if nit>0:
+        for i in range(0, len(allcombitxt)):
+            os.system('rm -rf ' + allcombires[i] + '.fits')
+            os.system('rm -rf ' + allcombimask[i] + '.fits')
+            cta.exportfits(imagename=allcombires[i], fitsimage=allcombires[i] + '.fits', dropdeg=True)
+            cta.exportfits(imagename=allcombimask[i], fitsimage=allcombimask[i] + '.fits', dropdeg=True)
+            tcleanresults = dc.file_to_pydict2(allcombitxt[i])
+            dc.pydict_to_file(tcleanresults, allcombitxt[i])       # export to human readable format 
+            #print(tcleanresults['threshold'])
+            stop_crit.append(tcleanresults['stopcode'])
+            cleanthresh.append(tcleanresults['threshold'])
+            cleaniterdone.append(tcleanresults['iterdone'])
+	    
+        #allcombiresfits = [a.replace('.residual','.residual.fits') for a in allcombires]
+        #allcombimaskfits = [a.replace('.mask','.mask.fits') for a in allcombimask]
+	    
+        #labelnames
+        allcombireslabel = [a.replace(pathtoimage+sourcename+cleansetup+'.','') for a in allcombitxt]
+	    
+        mapchan=int(general_tclean_param['nchan']/2.)
+        iqa.show_residual_maps(allcombires, allcombimask,
+                              channel=mapchan, 
+                              save=True, 
+                              plotname=assessment+'/Residual_maps_'+sourcename+cleansetup+steplist, 
+                              labelname=allcombireslabel,
+                              titlename='Residual maps in channel '+str(mapchan)+' from the tclean instances used by the chosen \n  combination methods for '+sourcename+cleansetup,
+                              stop_crit=stop_crit,
+                              cleanthresh=cleanthresh,
+                              cleaniterdone=cleaniterdone)                                    
 
 
 
