@@ -47,6 +47,56 @@ os.system('rm -rf '+pathtoimage + 'TempLattice*')
 
 
 
+
+### put together file names and weights for concat
+thevis = a12m
+thevis.extend(a7m)
+
+weightscale = weight12m
+weightscale.extend(weight7m)
+
+
+
+### define ms-file to perform combination on
+if vis=='':
+	vis = concatms
+	
+
+
+general_tclean_param = dict(#overwrite  = overwrite,
+                           specmode    = mode,      # ! changed in variable 'mode' !        
+                           niter       = nit,              # ! change in variable above dict !
+                           spw         = t_spw,  
+                           field       = t_field, 
+                           imsize      = t_imsize,     
+                           cell        = t_cell,           # arcsec
+                           phasecenter = t_phasecenter,             
+                           start       = t_start,      
+                           width       = t_width,      
+                           nchan       = t_nchan,      
+                           restfreq    = t_restfreq,   
+                           threshold   = t_threshold,        # SDINT: None 
+                           maxscale    = t_maxscale,         # recommendations/explanations 
+                           mask        = t_mask,       
+                           pbmask      = t_pbmask,
+                           sidelobethreshold = sidelobethreshold, 
+                           noisethreshold    = noisethreshold, 
+                           lownoisethreshold = lownoisethreshold,               
+                           minbeamfrac       = minbeamfrac, 
+                           growiterations    = growiterations,    
+                           negativethreshold = negativethreshold)
+
+sdint_tclean_param = dict(sdpsf   = sdpsf,
+                         dishdia = dishdia)
+          
+
+
+
+
+
+
+
+
 ### naming scheme specific inputs:
 if mode == 'mfs':
     specsetup =  'INTpar'  # no other mode possible 
@@ -645,8 +695,10 @@ if mystep in thesteps:
                                     RMSfactor=RMSfactor, cube_rms=cube_rms, 
                                     cont_chans = cont_chans, **z)   
 
- 
-        TP2VISims.append(imname+'.tweak.image')
+        if os.path.exists(imname+'.tweak.image'):
+            TP2VISims.append(imname+'.tweak.image')
+        else:
+            TP2VISims.append(imname+'.image')
         
 
 
