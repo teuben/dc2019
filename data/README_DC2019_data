@@ -47,6 +47,7 @@ some programs (certainly in the past) could not deal with sorted differently by 
 
 TP2VIS: https://github.com/tp2vis/distribute/blob/master/example1.md   needs to be updated
 
+
 2) NGC 346 (SMC observatory project)
    ---------------------------------
 
@@ -58,7 +59,9 @@ Smaller data in : ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/N346
 
 [AI] Contact: Dirk + Thomas
 
+
 3) skymodel GMC fractal/powerspectrum (Koda)
+   -----------------------------------------
 
 The new 2020 link to the DC2019 data is via ftp or http (they are identical)
 
@@ -141,7 +144,9 @@ All here: ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/Lup3mms_12CO_tp_7m_12m_nchan
 6) MC/GMC - apex + alma
    --------------------
 
+
 7) HI dataset (preparing for future radio surveys)
+   -----------------------------------------------
 
 A group of HI astronomers registered for the workshop, expressing interest 
 in combining future interferometric and single dish HI surveys (e.g. SKA HI pathfinder experiments).
@@ -156,6 +161,7 @@ He also offers: "In preparation for this workshop, I will redo the combination o
 data cubes utilizing the Faridani, CASA’s feather, and miriad’s immerge methods in hopes that 
 will provide a head start on developing such metrics with everyone at this workshop."
 
+
 8) papersky (for WidebandSDINT)
    ----------------------------
    
@@ -166,7 +172,9 @@ You can find the data in Leiden/data folder on the USB key.
 A direct link to the data:  http://www.aoc.nrao.edu/~rurvashi/DataFiles/Data_For_WidebandSDINT_UR_github.tgz
 and untar these in the WidebandSDINT/Data directory.
 
+
 9) casaguide simulations
+   ---------------------
 
 There is also a casaguide on similating ALMA data:
 
