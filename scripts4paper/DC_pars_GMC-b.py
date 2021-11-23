@@ -1,9 +1,9 @@
 #
 #   GMC template for setting up a DC_script.py
 #
-#   Input are:     gmc_120L.alma.cycle6.4.2018-10-02.ms
-#                  (optionally more, there are 12 (8*12m + 4*7m) in this gmc_120L)
-#                  gmc_120L.sd.image
+#   Input are:     skymodel-b_120L.alma.cycle6.4.2018-10-02.ms
+#                  (optionally more, there are 12 (8*12m + 4*7m) in this skymodel-b_120L)
+#                  skymodel-b_120L.sd.image
 
 step_title = {0: 'Concat',
               1: 'Prepare the SD-image',
@@ -19,7 +19,7 @@ step_title = {0: 'Concat',
 thesteps=[0,1,2,3,4,5,6,7,8]
 #thesteps=[0,6]
 
-######## collect only the product name?          
+######## collect only the product name (i.e. run assessment on already existing combination products)?          
 dryrun = False    # False to execute combination, True to gather filenames only
  
  
@@ -28,45 +28,34 @@ dryrun = False    # False to execute combination, True to gather filenames only
 #  _s4p_data :  for read-only data
 #  _s4p_work :  for reading/writing
 
-pathtoconcat = _s4p_data + '/gmcSkymodel_120L/gmc_120L/'
+pathtoconcat = _s4p_data + '/skymodel-b.sim/skymodel-b_120L/'
 pathtoimage  = _s4p_work + '/GMC-b/'
 
 
 
-#  for optional step 0:   thevis[] -> concatms
-#  otherwise concatms must contain the MS for combination
+# setup for concat (the optional step 0)
 
-a12m=[pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-02.ms',
-      pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-02.ms',
-      pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-03.ms',
-      pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-03.ms',
-      pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-04.ms',
-      pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-04.ms',
-      pathtoconcat + 'gmc_120L.alma.cycle6.4.2018-10-05.ms',
-      pathtoconcat + 'gmc_120L.alma.cycle6.1.2018-10-05.ms'
+a12m=[pathtoconcat + 'skymodel-b_120L.alma.cycle6.4.2018-10-02.ms',
+      pathtoconcat + 'skymodel-b_120L.alma.cycle6.1.2018-10-02.ms',
+      pathtoconcat + 'skymodel-b_120L.alma.cycle6.4.2018-10-03.ms',
+      pathtoconcat + 'skymodel-b_120L.alma.cycle6.1.2018-10-03.ms',
+      pathtoconcat + 'skymodel-b_120L.alma.cycle6.4.2018-10-04.ms',
+      pathtoconcat + 'skymodel-b_120L.alma.cycle6.1.2018-10-04.ms',
+      pathtoconcat + 'skymodel-b_120L.alma.cycle6.4.2018-10-05.ms',
+      pathtoconcat + 'skymodel-b_120L.alma.cycle6.1.2018-10-05.ms'
       ]
       
 weight12m = [1., 1., 1., 1., 1., 1., 1., 1.]
   
       
-a7m =[pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-20.ms',
-      pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-21.ms',
-      pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-22.ms',
-      pathtoconcat + 'gmc_120L.aca.cycle6.2018-10-23.ms'
+a7m =[pathtoconcat + 'skymodel-b_120L.aca.cycle6.2018-10-20.ms',
+      pathtoconcat + 'skymodel-b_120L.aca.cycle6.2018-10-21.ms',
+      pathtoconcat + 'skymodel-b_120L.aca.cycle6.2018-10-22.ms',
+      pathtoconcat + 'skymodel-b_120L.aca.cycle6.2018-10-23.ms'
       ]
 
 weight7m = [0.116, 0.116, 0.116, 0.116]  # weigthing for SIMULATED data !
 
-##### non interactive - begin #####
-thevis = a12m
-thevis.extend(a7m)
-
-#  a weight for each vis file in thevis[]
-
-weightscale = weight12m
-weightscale.extend(weight7m)
-
-##### non interactive - end #####
 
 
 skymodel=a12m[0].replace('.ms','.skymodel')    # model used for simulating the observation, expected to be CASA-imported
@@ -80,8 +69,8 @@ concatms     = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       # 
 
 ############# input to combination methods ###########
 
-vis            = concatms
-sdimage_input  = pathtoconcat + 'gmc_120L.sd.image'
+vis            = ''                                         # set to '' is concatms is to be used, else define your own ms-file
+sdimage_input  = pathtoconcat + 'skymodel-b_120L.sd.image'
 imbase         = pathtoimage + 'skymodel-b_120L'            # path + image base name
 sdbase         = pathtoimage + 'skymodel-b_120L'            # path + sd image base name
 
@@ -98,10 +87,10 @@ TPnoiseChannels           = '2~5'              # in unregridded and un-cut SD cu
 
 
 mode      = 'mfs'      # 'mfs' or 'cube'
-mscale    = 'MS'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
+mscale    = 'HB'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
 masking   = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 inter     = 'nIA'      # interactive ('IA') or non-interactive ('nIA')
-nit       = 1000000          # max = 9.9 * 10**9 
+nit       = 0#1000000          # max = 9.9 * 10**9 
 
 specsetup =  'INTpar'  # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
 
@@ -127,44 +116,41 @@ momchans = ''      # channels to compute moment maps (integrated intensity, etc.
                      
 ########## general tclean parameters
 
-general_tclean_param = dict(#overwrite  = overwrite,
-                           spw         = '0', 
-                           field       = '0~68', 
-                           specmode    = mode,      # ! change in variable above dict !        
-                           imsize      = [1120], 
-                           cell        = '0.21arcsec',    # arcsec
-                           phasecenter = 'J2000 12:00:00 -35.00.00.0000',             
-                           start       = 0, 
-                           width       = 1, 
-                           nchan       = -1, 
-                           restfreq    = '',
-                           threshold   = '',               # SDINT: None 
-                           maxscale    = 10.,              # recommendations/explanations 
-                           niter      = nit,               # ! change in variable above dict !
-                           mask        = '', 
-                           pbmask      = 0.4,
-                           #usemask           = 'auto-multithresh',    # couple to interactive!              
-                           sidelobethreshold = 2.0, 
-                           noisethreshold    = 4.25, 
-                           lownoisethreshold = 1.5,               
-                           minbeamfrac       = 0.3, 
-                           growiterations    = 75, 
-                           negativethreshold = 0.0)#, 
-                           #sdmasklev=0.3)   # need to overthink here 
+t_spw         = '0' 
+t_field       = '0~68' 
+t_imsize      = [1120] 
+t_cell        = '0.21arcsec'    # arcsec
+t_phasecenter = 'J2000 12:00:00 -35.00.00.0000'            
+t_start       = 0 
+t_width       = 1 
+t_nchan       = -1 
+t_restfreq    = ''
+t_threshold   = ''               # SDINT: None 
+t_maxscale    = 10.              # recommendations/explanations 
+t_mask        = '' 
+t_pbmask      = 0.4
+sidelobethreshold = 2.0 
+noisethreshold    = 4.25 
+lownoisethreshold = 1.5               
+minbeamfrac       = 0.3 
+growiterations    = 75 
+negativethreshold = 0.0 
  
 
-sdint_tclean_param = dict(sdpsf   = '',
-                         #sdgain  = 5,     # own factor! see below!
-                         dishdia = 12.0)
+########## sdint parameters 
+
+sdpsf   = ''
+dishdia = 12.0
           
 
-sdfac   = [1.0]          # feather parameters:
-SSCfac  = [1.0]          # Faridani parameters:
-sdfac_h = [1.0]          # Hybrid feather paramteters:
-sdg     = [1.0]          # SDINT parameters:
-TPfac   = [1.0]     # TP2VIS parameters:
+########### SD factors for all methods:                       
+               
+sdfac   = [1.0]          # feather parameter
+SSCfac  = [1.0]          # Faridani parameter
+sdfac_h = [1.0]          # Hybrid feather paramteter
+sdg     = [1.0]          # SDINT parameter
+TPfac   = [1.0]          # TP2VIS parameter
           
 
           
-#refimage = _s4p_data + '/gmcSkymodel_120L/skymodel-b.fits'  
 
