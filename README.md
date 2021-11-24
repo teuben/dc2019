@@ -1,7 +1,7 @@
 # *Improving Image Fidelity on Astronomical Data: Radio Interferometer and Single-Dish Data Combination* (DC2019)
 
 This was the material we used for the
-[DC2019](https://www.lorentzcenter.nl/lc/web/2019/1179/info.php3?wsid=1179&venue=Oort)
+[DC2019](https://www.lorentzcenter.nl/improving-image-fidelity-on-astronomical-data-radio-interferometer-and-single-dish-data-combination.html)
 workshop. We planned to have all scripts, code, documentation, and presentations here,
 but our data are typically large and we will supply URLs from where you can download them
 from. Some scripts were taking from other projects, and may not be maintained here so well.
