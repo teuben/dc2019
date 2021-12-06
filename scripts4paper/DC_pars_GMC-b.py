@@ -87,10 +87,10 @@ TPnoiseChannels           = '2~5'              # in unregridded and un-cut SD cu
 
 
 mode      = 'mfs'      # 'mfs' or 'cube'
-mscale    = 'HB'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
+mscale    = 'MS'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
 masking   = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 inter     = 'nIA'      # interactive ('IA') or non-interactive ('nIA')
-nit       = 0#1000000          # max = 9.9 * 10**9 
+nit       = 10#1000000          # max = 9.9 * 10**9 
 
 specsetup =  'INTpar'  # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
 
@@ -126,22 +126,32 @@ t_width       = 1
 t_nchan       = -1 
 t_restfreq    = ''
 t_threshold   = ''               # SDINT: None 
-t_maxscale    = 10.              # recommendations/explanations 
+t_maxscale    = -1 #10.              # recommendations/explanations 
 t_mask        = '' 
 t_pbmask      = 0.4
-sidelobethreshold = 2.0 
-noisethreshold    = 4.25 
-lownoisethreshold = 1.5               
-minbeamfrac       = 0.3 
-growiterations    = 75 
-negativethreshold = 0.0 
+t_sidelobethreshold = 2.0 
+t_noisethreshold    = 4.25 
+t_lownoisethreshold = 1.5               
+t_minbeamfrac       = 0.3 
+t_growiterations    = 75 
+t_negativethreshold = 0.0 
  
 
 ########## sdint parameters 
 
 sdpsf   = ''
 dishdia = 12.0
-          
+                 
+
+########### SD-AM masks for all methods using tclean etc.:                       
+
+# options: 'SD', 'INT', 'combined'
+
+tclean_SDAMmask = 'INT'  
+hybrid_SDAMmask = 'INT'     
+sdint_SDAMmask  = 'INT'     
+TP2VIS_SDAMmask = 'INT'     
+
 
 ########### SD factors for all methods:                       
                
