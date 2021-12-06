@@ -124,23 +124,33 @@ t_width       = 1
 t_nchan       = -1 
 t_restfreq    = ''
 t_threshold   = ''               # SDINT: None 
-t_maxscale    = 10.              # recommendations/explanations 
+t_maxscale    = -1 #10.              # recommendations/explanations 
 t_mask        = '' 
 t_pbmask      = 0.4
-sidelobethreshold = 2.0 
-noisethreshold    = 4.25 
-lownoisethreshold = 1.5               
-minbeamfrac       = 0.3 
-growiterations    = 75 
-negativethreshold = 0.0 
+t_sidelobethreshold = 2.0 
+t_noisethreshold    = 4.25 
+t_lownoisethreshold = 1.5               
+t_minbeamfrac       = 0.3 
+t_growiterations    = 75 
+t_negativethreshold = 0.0 
  
 
 ########## sdint parameters 
 
 sdpsf   = ''
 dishdia = 12.0
-        
-          
+                 
+
+########### SD-AM masks for all methods using tclean etc.:                       
+
+# options: 'SD', 'INT', 'combined'
+
+tclean_SDAMmask = 'INT'  
+hybrid_SDAMmask = 'INT'     
+sdint_SDAMmask  = 'INT'     
+TP2VIS_SDAMmask = 'INT'     
+
+   
 ########### SD factors for all methods:                       
                
 sdfac   = [1.0]          # feather parameter
