@@ -1,9 +1,9 @@
 #
 #   GMC template for setting up a DC_script.py
 #
-#   Input are:     gmc_120L.alma.cycle6.4.2018-10-02.ms
-#                  (optionally more, there are 12 (8*12m + 4*7m) in this gmc_120L)
-#                  gmc_120L.sd.image
+#   Input are:     pointSrcGauss_3L.alma.cycle6.1.2018-10-02.ms
+#                  (optionally more, there are 12 (2*12m + 1*7m) in this pointSrcGauss_3L)
+#                  pointSrcGauss_3L.sd.image
 
 step_title = {0: 'Concat',
               1: 'Prepare the SD-image',
@@ -16,8 +16,8 @@ step_title = {0: 'Concat',
               8: 'Assessment of the combination results'
               }
 
-thesteps=[0,1,2,3,4,5,6,7,8]
-#thesteps=[0]
+#thesteps=[0,1,2,3,4,5,6,7,8]
+thesteps=[1,5]
 
 ######## collect only the product name (i.e. run assessment on already existing combination products)?          
 dryrun = False    # False to execute combination, True to gather filenames only
@@ -60,7 +60,7 @@ concatms     = pathtoimage + 'pointGauss.alma.all_int-weighted.ms'       # path 
 
 ############# input to combination methods ###########
 
-vis            = ''                                    # set to '' is concatms is to be used, else define your own ms-file
+vis            = ''                                    # set to '' if concatms is to be used, else define your own ms-file
 sdimage_input  = pathtoconcat + 'pointSrcGauss_3L.sd.image'
 imbase         = pathtoimage + 'pointGauss'            # path + image base name
 sdbase         = pathtoimage + 'pointGauss'            # path + sd image base name
@@ -81,7 +81,7 @@ mode      = 'mfs'      # 'mfs' or 'cube'
 mscale    = 'MS'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
 masking   = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 inter     = 'nIA'      # interactive ('IA') or non-interactive ('nIA')
-nit       = 0#1000000          # max = 9.9 * 10**9 
+nit       = 10#1000000          # max = 9.9 * 10**9 
 
 specsetup =  'INTpar'  # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
 
@@ -118,7 +118,7 @@ t_width       = 1
 t_nchan       = -1 
 t_restfreq    = ''
 t_threshold   = ''               # SDINT: None 
-t_maxscale    = 10.              # recommendations/explanations 
+t_maxscale    = -1 #10.              # recommendations/explanations 
 t_mask        = '' 
 t_pbmask      = 0.4
 t_sidelobethreshold = 2.0 
@@ -134,6 +134,16 @@ t_negativethreshold = 0.0
 sdpsf   = ''
 dishdia = 12.0
                  
+
+########### SD-AM masks for all methods using tclean etc.:                       
+
+# options: 'SD', 'INT', 'combined'
+
+tclean_SDAMmask = 'INT'  
+hybrid_SDAMmask = 'SD'     
+sdint_SDAMmask  = 'INT'     
+TP2VIS_SDAMmask = 'INT'     
+
 
 ########### SD factors for all methods:                       
                
