@@ -20,6 +20,8 @@ import numpy as np
 import re
 from importlib import reload
 
+import analysisUtils as au
+
 
 import tp2vis as t2v
 
@@ -37,25 +39,402 @@ from casatools import msmetadata as msmdtool
 reload(t2v)
 
 
+
+
+
+##########################################
+
+def convert_JypB_JypP(sdimage):
+
+    """
+    convert image brightness unit from Jy/beam to Jy/pixel  (Moser-Fischer, L.)
+    a helper for runWSM to prepare the startmodel format
+
+    usemask - masking mode parameter as for tclean
+    mask - file name of mask
+    pbmask - PB mask cut-off level 
+    niter - number of iterations spent on this mask
+
+    """
+
+    myimhead = cta.imhead(sdimage)
+
+
+    print('Checking SD units...')
+    if myimhead['unit']=='Jy/beam': 
+        print('SD units {}. OK, will convert to Jy/pixel.'.format(myimhead['unit']))
+        ##CHECK: header units
+        SingleDishResolutionArcsec = myimhead['restoringbeam']['major']['value'] #in Arcsec
+        CellSizeArcsec = abs(myimhead['incr'][0])*206265. #in Arcsec
+        toJyPerPix = CellSizeArcsec**2/(1.1331*SingleDishResolutionArcsec**2)
+        SDEfficiency = 1.0 #--> Scaling factor
+        fluxExpression = "(IM0 * {0:f} / {1:f})".format(toJyPerPix,SDEfficiency)
+        #scaled_name = sdimage.split('/')[-1]+'.Jyperpix'
+        scaled_name = sdimage+'.Jyperpix'
+	    
+        os.system('rm -rf '+scaled_name)
+        cta.immath(imagename=sdimage,
+                   outfile=scaled_name,
+                   mode='evalexpr',
+                   expr=fluxExpression)
+        hdval = 'Jy/pixel'
+        dummy = cta.imhead(imagename=scaled_name,
+                           mode='put',
+                           hdkey='BUNIT',
+                           hdvalue=hdval)
+        ### TO DO: MAY NEED TO REMOVE BLANK 
+        ### and/or NEGATIVE PIXELS IN SD OBSERVATIONS
+        return scaled_name
+    elif myimhead['unit']=='Jy/pixel': 
+        print('SD units {}. SKIP conversion. '.format(myimhead['unit']))
+        return sdimage
+    else: 
+        print('SD units {}. NOT OK, needs conversion by user to Jy/beam or Jy/pixel. '.format(myimhead['unit']))
+        return sys.exit()
+
+
+
+
+
+
+
+
+
+
+##########################################
+
+def derive_maxscale(vis, restfreq=''):
+
+    """
+    get maxscale for multiscale-deconvolver (Moser-Fischer, L.)
+    a helper for runsdintimg and runtclean
+
+    usemask - masking mode parameter as for tclean
+    mask - file name of mask
+    pbmask - PB mask cut-off level 
+    niter - number of iterations spent on this mask
+
+    """
+
+    #file_check_vis(vis)     
+        
+        
+    print('### Deriving maxscale for multiscale')
+    p05 = au.getBaselineStats(vis, percentile=5, verbose=False)[0]
+    if restfreq!='':
+        if 'GHz' in restfreq:
+            repfreq = float(restfreq.replace('GHz',''))*10**9
+        elif 'MHz' in restfreq:
+            repfreq = float(restfreq.replace('MHz',''))*10**6
+        elif 'kHz' in restfreq:
+            repfreq = float(restfreq.replace('kHz',''))*10**3   
+        elif 'Hz' in restfreq:
+            repfreq = float(restfreq.replace('Hz',''))
+    else:
+        if type(vis) is str:
+            repfreq=au.medianFrequencyOfIntent(vis, verbose=False)  #[Hz]
+        elif isinstance(vis, list):
+            refreqs=[]
+            for i in range(0,len(vis)):
+                repfreqi=au.medianFrequencyOfIntent(vis[i], verbose=False) #[Hz]
+                refreqs.append(refreqsi)
+            refreq=np.mean(refreqs)
+            
+                
+    # following ALMA technical handbook:
+    # maximum recoverable scale = 0.983* lambda[m]/5th_percentile_baseline[m]*206265.
+    c=2.99*10**8
+    freq= float(repfreq)
+    radiantoarcsec = 3600. * 180 / np.pi
+    
+    mrs = round((0.983 * c / freq / p05 * radiantoarcsec),3)
+    mrsfac=0.5
+    maxscale = round((mrs * mrsfac),3)
+    freqout=round(freq/10**9,3)
+    
+    print('')
+    print('### Maximum recoverable scale (mrs) for ' + vis + ' at', freqout ,'GHz is', mrs, 'arcsec')
+    print('### Will use', mrsfac, 'of it as maxscale, i.e.', maxscale, 'arcsec' )
+                  
+    return maxscale
+    
+    
+    
+    
+
+##########################################
+
+def report_mask(usemask, mask, pbmask, niter       
+                ):
+
+    """
+    report selected mask used for tclean/sdint (Moser-Fischer, L.)
+    a helper for runsdintimg and runtclean
+
+    usemask - masking mode parameter as for tclean
+    mask - file name of mask
+    pbmask - PB mask cut-off level 
+    niter - number of iterations spent on this mask
+
+    """
+     
+    print('')
+    if usemask == 'auto-multithresh':
+        print('### Run with {0} mask for {1} iterations ###'.format(usemask,niter))        
+    elif usemask =='pb':
+        print('### Run with {0} mask on PB level {1} for {2} iterations ###'.format(usemask,pbmask,niter))
+    elif usemask == 'user':
+        if os.path.exists(mask):
+           print('### Run with {0} mask {1} for {2} iterations ###'.format(usemask,mask,niter))
+        else:
+           print('### WARNING:   mask '+mask+' does not exist, or is not specified. ###')
+           #return False
+    else:
+        print("### Invalid usemask '"+usemask+"'. Please, check the mask options. ###")
+        return False
+    print('---------------------------------------------------------')
+
+
+
+
+
+
+
+##########################################
+
+def check_prep_tclean_param(  
+                vis,     
+                spw, 
+                field, 
+                specmode,                                 
+                imsize, 
+                cell, 
+                phasecenter,         
+                start, 
+                width, 
+                nchan, 
+                restfreq,
+                threshold, 
+                niter,
+                usemask,
+                sidelobethreshold,
+                noisethreshold,
+                lownoisethreshold, 
+                minbeamfrac,
+                growiterations,
+                negativethreshold,                
+                mask, 
+                pbmask,
+                interactive,               
+                multiscale, 
+                maxscale,
+                loadmask,
+                fniteronusermask
+                ):
+
+    """
+    check validity of parameters and set up tclean parameters in a uniform manner
+    (Moser-Fischer, L.)
+    a helper for runsdintimg and runtclean
+    Currently, it provides 'cube' and 'mfs' as spectral modes - 'mtmfs'
+    might be implemented later.
+    
+    steps:
+    - check 
+
+    
+    vis  
+    spw - 
+    field, 
+    specmode,                                 
+    imsize, 
+    cell, 
+    phasecenter,         
+    start, 
+    width, 
+    nchan, 
+    restfreq,
+    threshold, 
+    niter,
+    usemask,
+    sidelobethreshold,
+    noisethreshold,
+    lownoisethreshold, 
+    minbeamfrac,
+    growiterations,
+    negativethreshold,                
+    mask, 
+    pbmask,
+    interactive,               
+    multiscale, 
+    maxscale,
+    loadmask,
+    fniteronusermask      
+
+    """
+
+    # valid specmode?
+    if specmode not in ['mfs', 'cube']:
+        print('specmode \"'+specmode+'\" is not supported.')
+        return sys.exit()
+
+
+    # valid threshold?
+    if not type(threshold) == str or 'Jy' not in threshold and niter>1:
+        if not interactive:
+            print("You must provide a valid threshold, example '1mJy'")
+            return sys.exit()
+        else:
+            print("You have not set a valid threshold. Please do so in the graphical user interface!")
+            threshold = '1mJy'
+    
+    
+    # valid image and cell size?
+    if imsize==[] or cell=='':
+        cta.casalog.post('You need to provide values for the parameters imsize and cell.', 'SEVERE', origin='runsdintimg')
+        return sys.exit()    
+    
+
+    if loadmask==True and fniteronusermask>1. or fniteronusermask<0.:
+        print('fniteronusermask is out of range: ' +fniteronusermask+' Please choose a value between 0 and 1 (inclusively)')
+        return sys.exit()    
+    else:
+        pass    
+    
+
+    #   # specmode, deconvolver and multiscale setup
+    #   if multiscale:
+    #       if specmode == 'mfs':
+    #           mydeconvolver = 'mtmfs'   # needed bc it's the only mfs mode implemented into sdint
+    #       elif specmode == 'cube':
+    #           mydeconvolver = 'multiscale'
+    #           #numchan = nchan           # not really needed here?
+    #       mycell = myqa.convert(myqa.quantity(cell),'arcsec')['value']
+    #       myscales = [0]
+    #       for i in range(0, int(math.log(maxscale/mycell,3))):
+    #           myscales.append(3**i*5)
+    #   
+    #       print("My scales (units of pixels): "+str(myscales))
+    #   
+    #   else:    
+    #       myscales = [0]
+    #       if specmode == 'mfs':
+    #           mydeconvolver = 'mtmfs'   # needed bc the only mfs mode implemented into sdint
+    #       elif specmode == 'cube':
+    #           mydeconvolver = 'hogbom'
+    #           #numchan = nchan           # not really needed here?
+
+
+
+
+
+    
+    # specmode, deconvolver and multiscale setup
+    if multiscale:
+        mydeconvolver = 'multiscale'
+        if maxscale==-1:
+            maxscale=derive_maxscale(vis, restfreq=restfreq)
+        myqa = qatool()
+        mycell = myqa.convert(myqa.quantity(cell),'arcsec')['value']
+        myscales = [0]
+        for i in range(0, int(math.log(maxscale/mycell,3))):
+            myscales.append(3**i*5)
+
+        print("My scales (units of pixels): "+str(myscales))
+
+    else:    
+        myscales = [0]
+        mydeconvolver = 'hogbom'
+
+
+    # weighting schemes
+    if specmode == 'mfs':
+        weightingscheme ='briggs'     # cont mode 
+    elif specmode == 'cube':
+        weightingscheme ='briggs'#bwtaper'   # special briggs for cubes --- WAIT FOR IMPLEMENTATION IN SDINT 
+
+        
+
+
+
+    # others
+    npnt = 0    
+    if phasecenter=='':
+        phasecenter = npnt
+
+    if restfreq=='':
+        therf = []
+    else:
+        therf = [restfreq]
+
+
+    clean_arg=dict(vis=vis,
+                   field = field,
+                   phasecenter=phasecenter,
+                   imsize=imsize,
+                   cell=cell,                                   
+                   spw=spw,
+                   specmode=specmode,
+                   deconvolver=mydeconvolver,
+                   scales=myscales,
+                   nterms=1,                  # nterms=1 turns mtmfs into mfs, CASA 6.2 needs nterms=2 to run (bug?)
+                   start=start,
+                   width=width,
+                   nchan = nchan, #numchan, 
+                   restfreq=therf,
+                   gridder='mosaic',          
+                   weighting = weightingscheme,
+                   robust = 0.5,
+                   restoringbeam = 'common',   # SD-cube has only one beam - INT-cube needs it, too, else feather etc. fail
+                   niter=niter,
+                   cyclefactor=2.0,
+                   threshold=threshold,
+                   interactive = interactive,
+                   pbcor=True,               
+                   # Masking Parameters below this line 
+                   # --> Should be updated depending on dataset
+                   usemask=usemask,
+                   sidelobethreshold=sidelobethreshold,
+                   noisethreshold=noisethreshold,
+                   lownoisethreshold=lownoisethreshold, 
+                   minbeamfrac=minbeamfrac,
+                   growiterations=growiterations,
+                   negativethreshold=negativethreshold,
+                   mask=mask,
+                   pbmask=pbmask,
+                   verbose=True)
+
+    return clean_arg
+
+
+
+
+
+
+
+
+
+
+
 ##########################################
 
 def runsdintimg(vis, 
                 sdimage, 
-                jointname, 
+                imname, 
+                sdpsf='',
+                sdgain=5, 
+                dishdia=12.0,                
                 spw='', 
                 field='', 
-                specmode='mfs', 
-                sdpsf='',
-                threshold=None, 
-                sdgain=5, 
+                specmode='mfs',                                 
                 imsize=[], 
                 cell='', 
-                phasecenter='', 
-                dishdia=12.0,
+                phasecenter='',         
                 start=0, 
                 width=1, 
                 nchan=-1, 
-                restfreq=None, 
+                restfreq='',
+                threshold='', 
                 niter=0,
                 usemask= 'auto-multithresh',
                 sidelobethreshold=2.0,
@@ -99,20 +478,21 @@ def runsdintimg(vis,
     sdimage - the Single Dish image
              Note that in case you are creating a cube, this image must be a cube
              with the same spectral grid as the one you are trying to create.
-    jointname - the imagename of the output images
+    imname - the imagename of the output images
+    sdpsf - (optional) the SD PSF, must have the same coords as sdimage
+           if omitted or set to '' (empty string), a PSF will be derived
+           from the beam information in sdimage    
+    sdgain - the weight of the SD data relative to the interferometric data
+           default: 5 
+             'auto' - determine the scale automatically (experimental)
+    dishdia - in metres, (optional) used if no sdpsf is provided
+           default: 12.0                 
     spw - the standard selection parameter spw of tclean
            default: '' i.e. all SPWs
     field - the standard selection parameter field of tclean
            default: '' i.e. all fields
     specmode - the standard tclean specmode parameter: supported are msf or cube
            default: msf 
-    sdpsf - (optional) the SD PSF, must have the same coords as sdimage
-           if omitted or set to '' (empty string), a PSF will be derived
-           from the beam information in sdimage
-    threshold - the tclean threshold 
-    sdgain - the weight of the SD data relative to the interferometric data
-           default: 5 
-             'auto' - determine the scale automatically (experimental)
     imsize - the standard tclean imsize parameter 
             should correspond to the imagesize for the most extended
             interferometer config.
@@ -122,8 +502,6 @@ def runsdintimg(vis,
     phasecenter - the standard tclean phasecenter parameter
            e.g. 'J2000 12:00:00 -35.00.00.0000'
            default: '' - determine from the input MS with aU.pickCellSize
-    dishdia - in metres, (optional) used if no sdpsf is provided
-           default: 12.0
     start - the standard tclean start parameter
              default: 0
     width - the standard tclean width parameter
@@ -132,6 +510,7 @@ def runsdintimg(vis,
              default: -1
     restfreq - the restfrequency to write to the image for velocity calculations
              default: None, example: '115.271GHz'
+    threshold - the tclean threshold     
     niter - the standard tclean niter parameter
              default: 0, example: niter=1000000
     usemask - the standard tclean mask parameter.  If usemask='auto-multithresh', can specify:
@@ -193,38 +572,69 @@ def runsdintimg(vis,
 
     """
 
-    if os.path.exists(vis):
-        myvis = vis 
-    else:
-        print(vis+' does not exist')
-        return False
 
-    if os.path.exists(sdimage):
-        mysdimage = sdimage
-    else:
-        print(sdimage+' does not exist')
-        return False
+    # file checks
 
+    #   if type(vis) is str:
+    #       myvis = file_check(vis)
+    #         
+    #   if isinstance(vis, list):
+    #       for i in range(0,len(vis)):
+    #           file_check(vis[i])          # if one of the files does not exist, script will exit here
+    #       myvis = vis
+    #   
+    #   #myvis = file_check(vis)
+    
+
+    myvis = file_check_vis(vis)
+
+    mysdimage = file_check(sdimage)
+    
     mysdpsf = ''
     if sdpsf!='':
-        if os.path.exists(sdpsf):
-            mysdpsf = sdpsf
-        else:
-            print(sdpsf+' does not exist')
-            return False
+        mysdpsf = file_check(sdpsf)
 
-    if specmode not in ['mfs', 'cube']:
-        print('specmode \"'+specmode+'\" is not supported.')
-        return False
 
-    if not type(threshold) == str or 'Jy' not in threshold:
-        if not interactive:
-            print("You must provide a valid threshold, example '1mJy'")
-            return False
-        else:
-            print("You have not set a valid threshold. Please do so in the graphical user interface!")
-            threshold = '1mJy'
 
+    #if os.path.exists(vis):
+    #    myvis = vis 
+    #else:
+    #    print(vis+' does not exist')
+    #    return False
+    #
+    #
+    #if os.path.exists(sdimage):
+    #    mysdimage = sdimage
+    #else:
+    #    print(sdimage+' does not exist')
+    #    return False
+    #
+    #mysdpsf = ''
+    #if sdpsf!='':
+    #    if os.path.exists(sdpsf):
+    #        mysdpsf = sdpsf
+    #    else:
+    #        print(sdpsf+' does not exist')
+    #        return False
+
+
+    #   # valid specmode?
+    #   if specmode not in ['mfs', 'cube']:
+    #       print('specmode \"'+specmode+'\" is not supported.')
+    #       return False
+    #   
+    #   
+    #   # valid threshold?
+    #   if not type(threshold) == str or 'Jy' not in threshold:
+    #       if not interactive:
+    #           print("You must provide a valid threshold, example '1mJy'")
+    #           return False
+    #       else:
+    #           print("You have not set a valid threshold. Please do so in the graphical user interface!")
+    #           threshold = '1mJy'
+
+
+    # SDINT specific: check perplanebeams and create them if needed
     myia = iatool()
     myqa = qatool()
 
@@ -250,7 +660,6 @@ def runsdintimg(vis,
 
     myia.close()
 
-
     if not haspcb:
         os.system('rm -rf '+mysdimage+'_*')
         os.system('cp -R '+mysdimage+' '+mysdimage+'_copy')
@@ -269,6 +678,8 @@ def runsdintimg(vis,
         else:
             os.system('cp -R '+mysdimage+' '+mysdimage+'_pcb')
             
+        #os.system('cp -R '+mysdimage+' '+mysdimage+'_pcb')
+      
         mysdimage = mysdimage+'_pcb'
 
         myia.open(mysdimage)
@@ -280,126 +691,175 @@ def runsdintimg(vis,
         cta.casalog.post('Needed to give the sdimage a per-channel beam. Modifed image is in '+mysdimage, 'WARN', 
                          origin='runsdintimg')
 
-    # specmode and deconvolver
-    if multiscale:
-        if specmode == 'mfs':
-            mydeconvolver = 'mtmfs'   # needed bc the only mfs mode implemented into sdint
-        elif specmode == 'cube':
-            mydeconvolver = 'multiscale'
-            numchan = nchan        #not really needed here?
-        mycell = myqa.convert(myqa.quantity(cell),'arcsec')['value']
-        myscales = [0]
-        for i in range(0, int(math.log(maxscale/mycell,3))):
-            myscales.append(3**i*5)
 
-        print("My scales (units of pixels): "+str(myscales))
-
-    else:    
-        myscales = [0]
-        if specmode == 'mfs':
-            mydeconvolver = 'mtmfs'   # needed bc the only mfs mode implemented into sdint
-        elif specmode == 'cube':
-            mydeconvolver = 'hogbom'
-            numchan = nchan        #not really needed here?
-
-    if specmode == 'mfs':
-        weightingscheme ='briggs'   # cont mode 
-    elif specmode == 'cube':
-        weightingscheme ='briggs' #bwtaper'   # special briggs for cubes --- WAIT FOR IMPLEMENTATION IN SDINT 
-
-        
-    # image and cell size
-    npnt = 0
-    if imsize==[] or cell=='':
-        cta.casalog.post('You need to provide values for the parameters imsize and cell.', 'SEVERE', origin='runsdintimg')
-        return False
-
-    if phasecenter=='':
-        phasecenter = npnt
-
-    if restfreq==None:
-        therf = []
-    else:
-        therf = [restfreq]
-
+    #   # specmode, deconvolver and multiscale setup
+    #   if multiscale:
+    #       if specmode == 'mfs':
+    #           mydeconvolver = 'mtmfs'   # needed bc it's the only mfs mode implemented into sdint
+    #       elif specmode == 'cube':
+    #           mydeconvolver = 'multiscale'
+    #           # mfs with nterms=1 uses numchan=2 despite nchan=-1 
+    #           # (due to artificial perplanebeams created above)
+    #           # nchan=numchan is the parameter handed to sdintimaging below
+    #           # --> set numchan=nchan, if cube          
+    #           numchan = nchan           
+    #       mycell = myqa.convert(myqa.quantity(cell),'arcsec')['value']
+    #       myscales = [0]
+    #       for i in range(0, int(math.log(maxscale/mycell,3))):
+    #           myscales.append(3**i*5)
+    #   
+    #       print("My scales (units of pixels): "+str(myscales))
+    #   
+    #   else:    
+    #       myscales = [0]
+    #       if specmode == 'mfs':
+    #           mydeconvolver = 'mtmfs'   # needed bc the only mfs mode implemented into sdint
+    #       elif specmode == 'cube':
+    #           mydeconvolver = 'hogbom'
+    #           # mfs with nterms=1 uses numchan=2 despite nchan=-1 
+    #           # (due to artificial perplanebeams created above)
+    #           # nchan=numchan is the parameter handed to sdintimaging below
+    #           # --> set numchan=nchan, if cube 
+    #           numchan = nchan           
+    #   
+    #   
+    #   # weighting schemes
+    #   if specmode == 'mfs':
+    #       weightingscheme ='briggs'     # cont mode 
+    #   elif specmode == 'cube':
+    #       weightingscheme ='briggs'#bwtaper'   # special briggs for cubes --- WAIT FOR IMPLEMENTATION IN SDINT 
+    #   
+    #       
+    #   # valid image and cell size?
+    #   npnt = 0
+    #   if imsize==[] or cell=='':
+    #       cta.casalog.post('You need to provide values for the parameters imsize and cell.', 'SEVERE', origin='runsdintimg')
+    #       return False
+    #   
+    #   
+    #   # others
+    #   if phasecenter=='':
+    #       phasecenter = npnt
+    #   
+    #   if restfreq=='':
+    #       therf = []
+    #   else:
+    #       therf = [restfreq]
+    
+       
     if niter==0:
         niter = 1
         cta.casalog.post('You set niter to 0 (zero, the default), but sdintimaging can only produce an output for niter>0. niter = 1 set automatically. ', 'WARN')
+    
 
 
 
-
-    sdint_arg=dict(vis=myvis,
-                   imagename=jointname,
-                   sdimage=mysdimage,
-                   field = field,
-                   phasecenter=phasecenter,
-                   imsize=imsize,
-                   cell=cell,                                   
-                   spw=spw,
-                   specmode=specmode,
-                   deconvolver=mydeconvolver,
-                   scales=myscales,
-                   nterms=1,                  # nterms=1 turns mtmfs into mfs, CASA 6.2 needs nterms=2 to run (bug?)
-                   start=start,
-                   width=width,
-                   nchan = numchan, 
-                   restfreq=therf,
-                   gridder='mosaic',          #mygridder,
-                   #weighting='briggs',
-                   weighting = weightingscheme,
-                   robust = 0.5,
-                   restoringbeam = 'common',   # SD-cube has only one beam - INT-cube needs it, too, else feather etc. fail
-                   niter=niter,
-                   #cycleniter = niter,        # bogus if = niter
-                   cyclefactor=2.0,
-                   threshold=threshold,
-                   interactive = interactive,
-                   #perchanweightdensity=False, # better True (=default)?                  
-                   #pblimit=0.2,               # default
-                   pbcor=True,               
-                   sdpsf=mysdpsf,
-                   dishdia=dishdia,
-                   sdgain=sdgain,
-                   usedata='sdint',
-                   #interpolation='linear',    # default
-                   #wprojplanes=1,             # default & not needed
-                   usemask=usemask,
-                   sidelobethreshold=sidelobethreshold,
-                   noisethreshold=noisethreshold,
-                   lownoisethreshold=lownoisethreshold, 
-                   minbeamfrac=minbeamfrac,
-                   growiterations=growiterations,
-                   negativethreshold=negativethreshold,
-                   mask=mask,
-                   pbmask=pbmask,
-                   verbose=True)
-
+    #   sdint_arg=dict(vis=myvis,
+    #                  imagename=imname,
+    #                  sdimage=mysdimage,
+    #                  field = field,
+    #                  phasecenter=phasecenter,
+    #                  imsize=imsize,
+    #                  cell=cell,                                   
+    #                  spw=spw,
+    #                  specmode=specmode,
+    #                  deconvolver=mydeconvolver,
+    #                  scales=myscales,
+    #                  nterms=1,                  # nterms=1 turns mtmfs into mfs, CASA 6.2 needs nterms=2 to run (bug?)
+    #                  start=start,
+    #                  width=width,
+    #                  nchan = numchan, 
+    #                  restfreq=therf,
+    #                  gridder='mosaic',          
+    #                  #weighting='briggs',
+    #                  weighting = weightingscheme,
+    #                  robust = 0.5,
+    #                  restoringbeam = 'common',   # SD-cube has only one beam - INT-cube needs it, too, else feather etc. fail
+    #                  niter=niter,
+    #                  #cycleniter = niter,        # bogus if = niter
+    #                  cyclefactor=2.0,
+    #                  threshold=threshold,
+    #                  interactive = interactive,
+    #                  #perchanweightdensity=False, # better True (=default)?                  
+    #                  #pblimit=0.2,               # default
+    #                  pbcor=True,               
+    #                  sdpsf=mysdpsf,
+    #                  dishdia=dishdia,
+    #                  sdgain=sdgain,
+    #                  usedata='sdint',
+    #                  #interpolation='linear',    # default
+    #                  #wprojplanes=1,             # default & not needed
+    #                  usemask=usemask,
+    #                  sidelobethreshold=sidelobethreshold,
+    #                  noisethreshold=noisethreshold,
+    #                  lownoisethreshold=lownoisethreshold, 
+    #                  minbeamfrac=minbeamfrac,
+    #                  growiterations=growiterations,
+    #                  negativethreshold=negativethreshold,
+    #                  mask=mask,
+    #                  pbmask=pbmask,
+    #                  verbose=True)
 
 
-    #if interactive:
 
-        #sdint_arg['cycleniter']=100
-        #sdint_arg['usemask']='pb'
-        #sdint_arg['pbmask']=0.4
+    if specmode == 'cube':
+        # mfs with nterms=1 uses numchan=2 despite nchan=-1 
+        # (due to artificial perplanebeams created above)
+        # nchan=numchan is the sdint_arg parameter handed to sdintimaging below
+        # --> set numchan=nchan, if cube 
+        numchan = nchan 
 
-        
-    #else: # non-interactive, use automasking
 
-        #sdint_arg['cycleniter'] = 100000
-        #sdint_arg['cyclefactor']=2.0
-        #sdint_arg['usemask']='auto-multithresh' #,
-        
-
-    # old:                 
-    #cta.sdintimaging(**sdint_arg)
+    sdint_arg = check_prep_tclean_param(
+                myvis,     
+                spw, 
+                field, 
+                specmode,                                 
+                imsize, 
+                cell, 
+                phasecenter,         
+                start, 
+                width, 
+                numchan, 
+                restfreq,
+                threshold, 
+                niter,
+                usemask,
+                sidelobethreshold,
+                noisethreshold,
+                lownoisethreshold, 
+                minbeamfrac,
+                growiterations,
+                negativethreshold,                
+                mask, 
+                pbmask,
+                interactive,               
+                multiscale, 
+                maxscale,
+                loadmask,
+                fniteronusermask
+                )
+    
+    
+    #sdint_arg['vis']        =myvis
+    sdint_arg['imagename']  =imname
+    sdint_arg['sdimage']    =mysdimage
+    sdint_arg['sdpsf']      =mysdpsf
+    sdint_arg['dishdia']    =dishdia
+    sdint_arg['sdgain']     =sdgain
+    sdint_arg['usedata']    ='sdint'
+    
+    
+    if specmode == 'mfs':
+        sdint_arg['deconvolver'] = 'mtmfs'
+    
 
     if continueclean == False:   
         # continueclean=True needs previous runsdint call to be executed 
         # with renameexport=False !!!! 
-        os.system('rm -rf '+jointname+'.*')  
-        # if to be switched off add command to delete "*.pbcor.fits"
-
+        os.system('rm -rf '+imname+'.*')  
+        # if to be switched off, add command to delete "*.pbcor.fits"
+    
 
     if loadmask==True:
 
@@ -408,7 +868,11 @@ def runsdintimg(vis,
             sdint_arg['niter']=1
         else:   
             sdint_arg['niter']=int(niter*fniteronusermask)
+
         # load mask into tclean with fniteronusermask*niter
+        print('')
+        print('### Load mask into sdintimaging with iterations = fniteronusermask*niter = ', fniteronusermask, ' * ', niter)
+        report_mask(sdint_arg['usemask'],sdint_arg['mask'],sdint_arg['pbmask'],sdint_arg['niter'])
         tcleansresults = cta.sdintimaging(**sdint_arg)
         
         sdint_arg['usemask']=usemask
@@ -423,35 +887,22 @@ def runsdintimg(vis,
             pass
         else:
             # clean and get tclean-feedback 
+            print('')
+            print('### Continue sdintimaging with iterations = (1-fniteronusermask)*niter = ', (1.0-fniteronusermask), ' * ', niter)
+            report_mask(sdint_arg['usemask'],sdint_arg['mask'],sdint_arg['pbmask'],sdint_arg['niter'])
             tcleansresults = cta.sdintimaging(**sdint_arg)
-        
-        ##### store feedback in a file 
-        ####pydict_to_file2(tcleansresults, jointname)
-        ####
-        ####os.system('cp -r summaryplot_1.png '+jointname+'.png')   
-                 
+                         
     else: 
         # clean and get tclean-feedback 
+        report_mask(sdint_arg['usemask'],sdint_arg['mask'],sdint_arg['pbmask'],sdint_arg['niter'])
         tcleansresults = cta.sdintimaging(**sdint_arg)
         
     # store feedback in a file 
-    pydict_to_file2(tcleansresults, jointname)
+    pydict_to_file2(tcleansresults, imname)
     
-    os.system('cp -r summaryplot_1.png '+jointname+'.png')   
-              
+    os.system('cp -r summaryplot_1.png '+imname+'.png')   
+ 
 
-
-
-    #oldnames=glob.glob(imname+'.joint.multiterm*')
-    #for nam in oldnames:
-    #    os.system('mv '+nam+' '+nam.replace('.joint.multiterm',''))
-    #oldnames=glob.glob(imname+'*.tt0*')
-    #for nam in oldnames:
-    #    os.system('mv '+nam+' '+nam.replace('.tt0',''))
-    #oldnames=glob.glob(imname+'.joint.cube*')
-    #for nam in oldnames:
-    #    os.system('mv '+nam+' '+nam.replace('.joint.cube',''))
-                          
 
     ### SDINT Traditional OUTPUTS
     
@@ -479,33 +930,36 @@ def runsdintimg(vis,
     #   *.sd.cube.psf/
     #   *.sd.cube.residual/
     
+    
+    
+    
     if renameexport == True:
         # rename SDINT outputs to common style
         print('Exporting final pbcor image to FITS ...')
-        if mydeconvolver=='mtmfs' and niter>0:
-            oldnames=glob.glob(jointname+'.joint.multiterm*')
+        if sdint_arg['deconvolver'] =='mtmfs' and niter>0:
+            oldnames=glob.glob(imname+'.joint.multiterm*')
             for nam in oldnames:
                 os.system('mv '+nam+' '+nam.replace('.joint.multiterm',''))
-            oldnames=glob.glob(jointname+'*.tt0*')
+            oldnames=glob.glob(imname+'*.tt0*')
             for nam in oldnames:
                 os.system('mv '+nam+' '+nam.replace('.tt0',''))     
         
-            os.system('rm -rf '+jointname+'.int.cube*')
-            os.system('rm -rf '+jointname+'.sd.cube*')
-            os.system('rm -rf '+jointname+'.joint.cube*')
+            os.system('rm -rf '+imname+'.int.cube*')
+            os.system('rm -rf '+imname+'.sd.cube*')
+            os.system('rm -rf '+imname+'.joint.cube*')
         
-            cta.exportfits(jointname+'.image.pbcor', jointname+'.image.pbcor.fits')
+            cta.exportfits(imname+'.image.pbcor', imname+'.image.pbcor.fits')
             
-        elif mydeconvolver=='hogbom' or mydeconvolver=='multiscale':
-            os.system('rm -rf '+jointname+'.int.cube*')
-            os.system('rm -rf '+jointname+'.sd.cube*')     
+        elif sdint_arg['deconvolver'] =='hogbom' or sdint_arg['deconvolver'] =='multiscale':
+            os.system('rm -rf '+imname+'.int.cube*')
+            os.system('rm -rf '+imname+'.sd.cube*')     
             
-            oldnames=glob.glob(jointname+'.joint.cube*')
+            oldnames=glob.glob(imname+'.joint.cube*')
             for nam in oldnames:
                 os.system('mv '+nam+' '+nam.replace('.joint.cube',''))
             
-            #exportfits(jointname+'.joint.cube.image.pbcor', jointname+'.joint.cube.image.pbcor.fits')
-            cta.exportfits(jointname+'.image.pbcor', jointname+'.image.pbcor.fits')
+            #exportfits(imname+'.joint.cube.image.pbcor', imname+'.joint.cube.image.pbcor.fits')
+            cta.exportfits(imname+'.image.pbcor', imname+'.image.pbcor.fits')
     else:
         print('Keeping native file names - no export!')
 
@@ -528,7 +982,7 @@ def runWSM(vis,
            start=0, 
            width=1, 
            nchan=-1, 
-           restfreq=None,
+           restfreq='',
            threshold='',
            niter=0,
            usemask='auto-multithresh' ,
@@ -538,7 +992,7 @@ def runWSM(vis,
            minbeamfrac=0.3,
            growiterations=75,
            negativethreshold=0.0,
-           sdmasklev=0.3,           
+           #sdmasklev=0.3,           
            mask='', 
            pbmask=0.4,
            interactive=True, 
@@ -637,111 +1091,63 @@ def runWSM(vis,
 
     """
 
+    # file checks
+    #   myvis = file_check(vis)
 
-    if os.path.exists(vis):
-        myvis = vis 
-    else:
-        print(vis+' does not exist')
-        return False
-
-    if os.path.exists(sdimage):
-        mysdimage = sdimage
-    else:
-        print(sdimage+' does not exist')
-        return False
-
-    myimhead = cta.imhead(mysdimage)
-
-    if myimhead['unit']=='Jy/beam': print('SD units {}. OK, will convert to Jy/pixel.'.format(myimhead['unit']))
-    elif myimhead['unit']=='Jy/pixel': print('SD units {}. SKIP conversion. '.format(myimhead['unit']))
-    else: print('SD units {}. NOT OK, needs conversion. '.format(myimhead['unit']))
-
-    ##CHECK: header units
-    SingleDishResolutionArcsec = myimhead['restoringbeam']['major']['value'] #in Arcsec
-    CellSizeArcsec = abs(myimhead['incr'][0])*206265. #in Arcsec
-    toJyPerPix = CellSizeArcsec**2/(1.1331*SingleDishResolutionArcsec**2)
-    SDEfficiency = 1.0 #--> Scaling factor
-    fluxExpression = "(IM0 * {0:f} / {1:f})".format(toJyPerPix,SDEfficiency)
-    #scaled_name = mysdimage.split('/')[-1]+'.Jyperpix'
-    scaled_name = mysdimage+'.Jyperpix'
-
-    os.system('rm -rf '+scaled_name)
-    cta.immath(imagename=mysdimage,
-               outfile=scaled_name,
-               mode='evalexpr',
-               expr=fluxExpression)
-    hdval = 'Jy/pixel'
-    dummy = cta.imhead(imagename=scaled_name,
-                       mode='put',
-                       hdkey='BUNIT',
-                       hdvalue=hdval)
-    ### TO DO: MAY NEED TO REMOVE BLANK 
-    ### and/or NEGATIVE PIXELS IN SD OBSERVATIONS
+    myvis = file_check_vis(vis)
+    
+    mysdimage = file_check(sdimage)
+    
+    #if os.path.exists(vis):
+    #    myvis = vis 
+    #else:
+    #    print(vis+' does not exist')
+    #    return False
+    #
+    #if os.path.exists(sdimage):
+    #    mysdimage = sdimage
+    #else:
+    #    print(sdimage+' does not exist')
+    #    return False
 
 
-    ## SETUP mask if usemask='user' and mask=''
-    #if usemask=='user' and mask=='':
-    #    if os.path.exists(+'.SDint.mask') ###HELP!!
-    #    mask = make_SDint_mask(vis, sdreordered, imname, 
-    #                             sdmasklev, 
-    #                             SDint_mask_root, 
-    #                             phasecenter=phasecenter, 
-    #                             spw=        spw, 
-    #                             field=      field, 
-    #                             imsize=     imsize, 
-    #                             cell=       cell)
-        #  casalog.post("Generating a mask based on SD image", 'INFO', 
-        #               origin='runWSM')
-        #  #get max in SD image
-        #  maxSD = imstat(scaled_name)['max'][0]
-        #  sdmasklev=0.3
-        #  sdmaskval = sdmasklev*maxSD
-        #  os.system('rm -rf SD*.mask')     
-        #  #try: 
-        #  immath(imagename=[scaled_name],expr='iif(IM0>'+str(round(sdmaskval,6))+',1,0)',outfile='SD.mask')
-        #  #except: print('### SD.mask already exists, will proceed')
-        #  
-        #  print('### Creating a mask based on SD mask and auto-mask')
-        #  print('### Step 1 of 2: load the SD mask into interferometric tclean image data' )
-        #  print('### Please check the result!')
-        #  os.system('rm -rf '+imname+'_setmask*')        
-        #  
-        #  runtclean(myvis,imname+'_setmask',
-        #          phasecenter=phasecenter, 
-        #          spw=spw, field=field, imsize=imsize, cell=cell,
-        #          niter=1,usemask='user',mask='SD.mask',restart=True,interactive=False, continueclean=True)
-        #  print('### Step 2 of 2: add first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
-        #  print('### Please check the result!')        
-        #  os.system('cp -rf '+imname+'_setmask.mask SD2.mask')
-        #  os.system('rm -rf '+imname+'_setmask.image.pbcor.fits')        
-        #  runtclean(myvis,imname+'_setmask', phasecenter=phasecenter, 
-        #          spw=spw, field=field, imsize=imsize, cell=cell,
-        #          niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=False, continueclean=True)
-        #  os.system('cp -rf '+imname+'_setmask.mask SDint.mask')
-        #############  
-        #  #print('### Creating a mask based on SD mask and auto-mask')
-        #  #print('### Step 2 of 2: first auto-masking guess of bright emission regions (interferometric!) to the SD mask')
-        #  #print('### Please check the result!')
-        #  #runtclean(myvis,imname+'_setmask', phasecenter=phasecenter, 
-        #  #        spw=spw, field=field, imsize=imsize, cell=cell,
-        #  #        niter=1,usemask='auto-multithresh',mask='',restart=True,interactive=False, continueclean=True)
-        #  #os.system('cp -rf '+imname+'_setmask.mask int-AM0.mask')
-        #  #os.system('rm -rf '+imname+'_setmask.pbcor.fits')                 
-        #  #print('### Step 1 of 2: load the SD mask into interferometric tclean image data' )
-        #  #print('### Please check the result!')                  
-        #  #runtclean(myvis,imname+'_setmask',
-        #  #        phasecenter=phasecenter, 
-        #  #        spw=spw, field=field, imsize=imsize, cell=cell,
-        #  #        niter=1,usemask='user',mask='SD.mask',restart=True,interactive=False, continueclean=True)
-        #  #os.system('cp -rf '+imname+'_setmask.mask SDint.mask')
-        #  
-        #  print('### Done! Created an SDint mask from SD and auto-mask')                
-        #  mask='SDint.mask'  
-        #  #mask='SD.mask'  
+
+    # convert image brightness unit from Jy/beam to Jy/pixel, if needed
+    scaled_name = convert_JypB_JypP(mysdimage)
+
+
+    #   myimhead = cta.imhead(mysdimage)
+	#   
+    #   if myimhead['unit']=='Jy/beam': print('SD units {}. OK, will convert to Jy/pixel.'.format(myimhead['unit']))
+    #   elif myimhead['unit']=='Jy/pixel': print('SD units {}. SKIP conversion. '.format(myimhead['unit']))
+    #   else: print('SD units {}. NOT OK, needs conversion. '.format(myimhead['unit']))
+	#   
+    #   ##CHECK: header units
+    #   SingleDishResolutionArcsec = myimhead['restoringbeam']['major']['value'] #in Arcsec
+    #   CellSizeArcsec = abs(myimhead['incr'][0])*206265. #in Arcsec
+    #   toJyPerPix = CellSizeArcsec**2/(1.1331*SingleDishResolutionArcsec**2)
+    #   SDEfficiency = 1.0 #--> Scaling factor
+    #   fluxExpression = "(IM0 * {0:f} / {1:f})".format(toJyPerPix,SDEfficiency)
+    #   #scaled_name = mysdimage.split('/')[-1]+'.Jyperpix'
+    #   scaled_name = mysdimage+'.Jyperpix'
+	#   
+    #   os.system('rm -rf '+scaled_name)
+    #   cta.immath(imagename=mysdimage,
+    #              outfile=scaled_name,
+    #              mode='evalexpr',
+    #              expr=fluxExpression)
+    #   hdval = 'Jy/pixel'
+    #   dummy = cta.imhead(imagename=scaled_name,
+    #                      mode='put',
+    #                      hdkey='BUNIT',
+    #                      hdvalue=hdval)
+    #   ### TO DO: MAY NEED TO REMOVE BLANK 
+    #   ### and/or NEGATIVE PIXELS IN SD OBSERVATIONS
+ 
 
     ## TCLEAN METHOD WITH START MODEL
     print('### Start hybrid clean')                    
-    runtclean
+    #runtclean
     WSM_arg=dict(spw=spw, 
               field=field, 
               specmode=specmode,
@@ -820,104 +1226,38 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
     """
     ## Call Feather module
 
-    if os.path.exists(sdimage):
-        mysdimage = sdimage
-    else:
-        print(sdimage+' does not exist')
-        return False
+    # file checks
+    mysdimage = file_check(sdimage)
 
-    if os.path.exists(intimage):
-        myintimage = intimage
-    else:
-        print(intimage+' does not exist')
-        return False
+    myintimage = file_check(intimage)
 
-    if os.path.exists(intpb):
-        myintpb = intpb
-    else:
-        print(intpb+' does not exist')
-        return False
+    myintpb = file_check(intpb)
 
+
+    #if os.path.exists(sdimage):
+    #    mysdimage = sdimage
+    #else:
+    #    print(sdimage+' does not exist')
+    #    return False
+    #
+    #if os.path.exists(intimage):
+    #    myintimage = intimage
+    #else:
+    #    print(intimage+' does not exist')
+    #    return False
+    #
+    #if os.path.exists(intpb):
+    #    myintpb = intpb
+    #else:
+    #    print(intpb+' does not exist')
+    #    return False
+    #
 
     # use function for reordering instead of commented code down here 
 
     print('### Start feather')                    
 
     os.system('rm -rf lowres.* ')
-
-
-    #  --- EXPECTING regridded and reordered images! ----> comment this out
-    #
-    # # Reorder the axes of the low to match high/pb 
-    # #mysdimage = reorder_axes(myintimage,mysdimage,'lowres.ro')
-    # mysdimage = reorder_axes(mysdimage,'lowres.ro')
-
-
-
-    #          TO DO: Improve this bit, because it's messy
-    #          
-    #          #####################################
-    #          #            PROCESS DATA           #
-    #          #####################################
-    #          # Reorder the axes of the low to match high/pb 
-               
-    #          myfiles=[myintimage,mysdimage]
-    #          mykeys=['cdelt1','cdelt2','cdelt3','cdelt4']
-               
-    #          os.system('rm -rf lowres.* ')
-               
-               
-    #          im_axes={}
-    #          print('Making dictionary of axes information for high and lowres images')
-    #          for f in myfiles:
-    #             print(f)
-    #             print('------------')
-    #             axes = {}
-    #             i=0
-    #             for key in mykeys:
-    #                 q = imhead(f,mode='get',hdkey=key)
-    #                 axes[i]=q
-    #                 i=i+1
-    #                 print(str(key)+' : '+str(q))
-    #             im_axes[f]=axes
-    #             print(' ')
-               
-    #          order=[]           
-               
-    #          for i in range(4):
-    #             hi_ax = im_axes[myintimage][i]['unit']
-    #             lo_ax = im_axes[myintimage][i]['unit']
-    #             if hi_ax == lo_ax:
-    #                 order.append(str(i))
-    #             else:
-    #                 lo_m1 = im_axes[mysdimage][i-1]['unit']
-    #                 if hi_ax == lo_m1:
-    #                     order.append(str(i-1))
-    #                 else:
-    #                     lo_p1 = im_axes[mysdimage][i+1]['unit']
-    #                     if hi_ax == lo_p1:
-    #                         order.append(str(i+1))
-    #          order = ''.join(order)
-    #          print('order is '+order)
-               
-    #          if order=='0,1,2,3':
-    #             print('No reordering necessary')
-    #          else:
-    #            imtrans(imagename=mysdimage,outfile='lowres.ro',order=order)
-    #            lowres='lowres.ro'
-    #            print('Had to reorder!')
-
-
-    #  --- EXPECTING regridded and reordered images! ----> comment this out
-    #
-    ## Regrid low res Image to match high res image --- 
-    #
-    #print('Regridding lowres image...')
-    #cta.imregrid(imagename=mysdimage,
-    #             template=myintimage,
-    #             axes=[0,1,2],
-    #             output='lowres.regrid')
-
 
     os.system('cp -r '+mysdimage+' lowres.regrid')
 
@@ -942,7 +1282,7 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
                 lowpassfiltersd = True )
     
     
-    # Testinf SDINT based feather
+    # Testing SDINT based feather
     #
     #chanwt = np.ones( len(getFreqList('lowres.multiplied')))
     #
@@ -1148,7 +1488,7 @@ def runtclean(vis,
               interactive=True, 
               multiscale=False, 
               maxscale=0.,
-              restart=True,
+              #restart=True,
               continueclean = False,
               loadmask=False,
               fniteronusermask=0.3
@@ -1232,126 +1572,162 @@ def runtclean(vis,
 
     """
 
-    if type(vis) is str:
-        if os.path.exists(vis):
-            myvis = vis 
-        else:
-            print(vis+' does not exist')
-            return False
+
+    myvis = file_check_vis(vis)
+
+
+    #   if type(vis) is str:
+    #       myvis = file_check(vis)
+    #   
+    #           
+    #   if isinstance(vis, list):
+    #       #acceptinput=True
+    #       for i in range(0,len(vis)):
+    #           file_check(vis[i])          # if one of the files does not exist, script will exit here
+    #           #if os.path.exists(vis[i]):
+    #           #    #myvis = vis 
+    #           #    pass 
+    #           #else:
+    #           #    acceptinput=False 
+    #           #    print(vis[i]+' does not exist')
+    #       #if acceptinput==False:
+    #       #    return False             
+    #       #else:
+    #       #    myvis = vis 
+    #       myvis = vis    
             
-    if isinstance(vis, list):
-        acceptinput=True
-        for i in range(0,len(vis)):
-            if os.path.exists(vis[i]):
-                #myvis = vis 
-                pass 
-            else:
-                acceptinput=False 
-                print(vis[i]+' does not exist')
-        if acceptinput==False:
-            return False             
-        else:
-            myvis = vis 
-            
-    if loadmask==True and fniteronusermask>1 or fniteronusermask<0:
-        print('fniteronusermask is out of range: ' +fniteronusermask+' Please choose a value between 0 and 1 (inclusively)')
-        return False        
-    else:
-        pass
+    #   if loadmask==True and fniteronusermask>1 or fniteronusermask<0:
+    #       print('fniteronusermask is out of range: ' +fniteronusermask+' Please choose a value between 0 and 1 (inclusively)')
+    #       return False        
+    #   else:
+    #       pass
             
         
     #print('')
+
     print('Start tclean ...')
+
     #mymaskname = ''
-    if usemask == 'auto-multithresh':
-        #print('Run with {0} mask'.format(usemask))
-        mymask = usemask
-        if os.path.exists(mask):
-           mymaskname = mask
-           print('Run with {0} mask and {1} '.format(mymask,mymaskname))
-        else: print('Run with {0} mask'.format(mymask))        
+    #   if usemask == 'auto-multithresh':
+    #       #print('Run with {0} mask'.format(usemask))
+    #       mymask = usemask
+    #       if os.path.exists(mask):
+    #          mymaskname = mask
+    #          print('Run with {0} mask and {1} '.format(mymask,mymaskname))
+    #       else: print('Run with {0} mask'.format(mymask))        
+    #   
+    #   elif usemask =='pb':
+    #       print('Run with {0} mask on PB level {1}'.format(usemask,pbmask))
+    #   elif usemask == 'user':
+    #       if os.path.exists(mask):
+    #          print('Run with {0} mask {1}'.format(usemask,mask))
+    #   
+    #       else:
+    #          print('### WARNING:   mask '+mask+' does not exist, or not specified')
+    #          #return False
+    #   else:
+    #       print('check the mask options')
+    #       return False
 
-    elif usemask =='pb':
-        print('Run with {0} mask on PB level {1}'.format(usemask,pbmask))
-    elif usemask == 'user':
-        if os.path.exists(mask):
-           print('Run with {0} mask {1}'.format(usemask,mask))
-
-        else:
-           print('### WARNING:   mask '+mask+' does not exist, or not specified')
-           #return False
-    else:
-        print('check the mask options')
-        return False
-
-    # specmode and deconvolver
-    if multiscale:
-        mydeconvolver = 'multiscale'
-        myqa = qatool()
-        mycell = myqa.convert(myqa.quantity(cell),'arcsec')['value']
-        myscales = [0]
-        for i in range(0, int(math.log(maxscale/mycell,3))):
-            myscales.append(3**i*5)
-
-        print("My scales (units of pixels): "+str(myscales))
-
-    else:    
-        myscales = [0]
-        mydeconvolver = 'hogbom'
+    #   # specmode and deconvolver
+    #   if multiscale:
+    #       mydeconvolver = 'multiscale'
+    #       myqa = qatool()
+    #       mycell = myqa.convert(myqa.quantity(cell),'arcsec')['value']
+    #       myscales = [0]
+    #       for i in range(0, int(math.log(maxscale/mycell,3))):
+    #           myscales.append(3**i*5)
+    #   
+    #       print("My scales (units of pixels): "+str(myscales))
+    #   
+    #   else:    
+    #       myscales = [0]
+    #       mydeconvolver = 'hogbom'
 
     if niter==0:
         cta.casalog.post('You set niter to 0 (zero, the default). Only a dirty image will be created.', 'WARN', origin='runtclean')
 
-    if specmode == 'mfs':
-        weightingscheme ='briggs'   # cont mode
-    elif specmode == 'cube':
-        weightingscheme ='briggs' #bwtaper'   # special briggs for cubes --- WAIT FOR IMPLEMENTATION IN SDINT 
+
+    #   if specmode == 'mfs':
+    #       weightingscheme ='briggs'   # cont mode
+    #   elif specmode == 'cube':
+    #       weightingscheme ='briggs' #bwtaper'   # special briggs for cubes --- WAIT FOR IMPLEMENTATION IN SDINT 
+    #   
+
+    #   tclean_arg=dict(vis = myvis,
+    #                   imagename = imname, #+'.TCLEAN',
+    #                   startmodel = startmodel,
+    #                   field = field,
+    #                   phasecenter = phasecenter,
+    #                   imsize = imsize,
+    #                   cell = cell,
+    #                   spw = spw,
+    #                   specmode = specmode,
+    #                   deconvolver = mydeconvolver,   
+    #                   scales = myscales,             
+    #                   #nterms = 1,                    # needed by sdint for mtmfs
+    #                   start = start, 
+    #                   width = width, 
+    #                   nchan = nchan, 
+    #                   restfreq = restfreq,
+    #                   gridder = 'mosaic',
+    #                   weighting = weightingscheme,
+    #                   robust = 0.5,
+    #                   restoringbeam = 'common',   # SD-cube has only one beam - INT-cube needs it, too, else feather etc. fail
+    #                   niter = niter,
+    #                   cyclefactor=2.0,
+    #                   threshold = threshold,
+    #                   interactive = interactive,
+    #                   pbcor = True,
+    #                   # Masking Parameters below this line 
+    #                   # --> Should be updated depending on dataset
+    #                   usemask=usemask,
+    #                   sidelobethreshold=sidelobethreshold,
+    #                   noisethreshold=noisethreshold,
+    #                   lownoisethreshold=lownoisethreshold, 
+    #                   minbeamfrac=minbeamfrac,
+    #                   growiterations=growiterations,
+    #                   negativethreshold=negativethreshold,
+    #                   mask=mask,
+    #                   pbmask=pbmask,    # used by all usemasks! perhaps needed for fastnoise-calc!
+    #                   verbose=True)#, 
+    #                   #restart=restart)  # should switch off bc default
 
 
-    tclean_arg=dict(vis = myvis,
-                    imagename = imname, #+'.TCLEAN',
-                    startmodel = startmodel,
-                    field = field,
-                    #intent = 'OBSERVE_TARGET#ON_SOURCE',  #really needed?
-                    phasecenter = phasecenter,
-                    #stokes = 'I',                  # default, but maybe for polarization?
-                    imsize = imsize,
-                    cell = cell,
-                    spw = spw,
-                    #outframe = 'LSRK',             # default
-                    specmode = specmode,
-                    deconvolver = mydeconvolver,   
-                    scales = myscales,             
-                    #nterms = 1,                    # needed by sdint for mtmfs
-                    start = start, 
-                    width = width, 
-                    nchan = nchan, 
-                    restfreq = restfreq,
-                    gridder = 'mosaic',
-                    weighting = weightingscheme,
-                    #weighting = 'briggsbwtaper',
-                    robust = 0.5,
-                    restoringbeam = 'common',   # SD-cube has only one beam - INT-cube needs it, too, else feather etc. fail
-                    niter = niter,
-                    #cycleniter = niter,        # bogus if = niter
-                    cyclefactor=2.0,
-                    threshold = threshold,
-                    interactive = interactive,
-                    pbcor = True,
-                    # Masking Parameters below this line 
-                    # --> Should be updated depending on dataset
-                    usemask=usemask,
-                    sidelobethreshold=sidelobethreshold,
-                    noisethreshold=noisethreshold,
-                    lownoisethreshold=lownoisethreshold, 
-                    minbeamfrac=minbeamfrac,
-                    growiterations=growiterations,
-                    negativethreshold=negativethreshold,
-                    mask=mask,
-                    pbmask=pbmask,    # used by all usemasks! perhaps needed for fastnoise-calc!
-                    verbose=True, 
-                    restart=restart)  # should switch off bc default
 
+    tclean_arg = check_prep_tclean_param( 
+                myvis,       
+                spw, 
+                field, 
+                specmode,                                 
+                imsize, 
+                cell, 
+                phasecenter,         
+                start, 
+                width, 
+                nchan, 
+                restfreq,
+                threshold, 
+                niter,
+                usemask,
+                sidelobethreshold,
+                noisethreshold,
+                lownoisethreshold, 
+                minbeamfrac,
+                growiterations,
+                negativethreshold,                
+                mask, 
+                pbmask,
+                interactive,               
+                multiscale, 
+                maxscale,
+                loadmask,
+                fniteronusermask
+                )
+
+    #tclean_arg['vis']        = myvis
+    tclean_arg['imagename']  = imname #+'.TCLEAN',
+    tclean_arg['startmodel'] = startmodel
 
 
     #if os.path.exists(imname+'.TCLEAN.image'):
@@ -1370,7 +1746,10 @@ def runtclean(vis,
             tclean_arg['niter']=1
         else:   
             tclean_arg['niter']=int(niter*fniteronusermask)
-        # load mask into tclean with 1 iteration
+        # load mask into tclean with limited iterations
+        print('')
+        print('### Load mask into tclean with iterations = fniteronusermask*niter = ', fniteronusermask, ' * ', niter)
+        report_mask(tclean_arg['usemask'],tclean_arg['mask'],tclean_arg['pbmask'],tclean_arg['niter'])
         tcleansresults = cta.tclean(**tclean_arg)
         
         tclean_arg['usemask']=usemask
@@ -1383,8 +1762,11 @@ def runtclean(vis,
         
         if tclean_arg['niter']<=0:    #avoid negative niter values and pointless executions 
             pass
-        else:    			
+        else:               
             # clean and get tclean-feedback 
+            print('')
+            print('### Continue tclean with iterations = (1-fniteronusermask)*niter = ', (1.0-fniteronusermask), ' * ', niter)
+            report_mask(tclean_arg['usemask'],tclean_arg['mask'],tclean_arg['pbmask'],tclean_arg['niter'])
             tcleansresults = cta.tclean(**tclean_arg)
         
         #### store feedback in a file 
@@ -1394,6 +1776,7 @@ def runtclean(vis,
 
     else: 
         # clean and get tclean-feedback 
+        report_mask(tclean_arg['usemask'],tclean_arg['mask'],tclean_arg['pbmask'],tclean_arg['niter'])
         tcleansresults = cta.tclean(**tclean_arg)
         
     # store feedback in a file 
@@ -1435,9 +1818,11 @@ def visHistory(vis, origin='applycal', search='version',includeVis=False):
     -Todd Hunter
     
     """
-    if (not os.path.exists(vis)):
-        print("Dataset not found")
-        return
+
+    file_check_vis_str_only(vis)
+    #if (not os.path.exists(vis)):
+    #    print("Dataset not found")
+    #    return
     mytb = tbtool()                                # modified
     mytb.open(vis+'/HISTORY')
     messages = mytb.getcol('MESSAGE')
@@ -1492,6 +1877,9 @@ def check_CASAcal(vis):
     weights, i.e. weight != 1.0 anymore, for concat.
     
     """
+    
+    file_check_vis_str_only(vis)
+    
     msgVers = visHistory(vis, origin='applycal', search='version',includeVis=False)
     #print(msgVers)
     if msgVers==[''] or msgVers[0]=='':
@@ -1559,9 +1947,12 @@ def get_SD_cube_params(sdcube =''):
     We will add this later (after 6.1), and also remove some parameters from the task level.
     """
 
+    file_check(sdcube)
+
     _ia = iatool()
     _qa = qatool()
 
+    
 
     _ia.open(sdcube)
     csys = _ia.coordsys()
@@ -1633,6 +2024,8 @@ def channel_cutout(old_image, new_image, startchan = None,
     
     
     """
+    
+    file_check(old_image)
 
     #print('startchan', startchan, 'endchan', endchan)
     if startchan==None or endchan==None:
@@ -1697,6 +2090,9 @@ def regrid_SD(old_image, new_image, template_image):
     Example: regrid_SD('SD.image', 'SD.reg', 'INT.image' )
     """
 
+    file_check(old_image)
+
+    file_check(template_image)
 
     cta.imregrid(imagename=old_image,
                  template=template_image,
@@ -1742,6 +2138,8 @@ def reorder_axes(to_reorder, reordered_image):
     Example: reorder_axes('SD.image', 'lowres.ro')
     """
 
+    file_check(to_reorder)
+
     os.system('rm -rf '+reordered_image)
     cta.imtrans(imagename=to_reorder,
                 outfile=reordered_image,
@@ -1780,6 +2178,10 @@ def reorder_axes2(template, to_reorder, reordered):
 
     Example: reorder_axes('INT.image', 'SD.image', 'lowres.ro')
     """
+
+    file_check(template)
+
+    file_check(to_reorder)
 
     print('##### Check axis order ########')
 
@@ -1846,64 +2248,67 @@ def reorder_axes2(template, to_reorder, reordered):
 
 ######################################
 
-def make_SDint_mask(vis, SDimage, imname, sdmasklev, SDint_mask_root, 
-                    phasecenter='', spw='', field='', imsize=[], cell='',
-                    specmode='mfs', 
-                    start = 0, width = 1, nchan = -1, restfreq = ''):
+def make_SD_mask(#vis, 
+                 SDimage, #imname, 
+                 sdmasklev, SD_mask_root 
+                    #phasecenter='', spw='', field='', imsize=[], cell='',
+                    #specmode='mfs', 
+                    #start = 0, width = 1, nchan = -1, restfreq = ''
+                    ):
 
     """
-    make_SDint_mask (A. Plunkett, L. Moser-Fischer)
-    a tool to generate a mask from an SD image and the first auto-masking 
-    step in tclean of an interferometric image
+    make_SD_mask (A. Plunkett, L. Moser-Fischer)
+    a tool to generate a mask from an SD image
+     ##### and the first auto-masking step in tclean of an interferometric image
 
     steps:
     - create mask from SD image at a user given fraction of the peak flux
-    - call 'runtclean' with relevant inputs to create the wanted grid/raster 
-       and niter=1 to load the SD mask into a clean mask
-    - rerun 'runtclean' with same parameters except from usemask='auto-multithresh', mask=''
-       to add the auto-detected compact emission regions (smoothed out in SD image) 
-       to the existing clean mask
-    - rename clean mask to wanted output name (root)
+    #####- call 'runtclean' with relevant inputs to create the wanted grid/raster 
+    #####   and niter=1 to load the SD mask into a clean mask
+    #####- rerun 'runtclean' with same parameters except from usemask='auto-multithresh', mask=''
+    #####   to add the auto-detected compact emission regions (smoothed out in SD image) 
+    #####   to the existing clean mask
+    #####- rename clean mask to wanted output name (root)
 
 
 
-    vis - the MS containing the interferometric data
+    #####vis - the MS containing the interferometric data
     sdimage - the Single Dish image
              Note that in case you are creating a cube, this SD image must be a cube
              with the same spectral grid as the one you are trying to create from vis.
-    imname - the root name of the output images
+    #####imname - the root name of the output images
     sdmasklev - if usemask='user', then use SD image at this level to draw a mask.
              typically: 0.3
     SDint_mask_root - the root name of the output mask, extention '.mask' will 
              be added automatically             
-    phasecenter - the standard tclean phasecenter parameter
+    #####phasecenter - the standard tclean phasecenter parameter
            e.g. 'J2000 12:00:00 -35.00.00.0000'
            default: '' - determine from the input MS with aU.pickCellSize   
-    spw - the standard selection parameter spw of tclean
+    #####spw - the standard selection parameter spw of tclean
            default: '' i.e. all SPWs
-    field - the standard selection parameter field of tclean
+    #####field - the standard selection parameter field of tclean
            default: '' i.e. all fields
-    imsize - (optional) the standard tclean imsize parameter 
+    #####imsize - (optional) the standard tclean imsize parameter 
             should correspond to the imagesize for the most extended
             interferometer config.
            default: determine from the input MS with aU.pickCellSize
-    cell - (optional) the standard tclean cell parameter
+    #####cell - (optional) the standard tclean cell parameter
             should correspond to the cell size for the most extended
             interferometer config, i.e. smallest beam / 5.
            default: determine from the input MS with aU.pickCellSize                    
-    specmode - the standard tclean specmode parameter: supported are msf or cube
+    #####specmode - the standard tclean specmode parameter: supported are msf or cube
            default: 'msf'
-    start - the standard tclean start parameter
+    #####start - the standard tclean start parameter
              default: 0
-    width - the standard tclean width parameter
+    #####width - the standard tclean width parameter
              default: 1
-    nchan - the standard tclean nchan parameter
+    #####nchan - the standard tclean nchan parameter
              default: -1
-    restfreq - the restfrequency to write to the image for velocity calculations
+    #####restfreq - the restfrequency to write to the image for velocity calculations
              default: '', example: '115.271GHz'
 
        
-    Example: make_SDint_mask('gmc_120L.alma.all_int-weighted.ms',
+    ##### Example: make_SDint_mask('gmc_120L.alma.all_int-weighted.ms',
                 'gmc_120L.sd.image', 'gmc_120L.get_mask', 0.3, 'INT-SD', 
                 phasecenter='J2000 12:00:00 -35.00.00.0000', 
                 spw='0', field='0~68', imsize=[1120,1120], cell='0.21arcsec', 
@@ -1912,20 +2317,29 @@ def make_SDint_mask(vis, SDimage, imname, sdmasklev, SDint_mask_root,
                     
     """
 
-    
+    #   #file_check(vis)
+    #   file_check_vis(vis)
+
+
+    file_check(SDimage)
+
+    #   file_check(imname)
+
+
 
     cta.casalog.post("Generating a mask based on SD image", 'INFO', 
-                     origin='make_SDint_mask')
+                     origin='make_SD_mask')
     #get max in SD image
     maxSD = cta.imstat(SDimage)['max'][0]
     #sdmasklev=sdmasklev
     sdmaskval = sdmasklev*maxSD
     
-    SDoutname1 = SDint_mask_root + '_pre1.mask'
-    SDoutname2 = SDint_mask_root + '_pre2.mask'
-    finalSDoutname = SDint_mask_root + '.mask'
+    #SDoutname1 = SDint_mask_root + '_pre1.mask'
+    #SDoutname2 = SDint_mask_root + '_pre2.mask'
+    finalSDoutname = SD_mask_root + '.mask'
     
-    os.system('rm -rf '+SDint_mask_root + '*mask')     
+    #os.system('rm -rf '+SD_mask_root + '*mask')     
+    os.system('rm -rf '+finalSDoutname)     
      
     #cta.immath(imagename=[SDimage],expr='iif(IM0>'+str(round(sdmaskval,6))+',1,0)',
     #           outfile=SDoutname1)
@@ -1973,7 +2387,7 @@ def make_SDint_mask(vis, SDimage, imname, sdmasklev, SDint_mask_root,
     #    #os.system('cp -rf '+imname+'_setmask.mask SDint.mask')
     
     #print('### Done! Created an SDint mask from SD and auto-mask')                
-    print('### Done! Created an SDint mask from SD image')                
+    print('### Done! Created an SD mask from SD image')                
 
     mask=finalSDoutname  
     #mask='SD.mask'  
@@ -2067,7 +2481,10 @@ def derive_threshold(vis, imname, threshmask,
                     
     """
 
-    
+
+    #   file_check(vis)
+    file_check_vis(vis)
+
 
     cta.casalog.post("derive_threshold", 'INFO', 
                      origin='derive_threshold')
@@ -2288,23 +2705,30 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     ###################### SSC main body #####################
 
 
-    if os.path.exists(lowres):
-        pass
-    else:
-        print(lowres+' does not exist')
-        return False
+    file_check(lowres)
 
-    if os.path.exists(highres):
-        pass
-    else:
-        print(highres+' does not exist')
-        return False
+    file_check(highres)
 
-    if os.path.exists(pb):
-        pass
-    else:
-        print(pb+' does not exist')
-        return False
+    file_check(pb)
+
+
+    #   if os.path.exists(lowres):
+    #       pass
+    #   else:
+    #       print(lowres+' does not exist')
+    #       return False
+    #   
+    #   if os.path.exists(highres):
+    #       pass
+    #   else:
+    #       print(highres+' does not exist')
+    #       return False
+    #   
+    #   if os.path.exists(pb):
+    #       pass
+    #   else:
+    #       print(pb+' does not exist')
+    #       return False
 
 
 
@@ -2482,6 +2906,10 @@ def listobs_ptg(TPpointingTemplate,
 
     """
 
+
+    file_check(TPpointingTemplate)
+
+
     os.system('rm -rf '+listobsOutput)
     os.system('rm -rf '+TPpointinglist)     
     cta.listobs(TPpointingTemplate, listfile=listobsOutput)
@@ -2566,7 +2994,9 @@ def ms_ptg(msfile, outfile=None, uniq=True):
         return out_str
 
 
+    file_check_vis_str_only(msfile)
 
+    #   file_check(msfile)
 
 
     mytb = tbtool()                                # modified
@@ -2638,6 +3068,16 @@ def create_TP2VIS_ms(imTP=None, TPresult=None,
 
  
    """
+
+
+    file_check(imTP)
+
+    file_check(TPpointinglist)
+    
+    #   file_check_vis_str_only(vis)
+    file_check_vis(vis)
+    
+
 
     os.system('rm -rf '+TPresult)    
 
@@ -2717,6 +3157,15 @@ def transform_INT_to_SD_freq_spec(TPresult, imTP, vis,
 
 
     """
+
+
+    file_check(TPresult)
+
+    file_check(imTP)
+
+    #   file_check(vis)
+    file_check_vis_str_only(vis)
+
 
 
     # tclean segmentation fault -
@@ -2876,6 +3325,20 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
 
     """
 
+
+    file_check(TPresult)
+
+
+    #file_check(vis)
+
+    if type(vis) is str:
+        file_check(vis)
+          
+    if isinstance(vis, list):
+        for i in range(0,len(vis)):
+            file_check(vis[i])          # if one of the files does not exist, script will exit here
+
+
     os.system('rm -rf '+imname+'*')
     
     # need to redo TPresult, since each loop modifies it (tp2viswt)!
@@ -2912,18 +3375,18 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
     cta.listobs(TPresultTPfac)
     cta.listobs(vis)
     
-    if specmode=='cube':
-        #specmode_used ='cubedata'
-        specmode_used ='cube'
-    if specmode=='mfs':
-        specmode_used ='mfs'        
-    
+    #if specmode=='cube':
+    #    #specmode_used ='cubedata'
+    #    specmode_used ='cube'
+    #if specmode=='mfs':
+    #    specmode_used ='mfs'        
+    #
     
     TP2VIS_arg = dict( 
                   startmodel=startmodel,
                   spw=spw, 
                   field=field, 
-                  specmode=specmode_used,
+                  specmode=specmode, #_used,
                   imsize=imsize, 
                   cell=cell,
                   phasecenter=phasecenter, 
@@ -3071,6 +3534,10 @@ def file_to_pydict(filename):
     problems with arrays, int32, 
 
     """     
+
+    file_check(filename+'.txt')
+    
+    
     f = open(filename+'.txt','r')
     data=f.read()
     f.close()
@@ -3101,6 +3568,9 @@ def file_to_pydict2(filename):
     
     """   
     import pickle as pk 
+    
+    file_check(filename+'.pickle')
+    
     with open(filename+'.pickle', 'rb') as handle:
         pydict = pk.load(handle)
     return pydict     
@@ -3153,3 +3623,72 @@ def docstrings_list(filename):
     f.close()
     
     
+
+
+def file_check(filename):
+    """ 
+    file existence check  (L. Moser-Fischer)
+    filename - if filename (string) exists, return filename, else exit script 
+
+    """ 
+        
+    if os.path.exists(filename):
+        return filename
+    else:
+        print('')
+        print('')
+        print('-------------------------------- ! ERROR ! --------------------------------')
+        print('')
+        print(filename+' does not exist!')
+        print('')
+        print('-------------------- ! ABORT PROGRAM WITH SYSTEMEXIT ! --------------------')
+        print('')
+        print('')
+        return sys.exit()
+        
+        
+        
+        
+        
+def file_check_vis(vis):
+    """ 
+    special file existence check for vis, i.e. one msfile as string or many as list (L. Moser-Fischer)
+    vis - if vis (string/list) exists, return vis, else exit script (via file_check)
+
+    """ 
+        
+    if type(vis) is str:
+        return file_check(vis)
+        
+    if isinstance(vis, list):
+        for i in range(0,len(vis)):
+            file_check(vis[i])          # if one of the files does not exist, script will exit here
+        return vis
+
+
+
+def file_check_vis_str_only(vis):
+    """ 
+    special file existence check for vis accepting only one msfile - no list (L. Moser-Fischer)
+    vis - if vis (string/list) exists, return vis, else exit script (via file_check)
+
+    """ 
+        
+    if type(vis) is str:
+        return file_check(vis)
+        
+    if isinstance(vis, list):
+        print('')
+        print('')
+        print('-------------------------------- ! ERROR ! --------------------------------')
+        print('')
+        print('Function cannot handle multiple msfiles. Please, give only one msfile for parameter "vis"!')
+        print('')
+        print('-------------------- ! ABORT PROGRAM WITH SYSTEMEXIT ! --------------------')
+        print('')
+        print('')
+        return sys.exit()
+
+
+
+
