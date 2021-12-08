@@ -177,3 +177,15 @@ for which an Halpha M51 dataset is used to simulate a complex structure. This sh
 mentioned before, see 3).
 
 Data is in https://casaguides.nrao.edu/images/3/3f/M51ha.fits.txt
+
+
+*) "scripts4paper"
+
+The datasets used in the scripts4paper directory are a small subset of what is discussed here:
+
+1. skymodel-b:  skymodel-b.fits and  skymodel-b.sim.tar
+2. skymodel-c:  skymodel-b.fits and  skymodel-b.sim.tar
+3. M100:        M100_big.tar or the smaller qac_bench5.tar.gz
+4. pointGauss:  pointSrc_pointSrcGauss.sim.tar
+
+There are easily accessible via:       https://ftp.astro.umd.edu/pub/teuben/DC2019/scripts4paper
