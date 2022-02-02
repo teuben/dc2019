@@ -57,13 +57,13 @@ a7m =[pathtoconcat + 'skymodel-b_120L.aca.cycle6.2018-10-20.ms',
 weight7m = [0.116, 0.116, 0.116, 0.116]  # weigthing for SIMULATED data !
 
 
-
-skymodel=a12m[0].replace('.ms','.skymodel')    # model used for simulating the observation, expected to be CASA-imported
-
-
-
 #  the concatenated MS 
 concatms     = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       # path and name of concatenated file
+
+
+# skymodel for step 8
+skymodel=a12m[0].replace('.ms','.skymodel')    # model used for simulating the observation, expected to be CASA-imported
+
 
 
 
@@ -85,7 +85,7 @@ TPnoiseRegion             = '150,200,150,200'  # in unregridded SD image (i.e. s
 TPnoiseChannels           = '2~5'              # in unregridded and un-cut SD cube (i.e. sdreordered = sdbase +'.SD_ro.image')!
 
 
-
+# general CLEAN setup
 mode      = 'mfs'      # 'mfs' or 'cube'
 mscale    = 'MS'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
 masking   = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
@@ -95,7 +95,7 @@ nit       = 10#1000000          # max = 9.9 * 10**9
 specsetup =  'INTpar'  # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
 
 # if "SDpar", want to use just a channel-cut-out of the SD image? , 
-# else set to None (None automatically for 'INTpar'
+# else set to None (None automatically for 'INTpar')
 
 startchan = 30  #None  # start-value of the SD image channel range you want to cut out 
 endchan   = 39  #None  #   end-value of the SD image channel range you want to cut out
