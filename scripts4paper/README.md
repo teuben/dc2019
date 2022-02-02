@@ -35,7 +35,7 @@ some kind of
 
       sys.path.append(pathtoastropy) 
 	  
-to your personal CASA setup (e.g. via ~/.casa/startup.py), but making sure there
+to your personal CASA setup (e.g. via ~/.casa/config.py), but making sure there
 is no version skew between CASA's python and the one astropy is expecting.
 
       CASA <1>:    !pip3 install --user astropy
@@ -50,7 +50,7 @@ installing it:
 	  wget ftp://ftp.cv.nrao.edu/pub/casaguides/analysis_scripts.tar
 	  tar xf analysis_scripts.tar
 	  
-and add the following lines to your **~/.casa/startup.py** script:
+and add the following lines to your **~/.casa/config.py** script:
 
       import sys
 	  sys.path.append(os.environ['HOME'] + '/.casa/analysis_scripts')

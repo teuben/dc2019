@@ -16,26 +16,24 @@ step_title = {0: 'Concat',
               8: 'Assessment of the combination results'
               }
 
-thesteps=[0,1,2,3,4,5,6,7,8]
-#thesteps=[6]
+#thesteps=[0,1,2,3,4,5,6,7,8]
+thesteps=[0,1,5]
 
-######## collect only the product name?          
+######## collect only the product name (i.e. run assessment on already existing combination products)?          
 dryrun = False    # False to execute combination, True to gather filenames only
 
 
 # this script assumes the DC_locals.py has been execfiled'd - see the README.md how to do this
 
-pathtoconcat = _s4p_data + '/M100/'
+pathtoconcat = _s4p_data #+ '/M100/'
 pathtoimage  = _s4p_work + '/M100/'
 
 
-############ USER INPUT needed - beginning ##############
-
 
 # to quote the casaguide, "In order to run this guide you will need the following three files:"
-_7ms  = 'M100_Band3_7m_CalibratedData.ms'
-_12ms = 'M100_Band3_12m_CalibratedData.ms'
-_sdim = 'M100_TP_CO_cube.bl.image'
+_7ms  = '/M100_Band3_7m_CalibratedData/M100_Band3_7m_CalibratedData.ms'
+_12ms = '/M100_Band3_12m_CalibratedData/M100_Band3_12m_CalibratedData.ms'
+_sdim = '/M100_Band3_ACA_ReferenceImages_5.1/M100_TP_CO_cube.spw3.image.bl'
 
 
 
@@ -51,16 +49,6 @@ a7m =[pathtoconcat + _7ms
 
 weight7m = [1.]  # weigthing for REAL data !  If CASA calibration older than 4.3.0: weight: 0.193
 
-##### non interactive - begin #####
-thevis = a12m
-thevis.extend(a7m)
-
-#  a weight for each vis file in thevis[]
-
-weightscale = weight12m
-weightscale.extend(weight7m)
-
-##### non interactive - end #####
 
 
 skymodel=''    # model used for simulating the observation, expected to be CASA-imported
@@ -75,7 +63,7 @@ concatms     = pathtoimage + 'M100-B3.alma.all_int-weighted.ms'
 
 ############# input to combination methods ###########
 
-vis            = concatms
+vis            = ''                                 # set to '' is concatms is to be used, else define your own ms-file
 sdimage_input  = pathtoconcat + _sdim
 imbase         = pathtoimage + 'M100-B3'            # path + image base name
 sdbase         = pathtoimage + 'M100-B3'            # path + sd image base name
@@ -101,7 +89,7 @@ mode     = 'cube'      # 'mfs' or 'cube'
 mscale   = 'MS'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
 masking  = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 inter    = 'nIA'      # interactive ('IA') or non-interactive ('nIA')
-nit     = 1000000           # max = 9.9 * 10**9 
+nit     = 10#1000000           # max = 9.9 * 10**9 
 
 specsetup =  'INTpar' # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
 ######### if "SDpar", want to use just a channel-cut-out of the SD image? , 
@@ -130,61 +118,51 @@ momchans = '8~63' #line-free: '1~7,64~69'      # channels to compute moment maps
                      
 ########## general tclean parameters
 
-general_tclean_param = dict(#overwrite  = overwrite,
-                           spw         = '', 
-                           field       = '',
-                           specmode    = mode,      # ! change in variable above dict !        
-                           imsize      = 560,  
-                           cell        = '0.5arcsec', 
-                           phasecenter = 'J2000 12h22m54.9 +15d49m15',             
-                           start       = '1400km/s', #'1550km/s', #'1400km/s',  
-                           width       = '5km/s',  
-                           nchan       = 70, #10, #70,  
-                           restfreq    = '115.271202GHz',
-                           threshold   = '',               # SDINT: None 
-                           maxscale    = 10.,              # recommendations/explanations 
-                           niter      = nit,               # ! change in variable above dict !
-                           mask        = '', 
-                           pbmask      = 0.4,
-                           #usemask           = 'auto-multithresh',    # couple to interactive!              
-                           sidelobethreshold = 2.0, 
-                           noisethreshold    = 4.25, 
-                           lownoisethreshold = 1.5,               
-                           minbeamfrac       = 0.3, 
-                           growiterations    = 75, 
-                           negativethreshold = 0.0)#, 
-                           #sdmasklev=0.3)   # need to overthink here                            
+t_spw         = '' 
+t_field       = ''
+t_imsize      = 560  
+t_cell        = '0.5arcsec' 
+t_phasecenter = 'J2000 12h22m54.9 +15d49m15'             
+t_start       = '1400km/s' #'1550km/s', #'1400km/s',  
+t_width       = '5km/s'  
+t_nchan       = 70 #10, #70,  
+t_restfreq    = '115.271202GHz'
+t_threshold   = ''               # SDINT: None 
+t_maxscale    = -1 #10.              # recommendations/explanations 
+t_mask        = '' 
+t_pbmask      = 0.4
+t_sidelobethreshold = 2.0 
+t_noisethreshold    = 4.25 
+t_lownoisethreshold = 1.5               
+t_minbeamfrac       = 0.3 
+t_growiterations    = 75 
+t_negativethreshold = 0.0 
+ 
 
+########## sdint parameters
 
-########### SDint specific parameters:
+sdpsf   = ''
+dishdia = 12.0         
+                 
 
-sdint_tclean_param = dict(sdpsf   = '',
-                         #sdgain  = 5,     # own factor! see below!
-                         dishdia = 12.0)
-          
-          
-          
+########### SD-AM masks for all methods using tclean etc.:                       
+
+# options: 'SD', 'INT', 'combined'
+
+tclean_SDAMmask = 'INT'  
+hybrid_SDAMmask = 'INT'     
+sdint_SDAMmask  = 'INT'     
+TP2VIS_SDAMmask = 'INT'     
+
+       
 ########### SD factors for all methods:                       
-                       
-# feather parameters:
-sdfac   = [1.0]
-
-# Faridani parameters:
-SSCfac  = [1.0]
-
-# Hybrid feather parameters:
-sdfac_h = [1.0]
-
-# SDINT parameters:
-sdg     = [1.0]
-
-## TP2VIS parameters:
-TPfac   = [1.0] 
-
-         
+               
+sdfac   = [1.0]          # feather parameter
+SSCfac  = [1.0]          # Faridani parameter
+sdfac_h = [1.0]          # Hybrid feather paramteter
+sdg     = [1.0]          # SDINT parameter
+TPfac   = [1.0]          # TP2VIS parameter
           
-         
+
           
-          
-          
-############### USER INPUT - end ##################          
+

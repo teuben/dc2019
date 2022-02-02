@@ -47,6 +47,69 @@ os.system('rm -rf '+pathtoimage + 'TempLattice*')
 
 
 
+
+### put together file names and weights for concat
+thevis = a12m
+thevis.extend(a7m)
+
+weightscale = weight12m
+weightscale.extend(weight7m)
+
+
+
+### define ms-file to perform combination on and file check 
+if vis=='':
+    vis = concatms
+    if not os.path.exists(vis):
+        if dryrun==True:
+            pass 
+        elif 0 in thesteps:
+            pass
+        else:    
+            thesteps.append(0)      
+            thesteps.sort()           # force execution of vis creation (Step 0)
+            print('Need to execute step 0 to generate a concatenated ms')
+else:
+    file_check(vis)   
+
+
+
+### set up tclean parameter dictionary 
+general_tclean_param = dict(#overwrite  = overwrite,
+                           specmode    = mode,      # ! changed in variable 'mode' !        
+                           niter       = nit,              # ! change in variable above dict !
+                           spw         = t_spw,  
+                           field       = t_field, 
+                           imsize      = t_imsize,     
+                           cell        = t_cell,           # arcsec
+                           phasecenter = t_phasecenter,             
+                           start       = t_start,      
+                           width       = t_width,      
+                           nchan       = t_nchan,      
+                           restfreq    = t_restfreq,   
+                           threshold   = t_threshold,        # SDINT: None 
+                           maxscale    = t_maxscale,         # recommendations/explanations 
+                           mask        = t_mask,       
+                           pbmask      = t_pbmask,
+                           sidelobethreshold = t_sidelobethreshold, 
+                           noisethreshold    = t_noisethreshold, 
+                           lownoisethreshold = t_lownoisethreshold,               
+                           minbeamfrac       = t_minbeamfrac, 
+                           growiterations    = t_growiterations,    
+                           negativethreshold = t_negativethreshold)
+
+### additional sdintimaging-specific parameters 
+sdint_tclean_param = dict(sdpsf   = sdpsf,
+                         dishdia = dishdia)
+          
+
+
+
+
+
+
+
+
 ### naming scheme specific inputs:
 if mode == 'mfs':
     specsetup =  'INTpar'  # no other mode possible 
@@ -108,8 +171,8 @@ sdroregrid = sdbase +'.SD_ro-rg_'+specsetup+'.image' # SD image regridding
 imnamethSD      = imbase + '.'+mode +'_'+ specsetup +'_template'  # dirty image for thershold and mask generation
 threshmask      = imbase + '.'+mode +'_'+ specsetup+ '_RMS'       # thresold mask name
 #SDint_mask_root = sdbase + '.'+mode +'_'+ specsetup+ '_SD-AM'     # SD+AM mask name
-SDint_mask_root = sdbase + '.'+mode +'_'+ specsetup+ '_SD'        # SD mask name
-combined_mask   = SDint_mask_root + '-RMS.mask'                   # SD+AM+threshold mask name
+SD_mask_root = sdbase + '.'+mode +'_'+ specsetup+ '_SD'        # SD mask name
+combined_mask   = SD_mask_root + '-RMS.mask'                   # SD+AM+threshold mask name
 
 
 
@@ -122,7 +185,7 @@ if masking == 'AM':
 if masking == 'UM':
     general_tclean_param['usemask']     = 'user'
 if masking == 'SD-AM': 
-    if not os.path.exists(combined_mask) or not os.path.exists(threshmask+'.mask'):
+    if not os.path.exists(combined_mask) or not os.path.exists(threshmask+'.mask') or not os.path.exists(SD_mask_root+'.mask'):
         if 1 in thesteps:
             pass
         else:    
@@ -135,17 +198,34 @@ if masking == 'SD-AM':
     
 
 
+
+
 # masks per combination method
-tclean_mask = threshmask+'.mask'    # 
 
-#hybrid_mask = combined_mask         # 
-#sdint_mask  = combined_mask         # 
-#TP2VIS_mask = combined_mask         # 
+SDAMmasks_userinput = [tclean_SDAMmask, hybrid_SDAMmask, sdint_SDAMmask, TP2VIS_SDAMmask]
 
-hybrid_mask = threshmask+'.mask'    #
-sdint_mask  = threshmask+'.mask'    #
-TP2VIS_mask = threshmask+'.mask'    #
+for i in range(0,len(SDAMmasks_userinput)):
+    if SDAMmasks_userinput[i]=='INT':
+        SDAMmasks_userinput[i]=threshmask+'.mask'
+    elif SDAMmasks_userinput[i]=='SD':
+        SDAMmasks_userinput[i]=SD_mask_root+'.mask'
+    elif SDAMmasks_userinput[i]=='combined':
+        SDAMmasks_userinput[i]=combined_mask
+    else:
+        sys.exit()
 
+tclean_mask, hybrid_mask, sdint_mask, TP2VIS_mask = SDAMmasks_userinput
+    
+#     
+#tclean_mask = threshmask+'.mask'    # 
+##hybrid_mask = combined_mask         # 
+##sdint_mask  = combined_mask         # 
+##TP2VIS_mask = combined_mask         # 
+#
+#hybrid_mask = threshmask+'.mask'    #
+#sdint_mask  = threshmask+'.mask'    #
+#TP2VIS_mask = threshmask+'.mask'    #
+#
 
 
 if specsetup == 'SDpar':
@@ -179,9 +259,7 @@ elif specsetup == 'INTpar':
 
 # common tclean parameters needed for generating a simple dirty image in step 1
 
-
 rederivethresh=True   # TP2VIS parameter to derive threshold for SD+INT.ms  
-
 
 mask_tclean_param = dict(phasecenter = general_tclean_param['phasecenter'],
                          spw =      general_tclean_param['spw'], 
@@ -204,7 +282,7 @@ if not os.path.exists(threshmask + '.mask') or not os.path.exists(imnamethSD + '
         thesteps.append(1)      
         thesteps.sort()           # force execution of SDint mask creation (Step 1)
         print('Need to execute step 1 to estimate a thresold')
-else:
+else: #if imnamethSD + '.image' exists, simply re-derive the mask etc.
     thresh = dc.derive_threshold(vis, imnamethSD , threshmask,
                                  overwrite=False,   # False for read-only
                                  smoothing = smoothing,
@@ -224,15 +302,6 @@ else:
             
 
 
-if not os.path.exists(vis):
-    if dryrun==True:
-        pass 
-    elif 0 in thesteps:
-        pass
-    else:    
-        thesteps.append(0)      
-        thesteps.sort()           # force execution of vis creation (Step 0)
-        print('Need to execute step 0 to generate a concatenated ms')
 
 
 
@@ -287,7 +356,20 @@ if mystep in thesteps:
             
         else:   
             for i in range(0,len(thevis)):
-                dc.check_CASAcal(thevis[i])    
+                if '.aca.tp.' in thevis[i]:
+                    print('')
+                    print('')
+                    print('-------------------------------- ! ERROR ! --------------------------------')
+                    print('')
+                    print(thevis[i]+' is a total power/single dish data set.')
+                    print('Cannot concatenate it into an interferometric data set.')
+                    print('')
+                    print('-------------------- ! ABORT PROGRAM WITH SYSTEMEXIT ! --------------------')
+                    print('')
+                    print('')
+                    sys.exit()       
+                else:               
+                    dc.check_CASAcal(thevis[i])    
             
             print(' ')         
             print('Starting CONCAT')         
@@ -349,7 +431,7 @@ if mystep in thesteps:
         
         # derive a simple threshold and make a mask from it 
         print(' ')         
-        print('--- Derive a simple threshold from concatms dirty image and make a mask from it --- ')                                  
+        print('--- Derive a simple threshold from a dirty image and make a mask from it --- ')                                  
         thresh = dc.derive_threshold(vis, imnamethSD , threshmask,
                                      overwrite=True,
                                      smoothing = smoothing,
@@ -389,22 +471,27 @@ if mystep in thesteps:
            
         # make SD+AM mask (requires regridding to be run; currently)
         print(' ')         
-        print('--- Make single dish (SD) + automasking (AM) mask --- ')                                          
-        SDint_mask = dc.make_SDint_mask(vis, sdimage, imnamethSD, 
-                                        sdmasklev, 
-                                        SDint_mask_root,
-                                        **mask_tclean_param) 
-        print('--- SD+AM mask done! --- ')         
+        #   print('--- Make single dish (SD) + automasking (AM) mask --- ')                                          
+        #   SDint_mask = dc.make_SDint_mask(vis, sdimage, imnamethSD, 
+        #                                   sdmasklev, 
+        #                                   SDint_mask_root,
+        #                                   **mask_tclean_param) 
+        #   print('--- SD+AM mask done! --- ') 
+		#   
+        print('--- Make single dish (SD) mask --- ')                                          
+        SD_mask = dc.make_SD_mask(sdimage, sdmasklev, SD_mask_root) 
+        print('--- SD mask done! --- ')                 
 
 
 
         # merge masks 
-        cta.immath(imagename=[SDint_mask_root+'.mask', threshmask+'.mask'],
+        os.system('rm -rf '+combined_mask)
+        cta.immath(imagename=[SD_mask_root+'.mask', threshmask+'.mask'],
                    expr='iif((IM0+IM1)>'+str(0)+',1,0)',
                    outfile=combined_mask)    
                    
                    # ! terminal complains about bunit issues !
-        print('--- Combined SD+AM and threshold mask --- ')                                          
+        print('--- Combined SD and threshold mask --- ')                                          
 
        
        
@@ -645,8 +732,10 @@ if mystep in thesteps:
                                     RMSfactor=RMSfactor, cube_rms=cube_rms, 
                                     cont_chans = cont_chans, **z)   
 
- 
-        TP2VISims.append(imname+'.tweak.image')
+        if os.path.exists(imname+'.tweak.image'):
+            TP2VISims.append(imname+'.tweak.image')
+        else:
+            TP2VISims.append(imname+'.image')
         
 
 
@@ -717,13 +806,13 @@ if mystep in thesteps:
             stop_crit.append(tcleanresults['stopcode'])
             cleanthresh.append(tcleanresults['threshold'])
             cleaniterdone.append(tcleanresults['iterdone'])
-	    
+        
         #allcombiresfits = [a.replace('.residual','.residual.fits') for a in allcombires]
         #allcombimaskfits = [a.replace('.mask','.mask.fits') for a in allcombimask]
-	    
+        
         #labelnames
         allcombireslabel = [a.replace(pathtoimage+sourcename+cleansetup+'.','') for a in allcombitxt]
-	    
+        
         mapchan=int(general_tclean_param['nchan']/2.)
         iqa.show_residual_maps(allcombires, allcombimask,
                               channel=mapchan, 
@@ -1207,37 +1296,5 @@ print('---------------------------- WE ARE DONE! -----------------------------')
 print('')
 print(string1)
 print(string2)
-
-
-
-
-
-### SDINT Traditional OUTPUTS
-
-## MTMFS
-
-#   *.int.cube.model/
-#   *.int.cube.pb/
-#   *.int.cube.psf/
-#   *.int.cube.residual/
-#   *.int.cube.sumwt/
-#   *.int.cube.weight/
-#   *.joint.cube.psf/
-#   *.joint.cube.residual/
-#   *.joint.multiterm.image.tt0/
-#   *.joint.multiterm.image.tt0.pbcor/
-#   *.joint.multiterm.image.tt0.pbcor.fits
-#   *.joint.multiterm.mask/
-#   *.joint.multiterm.model.tt0/
-#   *.joint.multiterm.pb.tt0/
-#   *.joint.multiterm.psf.tt0/
-#   *.joint.multiterm.residual.tt0/
-#   *.joint.multiterm.sumwt.tt0/
-#   *.joint.multiterm.weight.tt0/
-#   *.sd.cube.image/
-#   *.sd.cube.psf/
-#   *.sd.cube.residual/
-
-
 
 
