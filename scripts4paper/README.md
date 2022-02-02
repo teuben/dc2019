@@ -116,7 +116,7 @@ The data will be prepared in a form ready for the different methods API's:
 
    * M100 (line)
    * Lupus (line)
-        - Line data (from workshop) here: ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/Lup3mms_12CO_tp_7m_12m_nchan10.tgz
+        - Line data (from workshop) here: https://ftp.astro.umd.edu/pub/teuben/tp2vis/Lup3mms_12CO_tp_7m_12m_nchan10.tgz
         - Images (preliminary combination): https://astrocloud.nrao.edu/s/Np7STzGMMY9fCWz
         - Adele's script here: https://github.com/teuben/dc2019/blob/master/scripts/datacomb2019_outflowsWG.py
    * HI (line)
@@ -126,8 +126,8 @@ The data will be prepared in a form ready for the different methods API's:
    * ...
 
 The final data will NOT be in github, we will use the UMD ftp server for this. Contact peter to provide
-a link so we can make it available to others. Currently this is http://ftp.astro.umd.edu/pub/teuben/tp2vis
-but that name will change.
+a link so we can make it available to others. Currently this is https://ftp.astro.umd.edu/pub/teuben/tp2vis
+but that name may change.
 
 ## Assessment
 
