@@ -126,7 +126,8 @@ The data will be prepared in a form ready for the different methods API's:
    * ...
 
 The final data will NOT be in github, we will use the UMD ftp server for this. Contact peter to provide
-a link so we can make it available to others. Currently this is https://ftp.astro.umd.edu/pub/teuben/tp2vis
+a link so we can make it available to others. Currently this is 
+https://ftp.astro.umd.edu/pub/teuben/DC2019/scripts4paper/
 but that name may change.
 
 ## Assessment
