@@ -54,7 +54,7 @@ NGC 346 (ALMA#2017.A.00054.S), the Observatory Project with PI: Claudia Agliozzi
 
 This is a ~15' map with 7m and TP data, lots of structure, demonstrates the need for combinations.
 
-Smaller data in : ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/N346
+Smaller data in : https://ftp.astro.umd.edu/pub/teuben/tp2vis/N346
 
 [AI] Contact: Dirk + Thomas
 
@@ -62,7 +62,6 @@ Smaller data in : ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/N346
 
 The new 2020 link to the DC2019 data is via ftp or http (they are identical)
 
-      ftp://ftp.astro.umd.edu/pub/teuben/DC2019
       https://ftp.astro.umd.edu/pub/teuben/DC2019
       (local at UMD) /n/ftp/pub/teuben/DC2019
 
@@ -109,8 +108,8 @@ We have:
 A newer 16k x 16k model, and associate pre-computed MS, available
 here:
 
-ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/skymodel_16k.fits
-ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/tp2vis-sample2.tar.gz
+https://ftp.astro.umd.edu/pub/teuben/tp2vis/skymodel_16k.fits
+https://ftp.astro.umd.edu/pub/teuben/tp2vis/tp2vis-sample2.tar.gz
 
 
 4) Gaussian Models (Fomalont)
@@ -136,7 +135,7 @@ TP_12CO.fits -- Total Power Array, 12CO data cube (as delivered, so all channels
 mst_07_nchan10_start0kms.ms -- 7m-array, 12CO visibilities, 10 channels of 1 km/s width
 mst_12_nchan10_start0kms.ms -- 12m-array, 12CO visibilities, 10 channels of 1 km/s width
 
-All here: ftp://ftp.astro.umd.edu/pub/teuben/tp2vis/Lup3mms_12CO_tp_7m_12m_nchan10.tgz
+All here: https://ftp.astro.umd.edu/pub/teuben/tp2vis/Lup3mms_12CO_tp_7m_12m_nchan10.tgz
  
 
 6) MC/GMC - apex + alma
