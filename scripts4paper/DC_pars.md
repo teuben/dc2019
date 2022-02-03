@@ -1,3 +1,15 @@
+Details on pars and their effects
+separate those that are critical for running the scripts and those that are for tweaking your images.
+Template_pars.py
+What you need to run YOUR data through DC_script
+
+
+
+
+
+
+
+
 # DC_pars*
 
 ## Select processing and combination steps to execute
@@ -163,7 +175,7 @@ The parameters above define some of the clean parameters common for all tclean
 instances used in the combination methods including SDINT. Further parameters that can 
 be set by the user are ``t_spw``, ``t_field``, ``t_imsize``, ``t_cell``, ``t_phasecenter``, ``t_start``, ``t_width``, ``t_nchan``, ``t_restfreq``, ``t_threshold``, ``t_maxscale``, ``t_mask``, ``t_pbmask``, and the automasking parameters ``t_sidelobethreshold``, ``t_noisethreshold``, ``t_lownoisethreshold``, ``t_minbeamfrac``, ``t_growiterations``, and ``t_negativethreshold``. All of these parameters except from maxscale are set in the same way as for the stand-alone tclean-task.
 For SDINT, the user can specify the parameters sdpsf and dishdia (as in sdintimaging-task) in addition. 
-The ``t_maxscale``-parameter can be used to give the ``mscale = 'MS'``-mode a maximum size scale (expected unit: arcsec), up to which the multiscale-shapes (paraboloids) are generated, e.g. for a beam size of 1 arcsec and a maxscale of 10 arcsec, 
+The ``t_maxscale``-parameter can be used to give the ``mscale = 'MS'``-mode a maximum size scale (expected unit: arcsec), up to which the multiscale-shapes (paraboloids) are generated, e.g. for a beam size of 1 arcsec and a maxscale of 10 arcsec (t_maxscale=10.), 
 DC_run.py will create shapes of size 0 (point source), 1 arcsec, 3 arcsec, and 9 arcsec. With ``t_maxscale = -1`` the script will determine a maxscale from the largest angular scales covered by the (concatenated) interferometric data.
        
        t_spw         = '0' 
