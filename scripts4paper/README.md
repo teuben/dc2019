@@ -1,3 +1,19 @@
+Explain each file. If you want to get an image go to quick_start.md, if you want to understand the steps go to Overview.md, if you are more advanced and want to start playing with the parameters to hone in your data combination go to DC_pars?
+General overview.md
+X Preparation.md (only once)
+Quick_start.md
+DC_pars.md – link to Template_pars.py and explain
+DC_run.md
+
+
+
+
+
+
+
+
+
+
 # Scripts for the Paper
 
 These should be the steps that allow you to reproduce the
@@ -5,99 +21,61 @@ figures in the paper:
 
 1. Ensure your CASA has **astropy** installed
 2. Ensure the **analysisUtilities** are installed for your CASA
-3. Gather the data (see ../data/README_DC2019_data)
-4. Run configure to be able to run the CASA based scripts
+3. Run configure to be able to run the CASA based scripts
+4. Gather the data (see ../data/README_DC2019_data)
 5. Execfile DC_script.py to run through your selected data set
-6. Execfile IQA_script.py create our standard assessment tests
-   (this might go into DC_scripts.py ?)
+
+
    
-## 1. astropy  (et al.)
+## 1. - 3. Preparations
+Details are given in [Preparation](https://github.com/teuben/dc2019/blob/master/scripts4paper/Preparation.md)
+You have to make these adjustments just once.
 
-In case your CASA does not have astropy, which you can test by trying
 
-      casa -c "import astropy"
-	  
-	  
-you will need to install it.  Since CASA has it's own python, you can
-install it using **pip3** from the CASA prompt (it's cumbersome to
-try this from the unix command line):
-
-	  CASA <1>:    !pip3 install astropy
-
-If this results in some kind of permission related problem, you will need to
-ask the owner of CASA to do this. Just to be clear, we are using only python3 now,
-hence CASA 6. (TBD on exactly what CASA version we require, but this is a moving
-target).
-
-**TBD** Unclear at this stage if/how a user based install will work, but
-we do need to provide a solution here. Another suggested solution is to add
-some kind of
-
-      sys.path.append(pathtoastropy) 
-	  
-to your personal CASA setup (e.g. via ~/.casa/config.py), but making sure there
-is no version skew between CASA's python and the one astropy is expecting.
-
-      CASA <1>:    !pip3 install --user astropy
-
-## 2. analysisUtilities
-
-The https://casaguides.nrao.edu/index.php/Analysis_Utilities gives instructions
-how to get and install the Analysis Utilities.  Here's our suggested example of 
-installing it:
-
-      cd ~/.casa
-	  wget ftp://ftp.cv.nrao.edu/pub/casaguides/analysis_scripts.tar
-	  tar xf analysis_scripts.tar
-	  
-and add the following lines to your **~/.casa/config.py** script:
-
-      import sys
-	  sys.path.append(os.environ['HOME'] + '/.casa/analysis_scripts')
-	  import analysisUtils as au
-	  import analysisUtils as aU
-	  
-TBD about the casing.
-
-## 3. Data
+## 4. Data
 
 Details are in [../data/README_DC2019_data](../data/README_DC2019_data)
 
 This suggests that the data is present in **../data**, physically or via
 a symlink.
 
-## 4. Configure
 
-In order to configure your CASA environment for these script, one
-suggested solution is the use of the included **configure** script. By
-default it will expect your data to be locally present, but the
-(shell) command
+## 5. DC_script.py, DC_run.py, and IQA_script.py
 
-        ./configure --help
+At each start of a CASA instance you have to call the **DC_locals.py** once to set up your source and destination folders, e.g.
 
-will remind you what to configure.  It will report something like
+    execfile("/home/teuben/dc2019/scripts4paper/DC_locals.py",globals())
 
-        execfile("/home/teuben/dc2019/scripts4paper/DC_locals.py")
+**DC_script.py** is a wrapper that calls the **DC_pars**-file you defined in there and then the combination program **DC_run.py**.
 
-which you will need to add to your scripts, or better yet, add this to
-your **~/.casa/startup.py** file.
+Alternatively, you can call
 
-NOTE:  MAC users may need to install the needed command **realpath** 
-via "brew install coreutils" for configure to work.
+	execfile("/home/teuben/dc2019/scripts4paper/DC_pars_M100.py", globals()) 
+	execfile("/home/teuben/dc2019/scripts4paper/DC_run.py",globals())
 
-## 
+An overview of the capabilities of **DC_run.py** is given in [Overview](Overview.md) 
+and in more detail in [DC_run](DC_run.md).
+A quick start guide is given in	[Quick_start](Quick_start.md).
+
+**DC_run.py** uses the python module **datacomb.py** for preparation and combination 
+of the data and the python module **IQA_script.py** for the assessment of the combination products. 
+Both modules can be used as a stand-alone.
+
+
+
+
+
+
+
+
+
+## whaaat is this about ???
 
 This is a discussion how the DC2019 data should be circulated, and
 easily match a CASA tasks API for the different combination techniques
 discussed in the paper
 
-## 5. DC_script.py
 
-There is currently described in more detail in [DC_script](DC_script.md)
-
-## 6. IQA_script.py
-
-TBD 
 
 
 ## Methods teams
@@ -130,7 +108,4 @@ a link so we can make it available to others. Currently this is
 https://ftp.astro.umd.edu/pub/teuben/DC2019/scripts4paper/
 but that name may change.
 
-## Assessment
 
-Once we have a uniform way to combine data across methods and data, the
-assessment scripts should be able to compare this matrix.
