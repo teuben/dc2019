@@ -19,17 +19,14 @@ step_title = {0: 'Concat (optional)',
               8: 'Assessment'
               }
 
-# thesteps need to be set in DC_pars.py
-# thesteps=[0,1,2,3,4,5,6,7]
 
 import os 
 import sys 
 from importlib import reload  
 import datacomb as dc
-#   we do a reload here, because we often edit this in the same casa session
-reload(dc)
-
 import IQA_script as iqa
+# we do a reload here, because we often edit these in the same casa session
+reload(dc)
 reload(iqa)
 
 import casatasks as cta
@@ -37,12 +34,13 @@ import casatasks as cta
 import time
 start = time.time()
 
-### switch this off, if you run multiple casa instances/DC_runs in the same work folder !
+
+### Tidy up old left-overs from previous runs 
+# switch this off, if you run multiple casa instances/DC_runs in the 
+# same work folder !  Else you delete files from another working process
 #          
-### delete garbage from aboprted script ###
 os.system('rm -rf '+pathtoimage + 'TempLattice*')
-#  
-####### else switch on #######
+
 
 
 
@@ -76,19 +74,19 @@ else:
 
 ### set up tclean parameter dictionary 
 general_tclean_param = dict(#overwrite  = overwrite,
-                           specmode    = mode,      # ! changed in variable 'mode' !        
-                           niter       = nit,              # ! change in variable above dict !
+                           specmode    = mode,             
+                           niter       = nit,            
                            spw         = t_spw,  
                            field       = t_field, 
                            imsize      = t_imsize,     
-                           cell        = t_cell,           # arcsec
-                           phasecenter = t_phasecenter,             
+                           cell        = t_cell,         
+                           phasecenter = t_phasecenter,  
                            start       = t_start,      
                            width       = t_width,      
                            nchan       = t_nchan,      
                            restfreq    = t_restfreq,   
-                           threshold   = t_threshold,        # SDINT: None 
-                           maxscale    = t_maxscale,         # recommendations/explanations 
+                           threshold   = t_threshold,    
+                           maxscale    = t_maxscale,     
                            mask        = t_mask,       
                            pbmask      = t_pbmask,
                            sidelobethreshold = t_sidelobethreshold, 
@@ -100,52 +98,43 @@ general_tclean_param = dict(#overwrite  = overwrite,
 
 ### additional sdintimaging-specific parameters 
 sdint_tclean_param = dict(sdpsf   = sdpsf,
-                         dishdia = dishdia)
+                          dishdia = dishdia)
           
 
 
-
-
-
-
-
-
 ### naming scheme specific inputs:
+
 if mode == 'mfs':
-    specsetup =  'INTpar'  # no other mode possible 
+    specsetup =  'INTpar'                         # no other mode possible 
 
 if inter == 'IA':
-    general_tclean_param['interactive'] = 1     # use 1 instead of True to get tclean feedback dictionary !
+    general_tclean_param['interactive'] = 1       # use 1 instead of True to get tclean feedback dictionary !
 elif inter == 'nIA':
-    general_tclean_param['interactive'] = 0     # use 0 instead of False to get tclean feedback dictionary !  
+    general_tclean_param['interactive'] = 0       # use 0 instead of False to get tclean feedback dictionary !  
  
 if mscale == 'HB':
     general_tclean_param['multiscale'] = False
 if mscale == 'MS':
-    general_tclean_param['multiscale'] = True      # automated scale choice dependant on maxscale
+    general_tclean_param['multiscale'] = True     # automated scale choice dependant on maxscale
 
 
 
 
 ############## naming convention ############
-#
-#    imname = imbase + cleansetup + combisetup 
 
+###### NONIT seems to be not needed anymore ####
 cleansetup_nonit = '.'+ mode +'_'+ specsetup +'_'+ mscale +'_'+ masking +'_'+ inter
 cleansetup = cleansetup_nonit +'_n'+ str(nit)
-
-#cleansetup = '.'+ mscale +'_'+ masking + '_n%.1e' %(nit)
-#cleansetup = cleansetup.replace("+0","")
 
 
 ### output of combination methods ('combisetup')
 
 tcleansetup  = '.tclean'
-feathersetup = '.feather_f' #+ str(sdfac)
-SSCsetup     = '.SSC_f'     #+ str(SSCfac)
-hybridsetup  = '.hybrid_f'  #+ str(sdfac_h)
-sdintsetup   = '.sdint_g'   #+ str(sdg)
-TP2VISsetup  = '.TP2VIS_t'  #+ str(TPfac)
+feathersetup = '.feather_f'  # added during combination: + str(sdfac)
+SSCsetup     = '.SSC_f'      # added during combination: + str(SSCfac)
+hybridsetup  = '.hybrid_f'   # added during combination: + str(sdfac_h)
+sdintsetup   = '.sdint_g'    # added during combination: + str(sdg)
+TP2VISsetup  = '.TP2VIS_t'   # added during combination: + str(TPfac)
 
 
 
@@ -154,36 +143,33 @@ TP2VISsetup  = '.TP2VIS_t'  #+ str(TPfac)
 
 ##### intermediate products name for step 1 = gather information - no need to change!
 
-# SD image: axis-reordering and regridding
+# SD image axis-reordering, cut-out and regridding, mask names 
 
-sdreordered = sdbase +'.SD_ro.image'                 # SD image axis-reordering
+sdreordered = sdbase +'.SD_ro.image'                        # SD image axis-reordering
 
-if startchan!=None and endchan!=None and specsetup == 'SDpar':
+if startchan!= None and endchan!=None and specsetup == 'SDpar':
     sdbase = sdbase + '_ch'+str(startchan)+'-'+str(endchan)
 else:
     pass 
     
-sdreordered_cut = sdbase +'.SD_ro.image'                 # SD image axis-reordering
-#print('sdreordered_cut', sdreordered_cut)
-sdroregrid = sdbase +'.SD_ro-rg_'+specsetup+'.image' # SD image regridding
-#print(sdroregrid)
+sdreordered_cut = sdbase +'.SD_ro.image'                    # SD image axis-reordering
+sdroregrid      = sdbase +'.SD_ro-rg_'+specsetup+'.image'   # SD image regridding
 
 imnamethSD      = imbase + '.'+mode +'_'+ specsetup +'_template'  # dirty image for thershold and mask generation
 threshmask      = imbase + '.'+mode +'_'+ specsetup+ '_RMS'       # thresold mask name
-#SDint_mask_root = sdbase + '.'+mode +'_'+ specsetup+ '_SD-AM'     # SD+AM mask name
-SD_mask_root = sdbase + '.'+mode +'_'+ specsetup+ '_SD'        # SD mask name
-combined_mask   = SD_mask_root + '-RMS.mask'                   # SD+AM+threshold mask name
+SD_mask_root    = sdbase + '.'+mode +'_'+ specsetup+ '_SD'        # SD mask name
+combined_mask   = SD_mask_root + '-RMS.mask'                      # SD+AM+threshold mask name
 
 
 
-
+# masking mode setup
 
 if masking == 'PB':
-    general_tclean_param['usemask']     = 'pb'
+    general_tclean_param['usemask'] = 'pb'
 if masking == 'AM':
-    general_tclean_param['usemask']     = 'auto-multithresh'                   
+    general_tclean_param['usemask'] = 'auto-multithresh'                   
 if masking == 'UM':
-    general_tclean_param['usemask']     = 'user'
+    general_tclean_param['usemask'] = 'user'
 if masking == 'SD-AM': 
     if not os.path.exists(combined_mask) or not os.path.exists(threshmask+'.mask') or not os.path.exists(SD_mask_root+'.mask'):
         if 1 in thesteps:
@@ -200,7 +186,7 @@ if masking == 'SD-AM':
 
 
 
-# masks per combination method
+# translate SD-AM masks per combination method
 
 SDAMmasks_userinput = [tclean_SDAMmask, hybrid_SDAMmask, sdint_SDAMmask, TP2VIS_SDAMmask]
 
@@ -215,18 +201,9 @@ for i in range(0,len(SDAMmasks_userinput)):
         sys.exit()
 
 tclean_mask, hybrid_mask, sdint_mask, TP2VIS_mask = SDAMmasks_userinput
-    
-#     
-#tclean_mask = threshmask+'.mask'    # 
-##hybrid_mask = combined_mask         # 
-##sdint_mask  = combined_mask         # 
-##TP2VIS_mask = combined_mask         # 
-#
-#hybrid_mask = threshmask+'.mask'    #
-#sdint_mask  = threshmask+'.mask'    #
-#TP2VIS_mask = threshmask+'.mask'    #
-#
 
+
+# specsetup 
 
 if specsetup == 'SDpar':
     if not os.path.exists(sdreordered_cut):
@@ -257,7 +234,7 @@ elif specsetup == 'INTpar':
 
 
 
-# common tclean parameters needed for generating a simple dirty image in step 1
+# mask-generation: common tclean parameters needed for creating a simple dirty image in step 1
 
 rederivethresh=True   # TP2VIS parameter to derive threshold for SD+INT.ms  
 
@@ -274,6 +251,7 @@ mask_tclean_param = dict(phasecenter = general_tclean_param['phasecenter'],
                          )
 
 
+# mask generation: execute step 1 or use existing template 
     
 if not os.path.exists(threshmask + '.mask') or not os.path.exists(imnamethSD + '.image'):
     if 1 in thesteps:
