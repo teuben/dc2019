@@ -105,7 +105,7 @@ sdint_tclean_param = dict(sdpsf   = sdpsf,
 ### naming scheme specific inputs:
 
 if mode == 'mfs':
-    specsetup =  'INTpar'                         # no other mode possible 
+    specsetup =  'nt1'                         # number of Taylor terms (compare mtmfs)
 
 if inter == 'IA':
     general_tclean_param['interactive'] = 1       # use 1 instead of True to get tclean feedback dictionary !
@@ -155,7 +155,7 @@ else:
 sdreordered_cut = sdbase +'.SD_ro.image'                    # SD image axis-reordering
 sdroregrid      = sdbase +'.SD_ro-rg_'+specsetup+'.image'   # SD image regridding
 
-imnamethSD      = imbase + '.'+mode +'_'+ specsetup +'_template'  # dirty image for thershold and mask generation
+imnameth      = imbase + '.'+mode +'_'+ specsetup +'_template'  # dirty image for thershold and mask generation
 threshmask      = imbase + '.'+mode +'_'+ specsetup+ '_RMS'       # thresold mask name
 SD_mask_root    = sdbase + '.'+mode +'_'+ specsetup+ '_SD'        # SD mask name
 combined_mask   = SD_mask_root + '-RMS.mask'                      # SD+AM+threshold mask name
@@ -170,7 +170,7 @@ if masking == 'AM':
     general_tclean_param['usemask'] = 'auto-multithresh'                   
 if masking == 'UM':
     general_tclean_param['usemask'] = 'user'
-if masking == 'SD-AM': 
+if masking == 'SD-INT-AM': 
     if not os.path.exists(combined_mask) or not os.path.exists(threshmask+'.mask') or not os.path.exists(SD_mask_root+'.mask'):
         if 1 in thesteps:
             pass
@@ -180,13 +180,13 @@ if masking == 'SD-AM':
             print('Need to execute step 1 to generate an image mask')
     general_tclean_param['usemask']     = 'auto-multithresh'   
     general_tclean_param['loadmask']    = True   
-    general_tclean_param['fniteronusermask']    = 0.3   
+    general_tclean_param['fniteronusermask']  = fniteronusermask   
     
 
 
 
 
-# translate SD-AM masks per combination method
+# translate SD-INT-AM masks per combination method
 
 SDAMmasks_userinput = [tclean_SDAMmask, hybrid_SDAMmask, sdint_SDAMmask, TP2VIS_SDAMmask]
 
@@ -253,22 +253,25 @@ mask_tclean_param = dict(phasecenter = general_tclean_param['phasecenter'],
 
 # mask generation: execute step 1 or use existing template 
     
-if not os.path.exists(threshmask + '.mask') or not os.path.exists(imnamethSD + '.image'):
+if not os.path.exists(threshmask + '.mask') or not os.path.exists(imnameth + '.image'):
     if 1 in thesteps:
         pass
     else:    
         thesteps.append(1)      
         thesteps.sort()           # force execution of SDint mask creation (Step 1)
         print('Need to execute step 1 to estimate a thresold')
-else: #if imnamethSD + '.image' exists, simply re-derive the mask etc.
-    thresh = dc.derive_threshold(vis, imnamethSD , threshmask,
-                                 overwrite=False,   # False for read-only
+else: #if imnameth + '.image' exists, simply re-derive the mask etc.
+    thresh = dc.derive_threshold(#vis, 
+                                 imnameth , threshmask,
+                                 #overwrite=False,   # False for read-only, 
+                                 specmode = general_tclean_param['specmode'],
                                  smoothing = smoothing,
+                                 threshregion = threshregion,
                                  RMSfactor = RMSfactor,
                                  cube_rms   = cube_rms,    
                                  cont_chans = cont_chans,
-                                 **mask_tclean_param
-                                 )
+                                 #**mask_tclean_param
+                                 makemask=True)
               
     if general_tclean_param['threshold'] == '':                         # don't forget to run *_pars_* before
         general_tclean_param['threshold']  = str(thresh)+'Jy' 
@@ -410,13 +413,23 @@ if mystep in thesteps:
         # derive a simple threshold and make a mask from it 
         print(' ')         
         print('--- Derive a simple threshold from a dirty image and make a mask from it --- ')                                  
-        thresh = dc.derive_threshold(vis, imnamethSD , threshmask,
-                                     overwrite=True,
+
+        dc.runtclean(vis,imnameth,
+                     niter=0, interactive=False,
+                     **mask_tclean_param)
+
+        thresh = dc.derive_threshold(#vis, 
+                                     imnameth, 
+                                     threshmask,
+                                     #overwrite=True,
+                                     specmode = general_tclean_param['specmode'],
                                      smoothing = smoothing,
+                                     threshregion = threshregion,
                                      RMSfactor = RMSfactor,
                                      cube_rms   = cube_rms,    
-                                     cont_chans = cont_chans, 
-                                     **mask_tclean_param) 
+                                     cont_chans = cont_chans,
+                                     makemask=True) #, 
+                                     #**mask_tclean_param) 
                                      
         if general_tclean_param['threshold'] == '':
             userthresh=False  
@@ -438,7 +451,7 @@ if mystep in thesteps:
             print('')
             print('--- Regrid SD image --- ')
             os.system('rm -rf '+sdroregrid)
-            dc.regrid_SD(sdreordered_cut, sdroregrid, imnamethSD+'.image')
+            dc.regrid_SD(sdreordered_cut, sdroregrid, imnameth+'.image')
             sdimage = sdroregrid  # for INT cube params used
             print('--- Regridding done! --- ')     
             ## just for testing - if it fails then the common beam in regridSD didn't work 
@@ -450,12 +463,12 @@ if mystep in thesteps:
         # make SD+AM mask (requires regridding to be run; currently)
         print(' ')         
         #   print('--- Make single dish (SD) + automasking (AM) mask --- ')                                          
-        #   SDint_mask = dc.make_SDint_mask(vis, sdimage, imnamethSD, 
+        #   SDint_mask = dc.make_SDint_mask(vis, sdimage, imnameth, 
         #                                   sdmasklev, 
         #                                   SDint_mask_root,
         #                                   **mask_tclean_param) 
         #   print('--- SD+AM mask done! --- ') 
-		#   
+        #   
         print('--- Make single dish (SD) mask --- ')                                          
         SD_mask = dc.make_SD_mask(sdimage, sdmasklev, SD_mask_root) 
         print('--- SD mask done! --- ')                 
@@ -489,7 +502,7 @@ if mystep in thesteps:
 
     imname = imbase + cleansetup + tcleansetup
        
-    if masking == 'SD-AM': 
+    if masking == 'SD-INT-AM': 
         general_tclean_param['mask']  = tclean_mask
 
     z = general_tclean_param.copy()   
@@ -584,7 +597,7 @@ if mystep in thesteps:
     print(' ')
 
 
-    if masking == 'SD-AM': 
+    if masking == 'SD-INT-AM': 
         general_tclean_param['mask']  = hybrid_mask
 
     z = general_tclean_param.copy()   
@@ -615,7 +628,7 @@ if mystep in thesteps:
     print(' ')
     
     
-    if masking == 'SD-AM': 
+    if masking == 'SD-INT-AM': 
         general_tclean_param['mask']  = sdint_mask
 
     z = general_tclean_param.copy()   
@@ -692,7 +705,7 @@ if mystep in thesteps:
 
     # make TP2VIS image (tclean)
     
-    if masking == 'SD-AM': 
+    if masking == 'SD-INT-AM': 
         general_tclean_param['mask']  = TP2VIS_mask
 
     z = general_tclean_param.copy()   
@@ -791,7 +804,9 @@ if mystep in thesteps:
         #labelnames
         allcombireslabel = [a.replace(pathtoimage+sourcename+cleansetup+'.','') for a in allcombitxt]
         
-        mapchan=int(general_tclean_param['nchan']/2.)
+        if mapchan==None:
+            mapchan=int(general_tclean_param['nchan']/2.)
+            
         iqa.show_residual_maps(allcombires, allcombimask,
                               channel=mapchan, 
                               save=True, 
@@ -862,7 +877,7 @@ if mystep in thesteps:
                        outfile=allcombims[i]+'.mom0')
             os.system('rm -rf ' + allcombims[i]+'.mom0.fits')
             cta.exportfits(imagename=allcombims[i]+'.mom0', fitsimage=allcombims[i]+'.mom0.fits', dropdeg=True)
-            mapchan=general_tclean_param['nchan']/2.
+            #mapchan=general_tclean_param['nchan']/2.
             iqa.show_Apar_map(    sdroregrid,allcombims[i],
                                   channel=mapchan, 
                                   save=True, 
@@ -1062,7 +1077,7 @@ if mystep in thesteps:
             
         cta.imsmooth(imagename = skymodelreg,
                      kernel    = 'gauss',               
-                     targetres = False,                                                             
+                     targetres = True,                                                             
                      major     = str(max(np.array(BeamMaj))*1.1)+'arcsec', 
                      minor     = str(max(np.array(BeamMin))*1.1)+'arcsec',    
                      pa        = str(np.mean(np.array(BeamPA)))+'deg',                                       
@@ -1109,13 +1124,13 @@ if mystep in thesteps:
                 #           outfile=allcombims[i]+'.mom0')
                 #os.system('rm -rf ' + allcombims[i]+'.mom0.fits')
                 #cta.exportfits(imagename=allcombims[i]+'.mom0', fitsimage=allcombims[i]+'.mom0.fits', dropdeg=True)
-                mapchan=general_tclean_param['nchan']/2.
+                #mapchan=general_tclean_param['nchan']/2.
                 iqa.show_Apar_map(    skymodelconv,allcombims[i],
                                       channel=mapchan, 
                                       save=True, 
                                       plotname=assessment+'/Model_Accuracy_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor','')+'_channel', #expecting only one file name entry per combi-method
                                       labelname=allcombi[i],
-                                      titlename='Accuracy map in channel '+str(mapchan)+' for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
+                                      titlename='Accuracy map in channel '+str(mapchan)+' for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+skymodelconv.replace(pathtoimage,''))                                    
                
                 iqa.show_Fidelity_map(skymodelconv,
                                       allcombims[i],
@@ -1123,7 +1138,7 @@ if mystep in thesteps:
                                       save=True, 
                                       plotname=assessment+'/Model_Fidelity_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor','')+'_channel', #expecting only one file name entry per combi-method
                                       labelname=allcombi[i],
-                                      titlename='Fidelity map in channel '+str(mapchan)+' for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
+                                      titlename='Fidelity map in channel '+str(mapchan)+' for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+skymodelconv.replace(pathtoimage,''))                                    
            
             os.system('rm -rf ' + skymodelconv+'.mom0')               
             cta.immoments(imagename=skymodelconv,
