@@ -88,7 +88,7 @@ TPnoiseChannels           = '2~5'              # in unregridded and un-cut SD cu
 # general CLEAN setup
 mode      = 'mfs'      # 'mfs' or 'cube'
 mscale    = 'MS'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
-masking   = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
+masking   = 'SD-INT-AM'    # 'UM' (user mask), 'SD-INT-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 inter     = 'nIA'      # interactive ('IA') or non-interactive ('nIA')
 nit       = 10#1000000          # max = 9.9 * 10**9 
 
@@ -105,6 +105,7 @@ endchan   = 39  #None  #   end-value of the SD image channel range you want to c
 
 
 smoothing  = 5     # smoothing of the threshold mask (by 'smoothing x beam')
+threshregion = ''  # emission free region in template continuum or channel image
 RMSfactor  = 0.5   # continuum rms level (not noise from emission-free regions but entire image)
 cube_rms   = 3     # cube noise (true noise) x this factor
 cont_chans = ''    # line free channels for cube rms estimation
@@ -112,6 +113,7 @@ sdmasklev  = 0.3   # maximum x this factor = threshold for SD mask
 
 
 momchans = ''      # channels to compute moment maps (integrated intensity, etc.) 
+mapchan = None     # cube channel (integer) of interest to use for assessment in step 8
 
                      
 ########## general tclean parameters
@@ -143,7 +145,7 @@ sdpsf   = ''
 dishdia = 12.0
                  
 
-########### SD-AM masks for all methods using tclean etc.:                       
+########### SD-INT-AM masks for all methods using tclean etc.:                       
 
 # options: 'SD', 'INT', 'combined'
 
@@ -151,6 +153,7 @@ tclean_SDAMmask = 'INT'
 hybrid_SDAMmask = 'INT'     
 sdint_SDAMmask  = 'INT'     
 TP2VIS_SDAMmask = 'INT'     
+fniteronusermask = 0.3
 
 
 ########### SD factors for all methods:                       
