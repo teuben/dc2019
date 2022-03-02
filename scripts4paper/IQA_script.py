@@ -1356,7 +1356,12 @@ def show_Apar_map(ref_image,target_image,
     plt.gca().invert_yaxis()
     cbar = plt.colorbar(im, ax=ax1,orientation='vertical')
     cbar.ax.set_ylabel('Flux (image units)', fontsize=15)
-    plt.text(0.1,0.1,"Target", bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
+    #plt.text(0.1,0.1,"Target", bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
+    if labelname=='':
+        plt.text(0.1,0.1,"Target", bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
+    else:
+        plt.text(0.1,0.1,labelname, bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
+
     plt.xlabel("X (pixel units)",fontsize=15)
     plt.ylabel("Y (pixel units)",fontsize=15)
     plt.title(" Target at ref. resolution (Chan.# " + str(channel) + ")")
@@ -1495,7 +1500,10 @@ def show_Fidelity_map(ref_image,target_image,
     plt.gca().invert_yaxis()
     cbar = plt.colorbar(im, ax=ax1,orientation='vertical')
     cbar.ax.set_ylabel('Flux (image units)', fontsize=15)
-    plt.text(0.1,0.1,"Target", bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
+    if labelname=='':
+        plt.text(0.1,0.1,"Target", bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
+    else:
+        plt.text(0.1,0.1,labelname, bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
     plt.xlabel("X (pixel units)",fontsize=15)
     plt.ylabel("Y (pixel units)",fontsize=15)
     plt.title(" Target at ref. resolution (Chan.# " + str(channel) + ")")
