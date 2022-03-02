@@ -50,7 +50,7 @@ axis-reordered SD image, the optional channel-range-cut-out of an SD cube, and
 regridded SD image are defined.
 
 The chosen mask setup is translated into CASA parameters and the
-several mask names (threshold based, SD-AM based and combined) are
+several mask names (threshold based, SD-INT-AM based and combined) are
 defined and forwarded to the different combination methods.  File
 existence checks initiate the execution of 'step 1', if one of the
 here defined files does not exist and step 1 is not yet included in
@@ -133,7 +133,7 @@ run ONCE to create concatenated ms-file, if not yet available
 --- Slides ---
 
 Purpose:
-put input data to shape (reorder, regrid) desired by combination methods, and prepare masking and thresholds for 'SD-AM' mode
+put input data to shape (reorder, regrid) desired by combination methods, and prepare masking and thresholds for 'SD-INT-AM' mode
 For this, specify in *_pars_*-file:
 * (pathtoconcat)
 * sdimage_input
@@ -163,7 +163,7 @@ effects:
 * if general_tclean_param['threshold'] == '':
   * use threshold from derive_threshold
   * retrieve/modify it and its mask each DC_run without new dirty image
-* if masking == 'SD-AM':
+* if masking == 'SD-INT-AM':
   * use threshold(RMS) or SD(-AM) + threshold(RMS) mask
 
 
@@ -366,13 +366,20 @@ For this, specify in *_pars_*-file:
 
 what it does:
 * residual maps + tclean masks, stopping criteria NUMBERS, and thresholds
+stopping criteria codes are dwefined as in
+https://casa.nrao.edu/casadocs/casa-5.4.0/synthesis-imaging/user-interaction
+https://casadocs.readthedocs.io/en/v6.2.0/notebooks/synthesis_imaging.html#Iteration-Control
+under "Global Stopping Criteria"
+
 * Combined image vs. SD image (and model image, if skymodel from simulation is given)
   * Compare_Apar/Fidelity_(cubes)
   * show_Apar/Fidelity_map
   * Compare_Apar/Fidelity_signal
   * genmultisps: power spectra of images and apar images
-  
 
+
+  
+- numbers of involved step a file name end ---> allows assessment/comparison of subselection of steps.
 
 
 
