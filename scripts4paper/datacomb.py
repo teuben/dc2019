@@ -71,7 +71,7 @@ def convert_JypB_JypP(sdimage):
         fluxExpression = "(IM0 * {0:f} / {1:f})".format(toJyPerPix,SDEfficiency)
         #scaled_name = sdimage.split('/')[-1]+'.Jyperpix'
         scaled_name = sdimage+'.Jyperpix'
-	    
+        
         os.system('rm -rf '+scaled_name)
         cta.immath(imagename=sdimage,
                    outfile=scaled_name,
@@ -295,7 +295,7 @@ def check_prep_tclean_param(
         return sys.exit()    
     
 
-    if loadmask==True and fniteronusermask>1. or fniteronusermask<0.:
+    if loadmask==True and fniteronusermask>1.0 or fniteronusermask<0.0:
         print('fniteronusermask is out of range: ' +fniteronusermask+' Please choose a value between 0 and 1 (inclusively)')
         return sys.exit()    
     else:
@@ -1117,11 +1117,11 @@ def runWSM(vis,
 
 
     #   myimhead = cta.imhead(mysdimage)
-	#   
+    #   
     #   if myimhead['unit']=='Jy/beam': print('SD units {}. OK, will convert to Jy/pixel.'.format(myimhead['unit']))
     #   elif myimhead['unit']=='Jy/pixel': print('SD units {}. SKIP conversion. '.format(myimhead['unit']))
     #   else: print('SD units {}. NOT OK, needs conversion. '.format(myimhead['unit']))
-	#   
+    #   
     #   ##CHECK: header units
     #   SingleDishResolutionArcsec = myimhead['restoringbeam']['major']['value'] #in Arcsec
     #   CellSizeArcsec = abs(myimhead['incr'][0])*206265. #in Arcsec
@@ -1130,7 +1130,7 @@ def runWSM(vis,
     #   fluxExpression = "(IM0 * {0:f} / {1:f})".format(toJyPerPix,SDEfficiency)
     #   #scaled_name = mysdimage.split('/')[-1]+'.Jyperpix'
     #   scaled_name = mysdimage+'.Jyperpix'
-	#   
+    #   
     #   os.system('rm -rf '+scaled_name)
     #   cta.immath(imagename=mysdimage,
     #              outfile=scaled_name,
@@ -2400,13 +2400,18 @@ def make_SD_mask(#vis,
 
 ######################################
 
-def derive_threshold(vis, imname, threshmask,
-                    phasecenter='', spw='', field='', imsize=[], cell='',
+def derive_threshold(#vis, 
+                    imname, threshmask,
+                    #phasecenter='', spw='', field='', imsize=[], cell='',
                     specmode='mfs', 
-                    start = 0, width = 1, nchan = -1, restfreq = '', 
-                    overwrite=False, smoothing = 5, 
-                    RMSfactor = 0.5, cube_rms = 3.,   
-                    cont_chans ='2~4'):
+                    #start = 0, width = 1, nchan = -1, restfreq = '', 
+                    #overwrite=False, 
+                    smoothing = 5, 
+                    threshregion = '',
+                    RMSfactor = 0.5, 
+                    cube_rms = 3.,   
+                    cont_chans ='2~4',
+                    makemask=True):
 
     """
     derive_threshold (L. Moser-Fischer)
@@ -2483,7 +2488,7 @@ def derive_threshold(vis, imname, threshmask,
 
 
     #   file_check(vis)
-    file_check_vis(vis)
+    #file_check_vis(vis)
 
 
     cta.casalog.post("derive_threshold", 'INFO', 
@@ -2493,55 +2498,60 @@ def derive_threshold(vis, imname, threshmask,
 
 
 
-    if overwrite == True:      # False if used by a combi method to get threshold
+    #if overwrite == True:      # False if used by a combi method to get threshold
+    #
+    #    os.system('rm -rf '+imnameth+'*')        
+    #    
+    #    runtclean(vis,imnameth, 
+    #            phasecenter=phasecenter, 
+    #            spw=spw, field=field, imsize=imsize, cell=cell, specmode=specmode,
+    #            start = start, width = width, nchan = nchan, restfreq = restfreq,
+    #            niter=0, interactive=False)
+    #    #print('### Please check the result!') 
+    #else: 
 
-        os.system('rm -rf '+imnameth+'*')        
-        
-        runtclean(vis,imnameth, 
-                phasecenter=phasecenter, 
-                spw=spw, field=field, imsize=imsize, cell=cell, specmode=specmode,
-                start = start, width = width, nchan = nchan, restfreq = restfreq,
-                niter=0, interactive=False)
-        #print('### Please check the result!') 
-    else: 
-        print('Use existing template ',  imnameth+'.image', 'to derive threshold and mask')       
+    print('Use existing template ',  imnameth+'.image', 'to derive threshold and mask')       
 
     #### get threshold 
 
-    if not os.path.exists(threshmask + '.mask') and overwrite == False:
-        print('please, execute this function with overwrite = True!')
-        thresh = 0.0
-    else:       
-        #### continuum
-        if specmode == 'mfs':
-            full_RMS = cta.imstat(imnameth+'.image')['rms'][0]
-            #print('full_RMS', full_RMS)
-            #peak_val = imstat(imnameth+'.image')['max'][0]
-            thresh = full_RMS*RMSfactor
-            print('The "RMS" of the entire image (incl emission) is ', round(full_RMS,6), 'Jy')
-            print('You set the mask threshold to ', round(RMSfactor,6), ' times the RMS, i.e. ', round(thresh,6), 'Jy')
-        
-        #### cube
-        elif specmode == 'cube':
-            os.system('rm -rf '+imnameth+'.mom6')
-            cta.immoments(imagename=imnameth+'.image', moments=[6], 
-                          outfile=imnameth+'.mom6', chans=cont_chans)
-            cube_RMS = cta.imstat(imnameth+'.mom6')['rms'][0]
-        
-            thresh = cube_RMS*cube_rms   # 3 sigma level
+    #if not os.path.exists(threshmask + '.mask'): #and overwrite == False:
+    #    print('please, execute this function with overwrite = True!')
+    #    thresh = 0.0
+    #else:  
+     
+    #### continuum
+    if specmode == 'mfs':
+        full_RMS = cta.imstat(imnameth+'.image', box=threshregion)['rms'][0]
+        #print('full_RMS', full_RMS)
+        #peak_val = imstat(imnameth+'.image')['max'][0]
+        thresh = full_RMS*RMSfactor
+        print('The "RMS" of the entire image (incl emission) is ', round(full_RMS,6), 'Jy')
+        print('You set the mask threshold to ', round(RMSfactor,6), ' times the RMS, i.e. ', round(thresh,6), 'Jy')
+    
+    #### cube
+    elif specmode == 'cube':
+        os.system('rm -rf '+imnameth+'.mom6')
+        cta.immoments(imagename=imnameth+'.image', moments=[6], 
+                      outfile=imnameth+'.mom6', chans=cont_chans)
+        cube_RMS = cta.imstat(imnameth+'.mom6', box=threshregion)['rms'][0]
+    
+        thresh = cube_RMS*cube_rms   # 3 sigma level
  
-            print('The RMS of the cube (check cont_chans for emission-free channels) is ', round(cube_RMS,6), 'Jy')
-            print('You set the mask threshold to ', round(cube_rms,6), ' times the RMS, i.e. ', round(thresh,6), 'Jy')
-         
-        
-            #immmoments(imagename=imname+'_template.image', mom=[8], 
-            #           outfile=imname+'_template.mom8', chans='' )
-            #peak_val = imstat(imname+'_template.mom8')['max'][0]
-        
-        #print(full_RMS)
-        #print(peak_val)
-        
-        
+        print('The RMS of the cube (check cont_chans for emission-free channels) is ', round(cube_RMS,6), 'Jy')
+        print('You set the mask threshold to ', round(cube_rms,6), ' times the RMS, i.e. ', round(thresh,6), 'Jy')
+     
+    
+        #immmoments(imagename=imname+'_template.image', mom=[8], 
+        #           outfile=imname+'_template.mom8', chans='' )
+        #peak_val = imstat(imname+'_template.mom8')['max'][0]
+    
+    #print(full_RMS)
+    #print(peak_val)
+    
+
+    if makemask == True:
+        print('Creating a mask from threshold of', round(thresh,6), 'Jy with a smoothing of', smoothing)
+
         threshmask1 = threshmask+'_1.mask'
         os.system('rm -rf '+threshmask+'*.mask')     
         
@@ -2569,12 +2579,12 @@ def derive_threshold(vis, imname, threshmask,
         #     BeamMaj = imhead(imnameth+'.image', mode='summary')['perplanebeams']['beams']['*'+str(midchan)]['*0']['major']['value']
         #     BeamMin = imhead(imnameth+'.image', mode='summary')['perplanebeams']['beams']['*'+str(midchan)]['*0']['minor']['value']
         #     BeamPA  = imhead(imnameth+'.image', mode='summary')['perplanebeams']['beams']['*'+str(midchan)]['*0']['positionangle']['value']
- 
+        
         BeamMaj = cta.imhead(imnameth+'.image', mode='get', hdkey='bmaj')['value']
         BeamMin = cta.imhead(imnameth+'.image', mode='get', hdkey='bmin')['value']
         BeamPA  = cta.imhead(imnameth+'.image', mode='get', hdkey='bpa' )['value']
- 
- 
+        
+        
         
         cta.imsmooth(imagename = threshmask1,
                      kernel    = 'gauss',               
@@ -2589,7 +2599,9 @@ def derive_threshold(vis, imname, threshmask,
                    expr='iif(IM0>'+str(0.2)+',1,0)',  # cut-off value is arbitrary!
                    outfile=threshmask+'.mask')
         
-        
+    else:
+        pass      
+    
     return thresh
  
 
@@ -3427,7 +3439,7 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
         
         #### continuum
         if specmode == 'mfs':
-            cont_RMS = cta.imstat(TPINTim)['rms'][0]
+            cont_RMS = cta.imstat(imTP, box=threshregion)['rms']#[0]
             #peak_val = imstat(imnameth+'.image')['max'][0]
             #thresh = full_RMS*RMSfactor
             thresh = cont_RMS*RMSfactor
@@ -3439,7 +3451,7 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
             os.system('rm -rf '+TPINTmom6)
             cta.immoments(imagename=TPINTim, moments=[6], 
                           outfile=TPINTmom6, chans=cont_chans)
-            cube_RMS = cta.imstat(TPINTmom6)['rms'][0]
+            cube_RMS = cta.imstat(TPINTmom6, box=threshregion)['rms'][0]
             thresh = cube_RMS*cube_rms
         
             #thresh = cube_RMS*cube_rms   # 3 sigma level
