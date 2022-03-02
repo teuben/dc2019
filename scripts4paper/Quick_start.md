@@ -21,6 +21,9 @@ cp DC_pars_M100.py DC_pars.py
 ```
 Make sure that you have the M100 data in the correct directory and have set up your local directories correctly.
 
+!!!!! CREATE M100-folder for output and adjust paths in DC_pars.py !!!!!!!!!!
+
+
 ## (Optional) Step 2: Execute `DC_locals.py`
 If you DID NOT put a reference to `DC_locals.py` in your `~/.casa/config.py` file, you need to Execute `DC_locals.py` in your current CASA session (and you will have to continue to do so each time you start a new CASA session to work with this data combination script) by 
 ```python
@@ -33,17 +36,11 @@ The last step is to run the scripts to do the data combination in CASA
 execfile("/users/user/dc2019/scripts4paper/DC_script.py")
 ```
 
-## Suggestions for a very quick start
-* Start with few **nit** (clean-interations in **DC_pars**-file) for quick look at what the products look like
-* Run step 0 only once per dataset
-* Only run step 1 the first time, then in following runs, only rerun step 1 for changes in the spectral or the masking setup
-* Play with all other steps
-* For running step 8 alone: activate combination steps of interest (2-7) and use dryrun=True (no active combination - just load products from previous runs)
 
 ## Other examples
 Other example data and parameter files that we provide:
 * M100 - the casaguide example
-	* M100trim - the casaguide example - rebinned for smaller data size and faster processing
+* M100trim - the casaguide example - rebinned for smaller data size and faster processing
 * GMC-b - the skymodel b
 * GMC-c - the skymodel c
 * pointGauss  - point source and a Gaussian
