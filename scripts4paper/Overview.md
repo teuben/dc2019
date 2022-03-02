@@ -66,6 +66,14 @@ Details on the work-flow of core-script **DC_run.py** are given in
 
 
 
+## Tips and tricks
+* Start with few **nit** (clean-interations in **DC_pars**-file) for quick look at what the products look like
+* Run step 0 only once per dataset
+* Only run step 1 the first time, then in following runs, only rerun step 1 for changes in the spectral or the masking setup
+* Play with all other steps
+* For running step 8 alone: activate combination steps of interest (2-7) and use dryrun=True (no active combination - just load products from previous runs)
+
+
 
 ## Flexibility
 
