@@ -128,7 +128,7 @@ whereas setting it to ``SDpar`` automatically uses the channel setup of the SD i
        endchan   = 39  #None  #   end-value of the SD image channel range you want to cut out
 
 If specsetup = ``INTpar``, the cut-out-channel inputs are ignored.
-In ``mode='mfs'``  , ``INTpar`` is set by default but without any effect.   
+In ``mode='mfs'``  , ``specsetup`` is set to ``nt1`` meaning the number of Taylor terms for mtmfs-clean. an mfs-clean corresponds then to a mtmfs-clean with nterms=1. Currently, mfs is the only continuum mode offered and ``nt1`` is only inserted for the name without any effect on the tclean parameters.
 
       
       
@@ -136,10 +136,19 @@ In ``mode='mfs'``  , ``INTpar`` is set by default but without any effect.
 The parameter ``mscale`` allows to choose multiscale (``MS`` - for extended and complex structures) imaging instead of simple Hogbom (``HB`` - for compact sources) clean. 
 
       mscale    = 'MS'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
-       t_maxscale    = -1 
+      t_maxscale    = -1 
 
 The ``t_maxscale``-parameter can be used to give the ``mscale = 'MS'``-mode a maximum size scale (expected unit: arcsec), up to which the multiscale-shapes (paraboloids) are generated, e.g. for a beam size of 1 arcsec and a maxscale of 10 arcsec (t_maxscale=10.), 
 DC_run.py will create shapes of size 0 (point source), 1 arcsec, 3 arcsec, and 9 arcsec. With ``t_maxscale = -1`` the script will determine a maxscale from the largest angular scales covered by the (concatenated) interferometric data.
+
+
+
+### user interaction and iterations and threshold
+With the parameter ``inter`` the user can choose between interactive (``IA``) and non-interactive (``nIA``) clean. The number of clean iterations to be executed is set under ``nit``. The clean threshold ``t_threshold`` steers the depth of the clean, i.e. tclean stops at this peak flux level in the residual image.
+
+      inter       = 'nIA'      # interactive ('IA') or non-interactive ('nIA')
+      nit         = 1000000    #      
+      t_threshold = ''         # e.g. '0.1mJy', can be left blank -> DC_run will estimate from SD-INT-AM mask for all other masking modes, too
 
 
 
@@ -148,11 +157,11 @@ With the parameter ``masking`` the user can define the masking mode, i.e.
 * loading a user defined mask file (``UM``, CASA-native subparameter ``t_mask``) 
 * let tclean iteratively find and add clean mask regions (``AM`` - 'auto-multithreshold' in tclean, CASA-native subparameters ``t_sidelobethreshold, t_noisethreshold, t_lownoisethreshold, t_minbeamfrac, t_growiterations, t_negativethreshold``), 
 * use the primary beam as a mask (``PB``, CASA-native subparameter ``t_pbmask`` for fluxlevel). 
-* adjust a threshold-based mask from the interferometric and/or the SD-image (``SD-AM``, subparameters ``smoothing, RMSfactor, cube_rms, cont_chans, sdmasklev, tclean_SDAMmask, hybrid_SDAMmask, sdint_SDAMmask, TP2VIS_SDAMmask``, see section below)
+* adjust a threshold-based mask from the interferometric and/or the SD-image (``SD-INT-AM``, subparameters ``smoothing, RMSfactor, cube_rms, cont_chans, sdmasklev, tclean_SDAMmask, hybrid_SDAMmask, sdint_SDAMmask, TP2VIS_SDAMmask``, see section below)
 
-      masking   = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
-       t_mask        = '' 
-       t_pbmask      = 0.4
+      masking              = 'SD-INT-AM'    # 'UM' (user mask), 'SD-INT-AM' (SD+INT+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
+       t_mask              = '' 
+       t_pbmask            = 0.4
        t_sidelobethreshold = 2.0 
        t_noisethreshold    = 4.25 
        t_lownoisethreshold = 1.5               
@@ -163,43 +172,75 @@ With the parameter ``masking`` the user can define the masking mode, i.e.
 In most cases, ``masking = 'AM'`` with its subparameters set to default (as above) is the best choice, but tends to fail for extremely extended emission.
 
 
-#### SD-AM mask fine-tuning (step 1)
+#### SD-INT-AM mask fine-tuning (step 1)
 
 In cases of widespread extended emission (i.e. almost entire image), the cleaning process in ``PB`` or ``AM``-mode can diverge and lead to an insufficient image resoration.
-With the ``SD-AM`` mask the bulk of the prominent emission can be extracted so that the cleaning process can be handed over to a auto-multithreshold clean to deal with the residual emission.
+With the ``SD-INT-AM`` mask the bulk of the prominent emission can be extracted so that the cleaning process can be handed over to a auto-multithreshold clean (might need to adjust ``AM``-subparameters) to deal with the residual emission.
 
-Generating a common mask from an interferometric and/or SD image mask at an user defined threshold (``masking  = 'SD-AM'``), requires additional input:
+Generating a common mask from an interferometric and/or SD image mask at an user defined threshold (``masking  = 'SD-INT-AM'``) requires additional input:
 
-       smoothing  = 5    # smoothing of the threshold mask (by 'smoothing x beam')
-       RMSfactor  = 0.5  # continuum rms level (not noise from emission-free regions but entire image)
-       cube_rms   = 3    # cube noise (true noise) x this factor
-       cont_chans = ''   # line free channels for cube rms estimation, e.g. '2~5' 
-       sdmasklev  = 0.3  # image peak x this factor = threshold for SD mask
+       smoothing    = 5    # smoothing of the threshold mask (by 'smoothing x beam')
+       threshregion = '150,200,150,200'  # emission free region in template continuum or cube image
+       RMSfactor    = 0.5  # continuum rms level (if threshregion not defined: noise  is not from emission-free regions but entire image)
+       cube_rms     = 3    # cube noise (true noise) x this factor
+       cont_chans   = ''   # line free channels for cube rms estimation, e.g. '2~5' 
+       sdmasklev    = 0.3  # image peak x this factor = threshold for SD mask
 
-For an interferometric image based mask, a dirty image of the ``vis`` with the basic clean parameters defining the image shape is created.
-In the case of continuum data, the ``RMSfactor`` is multiplied with the rms of the entire continuum image - irregardless of the emission present (i.e. it is not the true rms!). This product is used as a threshold for the mask. In the case of a cube, the true rms-noise can be computed from the line-free channels, that the user has to adjust under ``cont_chans``. This noise is multiplied with the with ``cube_rms`` and is used as a threshold of the cube-data. In both cases, the threshold mask is smoothed by the ``smoothing``-factor times the interferometric beam.
-The threshold for a single dish image based mask is given by the ``sdmasklevel`` times the SD image peak flux.
-If the user does not specify a clean threshold for tclean to stop
-DC_run will take the threshold derived from the interferometric ``SD-AM`` mask - independent from the masking-mode that has been specified.
-Once step 1 has been executed, the mask is recalculated for any changes in the mask fine-tuning parameters at the beginning of the DC_run.
+For an interferometric image based mask, a dirty image of the ``vis`` with the basic clean parameters defining the image shape is created. 
 
 
-#### SD-AM masks for all methods using tclean etc (steps 2, 5 - 7)
-For ``masking = 'SD-AM'`` a mask is made from the threshold-clipped interferometric, from the ``sdmasklev``- clipped SD image and from the combination of both masks. The user can choose which one to use, i.e.
+In order to setup the parameters above it is best to execute step 1 once - SD_INT_AM parameters are irrelevant at this moment. 
+This step regrids the SD and creates a dirty image of the ``vis`` with the basic clean parameters defining the image shape. Inspect dirty image and SD image 
+
+      imnameth      = imbase + '.'+mode +'_'+ specsetup +'_templateor.image'
+      sdreordered_cut = sdbase +potential-channel-cut-out+'.SD_ro.image' # SDpar case 
+         or 
+      sdroregrid      = sdbase +'.SD_ro-rg_'+specsetup+'.image'          # INTpar case
+
+and find a suitable emission free region (continuum) or channel range (cube) in e.g. the CASA viewer (setting a box/region in the image in the CASA viewer gives you the rms therein in the region panel of the viewer). Define these in the ``threshregion`` and ``cont_chans``, respectively. Sometimes, there are no fully emission-free channels on a cube, so that one needs to select a range of the weakest emission channels and a region that is emission-free for all these selected channels. For fully emission-free channels, set ``threshregion = ''``.
+Then, play with the image contours and their flux levels to find a good cut-off threshold for creating the clean mask. This flux value of the interferometric image is parametrised in DC_run.py as ``RMSfactor`` * RMS measured in the user defined threshregion in the continuum image or as ``cube_rms`` * RMS measured in the user defined cont_chans (and threshregion, if needed) in the cube image. If the image contains no reliably emission-free region, use the entire image ``threshregion = ''`` and note that the measured RMS is not the true RMS of the image. 
+The resulting threshold-clipped mask is smoothed by the ``smoothing``-factor times the interferometric beam.
+
+The flux threshold for a single dish image based mask is given by the ``sdmasklevel`` times the SD image peak flux.
+
+Having the parameters set, a second execution of step 1 is not necessary, because the mask is recalculated for any changes in the mask fine-tuning parameters at the beginning of each DC_run execution. Nevertheless, the updated *pars*-file needs to be executed before DC_run, else your new SD_INT_AM parameter are not implemented.
+
+Whenever the interferometric masks is created, DC_run gives feedback in the terminal about the measured RMS and the applied threshold that is used for the mask - and for cleaning if specified ``t_threshold`` is not specified.
+
+If the user does not specify a clean threshold ``t_threshold`` steering the depth of the clean, DC_run will take the threshold derived from the interferometric ``SD-INT-AM`` mask - independent from the masking-mode that has been specified. 
+This implies that the  the parameters above are not only relevant for creating the SD-INT-AM mask, but also for auto-determining a reasonable clean threshold for DC_run in general.
+
+Nonetheless, you can set up a ``t_threshold`` that is different from the threshold the interferometric mask is based on, e.g. clean deeper that the level of the mask has been defined for. 
+
+
+
+
+
+
+
+
+
+
+#### SD-INT-AM masks for all methods using tclean etc (steps 2, 5 - 7)
+For ``masking = 'SD-INT-AM'`` a mask is made from the threshold-clipped interferometric, from the ``sdmasklev``- clipped SD image and from the combination of both masks. The user can choose which one to use, i.e.
 the options are: 'SD', 'INT', 'combined'
 
        tclean_SDAMmask = 'INT'  
        hybrid_SDAMmask = 'INT'     
        sdint_SDAMmask  = 'INT'     
        TP2VIS_SDAMmask = 'INT'
+
+The ``SD-INT-AM``-mode is designed such that a user-defined fraction of the tclean iterations 
+
+       fniteronusermask = 0.3   # valid between 0.0 an 1.0
+       
+is spent on a user mask. Once the stopping-threshold or interation limit ``fniteronusermask``*``nit`` is reached, tclean is restarted in ``AM``-mode and continues cleaning also on regions outside the ``SD-INT-AM``-mask until the threshold or the (1-``fniteronusermask``)*``nit`` is reached. 
+With n ``fniteronusermask`` = 0.0, DC_run loads the ``SD-INT-AM``-mask with one iteration and then moves over to the ``AM``-mode. An ``fniteronusermask`` = 1.0 makes DC_run work solely on the ``SD-INT-AM``-mask for all iterations. Both extremes give insufficient cleaning results, therefore a flexible mixture of the two modes is introduced by the 
+``fniteronusermask``-parameter.
+       
+       
        
 
-### user interaction and iterations and threshold
-With the parameter ``inter`` the user can choose between interactive (``IA``) and non-interactive (``nIA``) clean. The number of clean iterations to be executed is set under ``nit``.
-
-
-      inter     = 'nIA'      # interactive ('IA') or non-interactive ('nIA')
-      nit       = 1000000    #      
 
 
 ### Setup of the base name extension describing the basic clean properties 
@@ -208,7 +249,7 @@ We can generate a meaningful base name extension to attach to the imbase, reflec
 
       mode      = 'mfs'      # 'mfs' or 'cube'
       mscale    = 'MS'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
-      masking   = 'SD-AM'    # 'UM' (user mask), 'SD-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
+      masking   = 'SD-INT-AM'    # 'UM' (user mask), 'SD-INT-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
       inter     = 'nIA'      # interactive ('IA') or non-interactive ('nIA')
       nit       = 1000000    #      
       specsetup =  'INTpar'  # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
@@ -219,7 +260,7 @@ DC_run uses an extension-definition of
 
 which gives us 
 
-       cleansetup = '.mfs_INTpar_HB_SD-AM_nIA_n0'
+       cleansetup = '.mfs_INTpar_HB_SD-INT-AM_nIA_n0'
 
 
 ### SDINT options (step 6)
@@ -269,9 +310,11 @@ in a continuum SD image, or a range of emission-free channels in the SD cube.
 
 ## Assessment related (step 8)
 
-In the case of an image cube, specify the line-emission channels that should be considered for moment maps,
+In the case of an image cube, specify the line-emission channels that should be considered for moment maps as well as which channel to pick to run the single channel assessment on,
 
        momchans = ''      # channels to compute moment maps (integrated intensity, etc., e.g. '2~5') 
+       mapchan = None     # cube channel (integer) of interest to use for assessment in step 8
+
 
 If present, we can specify a ``skymodel``-image to compare our results to. In our examples of simulated data, we use the skymodel located in the same folder as one of the simulated data sets in pathtoconcat.
 
