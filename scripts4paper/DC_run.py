@@ -252,28 +252,51 @@ mask_tclean_param = dict(phasecenter = general_tclean_param['phasecenter'],
 
 
 # mask generation: execute step 1 or use existing template 
-    
-if not os.path.exists(threshmask + '.mask') or not os.path.exists(imnameth + '.image'):
-    if 1 in thesteps:
-        pass
-    else:    
-        thesteps.append(1)      
-        thesteps.sort()           # force execution of SDint mask creation (Step 1)
-        print('Need to execute step 1 to estimate a thresold')
+   
+if 1 in thesteps:
+        pass    
+elif not os.path.exists(imnameth + '.image'):
+#elif not os.path.exists(threshmask + '.mask') or not os.path.exists(imnameth + '.image'):
+    #if 1 in thesteps:
+    #    pass
+    #else:    
+    thesteps.append(1)      
+    thesteps.sort()           # force execution of SDint mask creation (Step 1)
+    print('Need to execute step 1 to estimate a thresold')
+
 else: #if imnameth + '.image' exists, simply re-derive the mask etc.
-    thresh = dc.derive_threshold(#vis, 
-                                 imnameth , threshmask,
-                                 #overwrite=False,   # False for read-only, 
+    
+    
+    #thresh = dc.derive_threshold(#vis, 
+    #                             imnameth , threshmask,
+    #                             #overwrite=False,   # False for read-only, 
+    #                             specmode = general_tclean_param['specmode'],
+    #                             smoothing = smoothing,
+    #                             threshregion = threshregion,
+    #                             RMSfactor = RMSfactor,
+    #                             cube_rms   = cube_rms,    
+    #                             cont_chans = cont_chans,
+    #                             #**mask_tclean_param
+    #                             makemask=True)
+    #    
+        
+    thresh = dc. make_masks_and_thresh(imnameth, threshmask,
+                                         #overwrite=True,
+                                 sdimage, sdmasklev, SD_mask_root,
+                                 combined_mask,                                         
                                  specmode = general_tclean_param['specmode'],
                                  smoothing = smoothing,
                                  threshregion = threshregion,
                                  RMSfactor = RMSfactor,
                                  cube_rms   = cube_rms,    
                                  cont_chans = cont_chans,
-                                 #**mask_tclean_param
-                                 makemask=True)
-              
+                                 makemask=True
+                                 )        
+
+    print(' ')   
+                    
     if general_tclean_param['threshold'] == '':                         # don't forget to run *_pars_* before
+        rederivethresh=True  # TP2VIS parameter 
         general_tclean_param['threshold']  = str(thresh)+'Jy' 
         print('Use mask threshold as clean threshold ', general_tclean_param['threshold']) 
             
@@ -410,41 +433,16 @@ if mystep in thesteps:
 
         
         
-        # derive a simple threshold and make a mask from it 
+        # make dirty image 
         print(' ')         
-        print('--- Derive a simple threshold from a dirty image and make a mask from it --- ')                                  
+        print('--- Make dirty image for regridding SD image and INT mask --- ')                                  
 
         dc.runtclean(vis,imnameth,
                      niter=0, interactive=False,
                      **mask_tclean_param)
 
-        thresh = dc.derive_threshold(#vis, 
-                                     imnameth, 
-                                     threshmask,
-                                     #overwrite=True,
-                                     specmode = general_tclean_param['specmode'],
-                                     smoothing = smoothing,
-                                     threshregion = threshregion,
-                                     RMSfactor = RMSfactor,
-                                     cube_rms   = cube_rms,    
-                                     cont_chans = cont_chans,
-                                     makemask=True) #, 
-                                     #**mask_tclean_param) 
-                                     
-        if general_tclean_param['threshold'] == '':
-            userthresh=False  
-            general_tclean_param['threshold']  = str(thresh)+'Jy' 
-            print('Use mask threshold as clean threshold ', general_tclean_param['threshold'])          
-            #print('Set the tclean-threshold to ', general_tclean_param['threshold'])
-        else:
-            userthresh=True 
-            print('Use user-defined clean threshold ', general_tclean_param['threshold'])          
-           
-        print('--- Threshold and mask done! --- ')         
 
-
-  
-        # regrid SD image frequency axis to tclean (requires derive_threshold to be run)    
+        # regrid SD image frequency axis to tclean (requires runtclean to be run)    
         if specsetup == 'SDpar':
             sdimage = sdreordered_cut  # for SD cube params used
         else:
@@ -458,33 +456,40 @@ if mystep in thesteps:
             #hdr = imhead(sdimage,mode='summary')
             #beam_major = hdr['restoringbeam']['major']    
      
-        
+
+
+
+        # Derive INT threshold, INT mask, SD mask, and combined mask
+
+        thresh = dc.make_masks_and_thresh(imnameth, threshmask,
+                                     #overwrite=True,
+                                     sdimage, sdmasklev, SD_mask_root,
+                                     combined_mask,
+                                     specmode = general_tclean_param['specmode'],
+                                     smoothing = smoothing,
+                                     threshregion = threshregion,
+                                     RMSfactor = RMSfactor,
+                                     cube_rms   = cube_rms,    
+                                     cont_chans = cont_chans,
+                                     makemask=True
+                                     )
+                                      
+
+  
+
+        print(' ')   
+     
+        if general_tclean_param['threshold'] == '':
+            rederivethresh=True  # TP2VIS parameter 
+            #userthresh=False    ### parameter gone?
+            general_tclean_param['threshold']  = str(thresh)+'Jy' 
+            print('Use INT mask threshold as clean threshold ', general_tclean_param['threshold'])          
+            #print('Set the tclean-threshold to ', general_tclean_param['threshold'])
+        else:
+            rederivethresh=False  # TP2VIS parameter 
+            #userthresh=True     ### parameter gone?
+            print('Use user-defined clean threshold ', general_tclean_param['threshold'])          
            
-        # make SD+AM mask (requires regridding to be run; currently)
-        print(' ')         
-        #   print('--- Make single dish (SD) + automasking (AM) mask --- ')                                          
-        #   SDint_mask = dc.make_SDint_mask(vis, sdimage, imnameth, 
-        #                                   sdmasklev, 
-        #                                   SDint_mask_root,
-        #                                   **mask_tclean_param) 
-        #   print('--- SD+AM mask done! --- ') 
-        #   
-        print('--- Make single dish (SD) mask --- ')                                          
-        SD_mask = dc.make_SD_mask(sdimage, sdmasklev, SD_mask_root) 
-        print('--- SD mask done! --- ')                 
-
-
-
-        # merge masks 
-        os.system('rm -rf '+combined_mask)
-        cta.immath(imagename=[SD_mask_root+'.mask', threshmask+'.mask'],
-                   expr='iif((IM0+IM1)>'+str(0)+',1,0)',
-                   outfile=combined_mask)    
-                   
-                   # ! terminal complains about bunit issues !
-        print('--- Combined SD and threshold mask --- ')                                          
-
-       
        
            
 
