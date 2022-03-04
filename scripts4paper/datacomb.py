@@ -2606,6 +2606,97 @@ def derive_threshold(#vis,
  
 
 
+######################################
+
+def make_masks_and_thresh(imnameth, threshmask,
+                                     #overwrite=True,
+                    sdimage, sdmasklev, SD_mask_root,
+                    combined_mask,
+                    specmode = 'mfs',
+                    smoothing = 5, 
+                    threshregion = '',
+                    RMSfactor = 0.5, 
+                    cube_rms = 3.,   
+                    cont_chans ='2~4',
+                    makemask=True
+                    ):
+    """
+    make_masks_and_thresh (L. Moser-Fischer)
+    wrapper for making all masks for DC_run
+
+    steps:
+    - helper functions for header information (beam, etc.)
+
+   
+
+
+    highres  - high resolution (interferometer) image
+
+
+    Example: ssc(highres='INT.image', lowres='SD.image', pb='INT.pb',
+                 combined='INT_SD_1.7.image', sdfactor=1.7)
+
+    """
+
+
+    # derive a simple threshold and make a mask from it 
+    print(' ')         
+    print('--- Derive a simple threshold from a dirty image and make a mask from it --- ')                                  
+
+    thresh = derive_threshold(#vis, 
+                                 imnameth, 
+                                 threshmask,
+                                 #overwrite=True,
+                                 specmode = specmode,
+                                 smoothing = smoothing,
+                                 threshregion = threshregion,
+                                 RMSfactor = RMSfactor,
+                                 cube_rms   = cube_rms,    
+                                 cont_chans = cont_chans,
+                                 makemask=True) #, 
+                                 #**mask_tclean_param) 
+                      
+    print('--- Threshold and mask done! --- ')         
+
+
+    # make SD+AM mask (requires regridding to be run; currently)
+    print(' ')         
+    #   print('--- Make single dish (SD) + automasking (AM) mask --- ')                                          
+    #   SDint_mask = dc.make_SDint_mask(vis, sdimage, imnameth, 
+    #                                   sdmasklev, 
+    #                                   SDint_mask_root,
+    #                                   **mask_tclean_param) 
+    #   print('--- SD+AM mask done! --- ') 
+    #   
+    print(' ')         
+    print('--- Make single dish (SD) mask --- ')                                          
+    SD_mask = make_SD_mask(sdimage, sdmasklev, SD_mask_root) 
+    print('--- SD mask done! --- ')                 
+
+
+
+    # merge masks 
+    print(' ')        
+    print('--- Combine SD and threshold mask --- ')                                          
+
+    os.system('rm -rf '+combined_mask)
+    cta.immath(imagename=[SD_mask_root+'.mask', threshmask+'.mask'],
+               expr='iif((IM0+IM1)>'+str(0)+',1,0)',
+               outfile=combined_mask)    
+               
+               # ! terminal complains about bunit issues !
+    print('--- Combined mask done! --- ')    
+    
+    
+    return thresh #, SDmask
+
+
+
+
+
+
+
+
 
 
 ######################################
