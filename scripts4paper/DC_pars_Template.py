@@ -23,6 +23,7 @@ dryrun = False    # False to execute combination, True to gather filenames only
 
 ## Paths to the input and output files
 
+# this script assumes the DC_locals.py has been execfiled'd - see the README.md how to do this
 #  you can use _s4p_data if you want to use the configure'd setup,
 #  but feel free to override
 #  _s4p_data :  for read-only data
@@ -108,12 +109,12 @@ t_negativethreshold = 0.0     # specify for 'AM', default: 0.0
 
 #### SD-INT-AM mask fine-tuning (step 1)
 
-smoothing    = 5                # smoothing of the threshold mask (by 'smoothing x beam')
-threshregion = ''               # emission free region in template continuum or channel image
-RMSfactor    = 0.5              # continuum rms level (not noise from emission-free regions but entire image)
-cube_rms     = 3                # cube noise (true noise) x this factor
-cont_chans   = '2~5'            # line free channels for cube rms estimation
-sdmasklev    = 0.3              # maximum x this factor = threshold for SD mask
+smoothing    = 5.             # smoothing of the threshold mask (by 'smoothing x beam')
+threshregion = ''             # emission free region in template continuum or channel image
+RMSfactor    = 0.5            # continuum rms level (not noise from emission-free regions but entire image)
+cube_rms     = 3.             # cube noise (true noise) x this factor
+cont_chans   = '2~5'          # line free channels for cube rms estimation
+sdmasklev    = 0.3            # maximum x this factor = threshold for SD mask
 				              
 
 #### SD-INT-AM masks for all methods using tclean etc (steps 2, 5 - 7)
