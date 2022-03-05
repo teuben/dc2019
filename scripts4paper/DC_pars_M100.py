@@ -58,8 +58,8 @@ concatms     = pathtoimage + 'M100-B3.alma.all_int-weighted.ms'  # path and name
 
 vis            = ''                                  # set to '' if concatms is to be used, else define your own ms-file
 sdimage_input  = pathtoconcat + _sdim                #
-imbase         = pathtoimage + 'M100-B3_halfSDchan'  # path + image base name
-sdbase         = pathtoimage + 'M100-B3_halfSDchan'  # path + sd image base name
+imbase         = pathtoimage + 'M100-B3'  # path + image base name
+sdbase         = pathtoimage + 'M100-B3'  # path + sd image base name
 
 
 
@@ -80,7 +80,7 @@ mode       = 'cube'          # 'mfs' or 'cube'
 specsetup  =  'INTpar'       # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
                              
 t_start    = '1400km/s'      # e.g.,  0 (first chan),  '10km/s',  '10MHz'
-t_width    = '2.5km/s'       # e.g.,  1 (one chan),  '-100km/s', '200GHz'
+t_width    = '5km/s'       # e.g.,  1 (one chan),  '-100km/s', '200GHz'
 t_nchan    = 70              # e.g., -1 (all chans),        20 ,     100
 t_restfreq = '115.271202GHz' # e.g., '234.567GHz'
                              			          
