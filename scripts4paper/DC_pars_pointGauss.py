@@ -16,8 +16,8 @@ step_title = {0: 'Concat',
               8: 'Assessment of the combination results'
               }
 
-thesteps=[1,2,3,4,5,6,7,8]
-#thesteps=[7]
+#thesteps=[0,1,2,3,4,5,6,7,8]
+thesteps=[1]
 
 dryrun = False    # False to execute combination, True to gather filenames only
  
@@ -108,10 +108,10 @@ t_negativethreshold = 0.0     # specify for 'AM', default: 0.0
 
 #### SD-INT-AM mask fine-tuning (step 1)
 
-smoothing    = 5                 # smoothing of the threshold mask (by 'smoothing x beam')
+smoothing    = 5.                # smoothing of the threshold mask (by 'smoothing x beam')
 threshregion = '924,48,1111,169' # emission free region in template continuum or channel image
 RMSfactor    = 1500.0            # continuum rms level (not noise from emission-free regions but entire image)
-cube_rms     = 3                 # cube noise (true noise) x this factor
+cube_rms     = 3.                # cube noise (true noise) x this factor
 cont_chans   = ''                # line free channels for cube rms estimation
 sdmasklev    = 0.3               # maximum x this factor = threshold for SD mask
 	
