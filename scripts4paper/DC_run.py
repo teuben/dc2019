@@ -47,9 +47,11 @@ os.system('rm -rf '+pathtoimage + 'TempLattice*')
 
 
 ### put together file names and weights for concat
+thevis = []
 thevis = a12m
 thevis.extend(a7m)
 
+weightscale = []
 weightscale = weight12m
 weightscale.extend(weight7m)
 
@@ -105,7 +107,7 @@ sdint_tclean_param = dict(sdpsf   = sdpsf,
 ### naming scheme specific inputs:
 
 if mode == 'mfs':
-    specsetup =  'nt1'                         # number of Taylor terms (compare mtmfs)
+    specsetup =  'nt1'                            # number of Taylor terms (compare mtmfs)
 
 if inter == 'IA':
     general_tclean_param['interactive'] = 1       # use 1 instead of True to get tclean feedback dictionary !
@@ -220,7 +222,7 @@ if specsetup == 'SDpar':
         general_tclean_param['width'] = cube_dict['width']
         general_tclean_param['nchan'] = cube_dict['nchan']
         sdimage = sdreordered_cut  # for SD cube params used
-elif specsetup == 'INTpar':
+elif specsetup == 'INTpar' or specsetup == 'nt1':
     if not os.path.exists(sdroregrid):
         if 1 in thesteps:
             pass
@@ -674,7 +676,7 @@ if mystep in thesteps:
     else:    
         if a12m!=[]:    # if 12m-data exists ...
             #dc.ms_ptg(TPpointingTemplate, outfile=TPpointinglist, uniq=True)
-            dc.listobs_ptg(TPpointingTemplate, listobsOutput, TPpointinglist)
+            dc.listobs_ptg(TPpointingTemplate, listobsOutput, TPpointinglist, Epoch=Epoch)
         else:
             TPpointinglist = TPpointinglistAlternative    
     
@@ -725,7 +727,8 @@ if mystep in thesteps:
             pass
         else:
             dc.runtclean_TP2VIS_INT(TPresult, TPfac[i], vis, imname,
-                                    RMSfactor=RMSfactor, cube_rms=cube_rms, 
+                                    RMSfactor=RMSfactor, threshregion=threshregion,
+                                    cube_rms=cube_rms, 
                                     cont_chans = cont_chans, **z)   
 
         if os.path.exists(imname+'.tweak.image'):
