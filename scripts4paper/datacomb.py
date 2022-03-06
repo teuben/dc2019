@@ -3531,7 +3531,7 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
         
         #### continuum
         if specmode == 'mfs':
-            cont_RMS = cta.imstat(imTP, box=threshregion)['rms']#[0]
+            cont_RMS = cta.imstat(TPINTim, box=threshregion)['rms']#[0]
             #peak_val = imstat(imnameth+'.image')['max'][0]
             #thresh = full_RMS*RMSfactor
             thresh = cont_RMS*RMSfactor
