@@ -16,8 +16,8 @@ step_title = {0: 'Concat',
               8: 'Assessment of the combination results'
               }              
 
-thesteps=[0,1,2,3,4,5,6,7,8]
-#thesteps=[6]
+#thesteps=[0,1,2,3,4,5,6,7,8]
+thesteps=[7]
 
 dryrun = False    # False to execute combination, True to gather filenames only
  
@@ -103,7 +103,7 @@ t_maxscale = -1               # for 'MS': number for largest scale size ('arcsec
 ### user interaction and iterations and threshold
 
 inter     = 'nIA'             # interactive ('IA') or non-interactive ('nIA')
-nit       = 0#1000000         # number of iterations
+nit       = 10000000          # number of iterations
 t_threshold   = ''            # e.g. '0.1mJy', can be left blank -> DC_run will estimate from SD-INT-AM mask for all other masking modes, too
 
 
@@ -125,7 +125,7 @@ t_negativethreshold = 0.0     # specify for 'AM', default: 0.0
 smoothing    = 5.             # smoothing of the threshold mask (by 'smoothing x beam')
 threshregion = ''             # emission free region in template continuum or channel image
 RMSfactor    = 0.5            # continuum rms level (not noise from emission-free regions but entire image)
-cube_rms     = 3.       ]     # cube noise (true noise) x this factor
+cube_rms     = 3.             # cube noise (true noise) x this factor
 cont_chans   = ''             # line free channels for cube rms estimation
 sdmasklev    = 0.3            # maximum x this factor = threshold for SD mask
 				              

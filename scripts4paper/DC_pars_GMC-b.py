@@ -16,8 +16,8 @@ step_title = {0: 'Concat',
               8: 'Assessment of the combination results'
               }              
 
-thesteps=[0,1,2,3,4,5,6,7,8]
-#thesteps=[0,6]
+#thesteps=[0,1,2,3,4,5,6,7,8]
+thesteps=[7]
 
 dryrun = False    # False to execute combination, True to gather filenames only
  
@@ -103,7 +103,7 @@ t_maxscale = -1               # for 'MS': number for largest scale size ('arcsec
 ### user interaction and iterations and threshold
 
 inter       = 'nIA'           # interactive ('IA') or non-interactive ('nIA')
-nit         = 10              # number of iterations
+nit         = 10000000        # number of iterations
 t_threshold = ''              # e.g. '0.1mJy', can be left blank -> DC_run will estimate from SD-INT-AM mask for all other masking modes, too
 
 

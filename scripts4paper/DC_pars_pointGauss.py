@@ -17,10 +17,13 @@ step_title = {0: 'Concat',
               }
 
 #thesteps=[0,1,2,3,4,5,6,7,8]
-thesteps=[1]
+thesteps=[7]
 
 dryrun = False    # False to execute combination, True to gather filenames only
  
+
+
+
 ## Paths to the input and output files
 
 #  you can use _s4p_data if you want to use the configure'd setup,
@@ -90,7 +93,7 @@ t_maxscale = -1               # for 'MS': number for largest scale size ('arcsec
 
 inter       = 'nIA'           # interactive ('IA') or non-interactive ('nIA')
 nit         = 10000000        # number of iterations
-t_threshold = '0.001Jy'       # = 7*RMS in box from step 1 - but make mask at another level i.e. RMSfactor 1500 
+t_threshold = '0.005Jy'       # = 7*5*RMS in box from step 1 - but make mask at another level i.e. RMSfactor 1500 
 
 
 ### masking
