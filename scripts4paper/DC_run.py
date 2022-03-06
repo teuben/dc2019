@@ -220,7 +220,7 @@ if specsetup == 'SDpar':
         general_tclean_param['width'] = cube_dict['width']
         general_tclean_param['nchan'] = cube_dict['nchan']
         sdimage = sdreordered_cut  # for SD cube params used
-elif specsetup == 'INTpar':
+elif specsetup == 'INTpar' or specsetup == 'nt1':
     if not os.path.exists(sdroregrid):
         if 1 in thesteps:
             pass
@@ -725,7 +725,8 @@ if mystep in thesteps:
             pass
         else:
             dc.runtclean_TP2VIS_INT(TPresult, TPfac[i], vis, imname,
-                                    RMSfactor=RMSfactor, cube_rms=cube_rms, 
+                                    RMSfactor=RMSfactor, threshregion=threshregion, 
+                                    cube_rms=cube_rms, 
                                     cont_chans = cont_chans, **z)   
 
         if os.path.exists(imname+'.tweak.image'):
