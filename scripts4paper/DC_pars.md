@@ -300,12 +300,15 @@ If a ``TPpointingTemplate`` cannot be provided the user can load his own pointin
       J2000 11:59:53.754150 -35.00.25.31697
       ...
   
+An alternative pointing list can be derived from e.g. a simulation (simobserve) or a setup (ALMA OT) of 12m observation with the same/similar map size and position. 
 For transforming the SD image into visibilities, TP2VIS needs the rms in the SD images 
 for setting the weights. Therefore, one has to specify a range of emission-free pixels 
 in a continuum SD image, or a range of emission-free channels in the SD cube.
 
       TPnoiseRegion   = '10,30,10,30'  # emission free box in unregridded continuum SD image!
       TPnoiseChannels = '2~5'          # emission free channels in unregridded and un-cut SD cube!
+      
+These values can be determined from the step 1 - product ``sdreordered`` or ``sdreordered_cut``.    
 
 
 ## Assessment related (step 8)

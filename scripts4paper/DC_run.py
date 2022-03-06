@@ -47,9 +47,11 @@ os.system('rm -rf '+pathtoimage + 'TempLattice*')
 
 
 ### put together file names and weights for concat
+thevis = []
 thevis = a12m
 thevis.extend(a7m)
 
+weightscale = []
 weightscale = weight12m
 weightscale.extend(weight7m)
 
@@ -105,7 +107,7 @@ sdint_tclean_param = dict(sdpsf   = sdpsf,
 ### naming scheme specific inputs:
 
 if mode == 'mfs':
-    specsetup =  'nt1'                         # number of Taylor terms (compare mtmfs)
+    specsetup =  'nt1'                            # number of Taylor terms (compare mtmfs)
 
 if inter == 'IA':
     general_tclean_param['interactive'] = 1       # use 1 instead of True to get tclean feedback dictionary !
@@ -674,7 +676,7 @@ if mystep in thesteps:
     else:    
         if a12m!=[]:    # if 12m-data exists ...
             #dc.ms_ptg(TPpointingTemplate, outfile=TPpointinglist, uniq=True)
-            dc.listobs_ptg(TPpointingTemplate, listobsOutput, TPpointinglist)
+            dc.listobs_ptg(TPpointingTemplate, listobsOutput, TPpointinglist, Epoch=Epoch)
         else:
             TPpointinglist = TPpointinglistAlternative    
     
@@ -725,7 +727,7 @@ if mystep in thesteps:
             pass
         else:
             dc.runtclean_TP2VIS_INT(TPresult, TPfac[i], vis, imname,
-                                    RMSfactor=RMSfactor, threshregion=threshregion, 
+                                    RMSfactor=RMSfactor, threshregion=threshregion,
                                     cube_rms=cube_rms, 
                                     cont_chans = cont_chans, **z)   
 

@@ -98,7 +98,7 @@ t_threshold = ''              # e.g. '0.1mJy', can be left blank -> DC_run will 
 
 masking             = 'AM'    # 'UM' (user mask), 'SD-INT-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 t_mask              = ''      # specify for 'UM', mask name
-t_pbmask            = 0.4     # specify for 'PM', cut-off level
+t_pbmask            = 0.2     # specify for 'PM', cut-off level
 t_sidelobethreshold = 2.0     # specify for 'AM', default: 2.0 
 t_noisethreshold    = 4.25    # specify for 'AM', default: 4.25 
 t_lownoisethreshold = 1.5     # specify for 'AM', default: 1.5             
@@ -147,6 +147,8 @@ TPfac   = [1.0]               # TP2VIS parameter
 TPpointingTemplate        = a12m[0]
 listobsOutput             = imbase+'.12m.log'
 TPpointinglist            = imbase+'.12m.ptg'
+Epoch                     = 'ICRS'    # Epoch in listobs, e.g. 'J2000'
+
 TPpointinglistAlternative = 'user-defined.ptg' 
 
 TPnoiseRegion             = '150,200,150,200'  # in unregridded SD image (i.e. sdreordered = sdbase +'.SD_ro.image')

@@ -2994,7 +2994,7 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
 
 def listobs_ptg(TPpointingTemplate, 
                 listobsOutput, 
-                TPpointinglist):
+                TPpointinglist, Epoch='J2000'):
     """
     listobs_ptg (L. Moser-Fischer)
     based on Jin Koda's approach to get 12m pointings from listobs()
@@ -3020,13 +3020,13 @@ def listobs_ptg(TPpointingTemplate,
     with open(listobsOutput, 'r') as f1:
         data = f1.readlines()
         for line in data:
-            if re.search('J2000', line):                     # look for first target entry and             
+            if re.search(Epoch, line):                     # look for first target entry and             
                 words = line.split()
                 epoch=words[-3]
                 decl=words[-4]
                 ra=words[-5].split('*')[-1]
                 pointings.append(epoch+' '+ra+' '+decl)
-    
+   
     np.savetxt(TPpointinglist, pointings, fmt='%.40s')
 
 
