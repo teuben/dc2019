@@ -164,8 +164,8 @@ Epoch                     = 'J2000'    # Epoch in listobs, e.g. 'J2000'
 
 TPpointinglistAlternative = 'user-defined.ptg' 
 
-TPnoiseRegion             = '980,980,1010,1010'  # in unregridded SD image (i.e. sdreordered = sdbase +'.SD_ro.image')
-TPnoiseChannels           = '2~5'                # in unregridded and un-cut SD cube (i.e. sdreordered = sdbase +'.SD_ro.image')!
+TPnoiseRegion             = '1067,1073,1102,1102'  # in unregridded SD image (i.e. sdreordered = sdbase +'.SD_ro.image')
+TPnoiseChannels           = ''                # in unregridded and un-cut SD cube (i.e. sdreordered = sdbase +'.SD_ro.image')!
 
       
 ## Assessment related (step 8)
