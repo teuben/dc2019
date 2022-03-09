@@ -2094,9 +2094,12 @@ def regrid_SD(old_image, new_image, template_image):
 
     file_check(template_image)
 
+    rstfrq = cta.imhead(template_image, mode='get', hdkey='restfreq')
+    cta.imhead(old_image, hdkey='restfreq', mode='put', hdvalue=str(rstfrq['value'])+rstfrq['unit'])
+
     cta.imregrid(imagename=old_image,
                  template=template_image,
-                 axes=[0,1,2,3],
+                 axes=[0,1,2,3], decimate=10,
                  output=new_image)  
 
 
