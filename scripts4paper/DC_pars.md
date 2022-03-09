@@ -138,8 +138,8 @@ The parameter ``mscale`` allows to choose multiscale (``MS`` - for extended and 
       mscale    = 'MS'       # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
       t_maxscale    = -1 
 
-The ``t_maxscale``-parameter can be used to give the ``mscale = 'MS'``-mode a maximum size scale (expected unit: arcsec), up to which the multiscale-shapes (paraboloids) are generated, e.g. for a beam size of 1 arcsec and a maxscale of 10 arcsec (t_maxscale=10.), 
-DC_run.py will create shapes of size 0 (point source), 1 arcsec, 3 arcsec, and 9 arcsec. With ``t_maxscale = -1`` the script will determine a maxscale from the largest angular scales covered by the (concatenated) interferometric data.
+The ``t_maxscale``-parameter can be used to give the ``mscale = 'MS'``-mode a maximum size scale (expected unit: arcsec), up to which the multiscale-shapes (paraboloids) are generated. For a beam size of e.g. 1 arcsec and a maxscale of e.g. 10 arcsec (t_maxscale=10.), 
+DC_run.py will create shapes of size 0 (point source), 1 arcsec, 3 arcsec, and 9 arcsec. With ``t_maxscale = -1``, the script will determine a maxscale from the largest angular scales covered by the (concatenated) interferometric data.
 
 
 
