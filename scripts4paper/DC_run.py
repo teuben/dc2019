@@ -22,6 +22,9 @@ step_title = {0: 'Concat (optional)',
 
 import os 
 import sys 
+import numpy as np  
+import casatasks as cta
+
 from importlib import reload  
 import datacomb as dc
 import IQA_script as iqa
@@ -29,7 +32,6 @@ import IQA_script as iqa
 reload(dc)
 reload(iqa)
 
-import casatasks as cta
 
 import time
 start = time.time()
@@ -877,21 +879,22 @@ if mystep in thesteps:
     #print('combitoplot', combitoplot)
     #print('labeltoplot', labeltoplot)    
     
-    #if len(combitoplot)>6:
     
-    # what to do, if there are more than 6 plots (=max per page) to do 
-    intdiv=int(len(combitoplot)/6)
-    mod=len(combitoplot)%6  
-
+    # what to do, if there are more than 4 plots (=max per page) to do 
+    # allowed number of plots in IQA function
+    nplt=4
+    intdiv=int(len(combitoplot)/nplt)
+    mod=len(combitoplot)%nplt  
+ 
 
     combitoploti=[]
     labeltoploti=[]
     
     for n in range(0,intdiv):
-        combitoploti.append(combitoplot[n*6+0:n*6+6])
-        labeltoploti.append(labeltoplot[n*6+0:n*6+6])
-    combitoploti.append(combitoplot[intdiv*6+0:intdiv*6+mod])
-    labeltoploti.append(labeltoplot[intdiv*6+0:intdiv*6+mod])
+        combitoploti.append(combitoplot[n*nplt+0:n*nplt+nplt])
+        labeltoploti.append(labeltoplot[n*nplt+0:n*nplt+nplt])
+    combitoploti.append(combitoplot[intdiv*nplt+0:intdiv*nplt+mod])
+    labeltoploti.append(labeltoplot[intdiv*nplt+0:intdiv*nplt+mod])
     #print('combitoploti', combitoploti)
     #print('labeltoploti', labeltoploti)
  
@@ -986,17 +989,17 @@ if mystep in thesteps:
         labeltoplot.append('SD image')
 
         # what to do, if there are more than 6 plots (=max per page) to do 
-        intdiv=int(len(combitoplot)/6)
-        mod=len(combitoplot)%6  
+        intdiv=int(len(combitoplot)/nplt)
+        mod=len(combitoplot)%nplt  
 	    
         combitoploti=[]
         labeltoploti=[]
         
         for n in range(0,intdiv):
-            combitoploti.append(combitoplot[n*6+0:n*6+6])
-            labeltoploti.append(labeltoplot[n*6+0:n*6+6])
-        combitoploti.append(combitoplot[intdiv*6+0:intdiv*6+mod])
-        labeltoploti.append(labeltoplot[intdiv*6+0:intdiv*6+mod])
+            combitoploti.append(combitoplot[n*nplt+0:n*nplt+nplt])
+            labeltoploti.append(labeltoplot[n*nplt+0:n*nplt+nplt])
+        combitoploti.append(combitoplot[intdiv*nplt+0:intdiv*nplt+mod])
+        labeltoploti.append(labeltoplot[intdiv*nplt+0:intdiv*nplt+mod])
         #print('combitoploti', combitoploti)
         #print('labeltoploti', labeltoploti)
 	    
@@ -1170,12 +1173,13 @@ if mystep in thesteps:
         skymodelreg=imbase +'.skymodel.regrid'
         os.system('rm -rf '+skymodelreg)
         dc.regrid_SD(skymodel, skymodelreg, allcombims[0])
+
+        os.system('rm -rf ' + skymodelreg + '.fits')
+        cta.exportfits(imagename=skymodelreg, fitsimage=skymodelreg + '.fits', dropdeg=True)
             
         skymodelconv=imbase +'.skymodel.regrid.conv'
         os.system('rm -rf '+skymodelconv+'*')
-        
-        import numpy as np  
-            
+
         cta.imsmooth(imagename = skymodelreg,
                      kernel    = 'gauss',               
                      targetres = True,                                                             
@@ -1213,18 +1217,18 @@ if mystep in thesteps:
         #if len(combitoplot)>6:
         
         # what to do, if there are more than 6 plots (=max per page) to do 
-        intdiv=int(len(combitoplot)/6)
-        mod=len(combitoplot)%6  
+        intdiv=int(len(combitoplot)/nplt)
+        mod=len(combitoplot)%nplt  
 	    
 	    
         combitoploti=[]
         labeltoploti=[]
         
         for n in range(0,intdiv):
-            combitoploti.append(combitoplot[n*6+0:n*6+6])
-            labeltoploti.append(labeltoplot[n*6+0:n*6+6])
-        combitoploti.append(combitoplot[intdiv*6+0:intdiv*6+mod])
-        labeltoploti.append(labeltoplot[intdiv*6+0:intdiv*6+mod])
+            combitoploti.append(combitoplot[n*nplt+0:n*nplt+nplt])
+            labeltoploti.append(labeltoplot[n*nplt+0:n*nplt+nplt])
+        combitoploti.append(combitoplot[intdiv*nplt+0:intdiv*nplt+mod])
+        labeltoploti.append(labeltoplot[intdiv*nplt+0:intdiv*nplt+mod])
         #print('combitoploti', combitoploti)
         #print('labeltoploti', labeltoploti)
 	    
@@ -1322,17 +1326,17 @@ if mystep in thesteps:
             labeltoplot.append('convolved model')
 		    
             # what to do, if there are more than 6 plots (=max per page) to do 
-            intdiv=int(len(combitoplot)/6)
-            mod=len(combitoplot)%6  
+            intdiv=int(len(combitoplot)/nplt)
+            mod=len(combitoplot)%nplt  
 	        
             combitoploti=[]
             labeltoploti=[]
             
             for n in range(0,intdiv):
-                combitoploti.append(combitoplot[n*6+0:n*6+6])
-                labeltoploti.append(labeltoplot[n*6+0:n*6+6])
-            combitoploti.append(combitoplot[intdiv*6+0:intdiv*6+mod])
-            labeltoploti.append(labeltoplot[intdiv*6+0:intdiv*6+mod])
+                combitoploti.append(combitoplot[n*nplt+0:n*nplt+nplt])
+                labeltoploti.append(labeltoplot[n*nplt+0:n*nplt+nplt])
+            combitoploti.append(combitoplot[intdiv*nplt+0:intdiv*nplt+mod])
+            labeltoploti.append(labeltoplot[intdiv*nplt+0:intdiv*nplt+mod])
             #print('combitoploti', combitoploti)
             #print('labeltoploti', labeltoploti)
 	        
