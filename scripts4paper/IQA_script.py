@@ -2143,3 +2143,169 @@ def show_residual_maps(target_image,target_mask,
     # # Panel #3: A-par map
     # ax1 = plt.subplot(grid[1, 0])
     # 
+
+
+
+
+
+##############################################################################################
+# 4.- map residuals and tclean feedback 
+#
+# based on show_Apar_map
+# authors: L. Moser-Fischer 
+# 
+#
+
+def show_combi_maps(target_image,#target_mask,
+                  channel=0, 
+                  save=False, plotname='',
+                  labelname='', titlename='',
+                  stop_crit=[],
+                  cleanthresh=[],
+                  cleaniterdone=[]
+                  ):
+    """
+    Display combination image maps (L. Moser-Fischer)
+    Arguments:
+     target_image - list of images to be compared (FITS)
+     channel - (for cubes only) channel to be compared (default = 0, aka continuum)
+
+
+
+    Note: plots up to 6 plots!
+    
+    Results: show_Apar_map will display the residual map for each tclean instance used by the chosen
+    combination method and the corresponding tclean feedback (stopping criteria etc.)
+
+
+    """
+    #import matplotlib.gridspec as gridspec
+    
+    #from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+    # Figure
+    #fig = plt.figure(constrained_layout=True)
+    fig = plt.figure(figsize=(10,25))#, constrained_layout=True)
+    #fig = plt.figure(figsize=(15,10))
+    if titlename=='':   
+        fig.suptitle('Combined maps from the chosen combination methods', fontsize=16)
+    else:    
+        fig.suptitle(titlename, fontsize=16)
+
+    #grid = gridspec.GridSpec(2,3, wspace=0.01, hspace=0.01, top=5.0, figure=fig) 
+    # even gridspec definition from https://matplotlib.org/stable/tutorials/intermediate/constrainedlayout_guide.html#sphx-glr-tutorials-intermediate-constrainedlayout-guide-py
+    # does not change anything here ...
+
+    #grid = plt.GridSpec(ncols=2,nrows=2, wspace=0.3, hspace=0.3)
+    grid = plt.GridSpec(ncols=2,nrows=2, wspace=0.5, hspace=0.7)
+    #grid = plt.GridSpec(2, 3, wspace=0.3, hspace=0.3)
+    
+
+
+    for i in range(0, min(6,len(target_image))):
+        # Panel #i: 
+        # 0 -> [0,0]         [int(i/2)  ,i % 2] #modulo
+        # 1 -> [0,1]
+        # 2 -> [1,0]
+        # 3 -> [1,1]
+        # 4 -> [2,0]
+        # 5 -> [2,1]
+        
+        #ax1 = plt.subplot(grid[int(i/2),i % 2])
+        ax1 = fig.add_subplot(grid[int(i/2),i % 2])
+        plt.subplots_adjust(top=0.84, wspace=0.1, hspace=0.1)
+        image = fits.open(target_image[i]+".fits")
+        #mask = fits.open(target_mask[i]+".fits")
+        # get min/max values
+        #vmin , vmax = np.min(image[0].data[-np.isnan(image[0].data)]), np.max(image[0].data[-np.isnan(image[0].data)])
+        vmin , vmax = np.min(image[0].data[~np.isnan(image[0].data)]), np.max(image[0].data[~np.isnan(image[0].data)])
+        #print('vmin, vmax', vmin, vmax)
+
+
+
+        # Continuum or cube?
+        Ndims = np.shape(np.shape(image[0].data))
+        #print(np.shape(image[0].data), np.shape(image[0].data)[0] )
+        #col=0
+        #if Ndims==4 and np.shape(image[0].data)[0]==1:
+        #    col=1    
+
+        channel=int(channel)
+        if (Ndims[0] == 2):
+            # Continuum
+            im = ax1.imshow(image[0].data,vmin=vmin,vmax=vmax,cmap='jet')
+            #mask= ax1.contour(mask[0].data, levels=[1], colors='white', alpha=0.5)
+            ###mask= ax1.contour(mask[0].data, levels=np.logspace(-4.7, -3., 10), colors='white', alpha=0.5)
+        else:
+            # Cubes
+
+            if Ndims[0]==4 and np.shape(image[0].data)[0]==1:
+                im = ax1.imshow(image[0].data[0][channel],vmin=vmin,vmax=vmax,cmap='jet')
+            else:
+                im = ax1.imshow(image[0].data[channel],vmin=vmin,vmax=vmax,cmap='jet')
+    
+            #mask= ax1.contour(mask[0].data[channel], levels=[1], colors='white', alpha=0.5)
+
+        # Plot parameters, limits, axis, labels ...
+        plt.gca().invert_yaxis()
+        #divider = make_axes_locatable(ax1)
+        #cax = divider.append_axes('right', size='5%', pad=0.05)
+        
+        cbar = plt.colorbar(im, ax=ax1,orientation='vertical')#, shrink=0.5)
+        cbar.ax.set_ylabel('Flux (image units)', fontsize=12)
+
+        if stop_crit == [] or cleaniterdone == [] or cleanthresh == []:
+            summarytxt='clean summary '+labelname[i]+ \
+                         '\nnot available'
+        else:
+            summarytxt='clean summary '+labelname[i]+ \
+                         '\nstopping criterion:' +str(stop_crit[i])+ \
+                         '\niter done (all planes):' + str(cleaniterdone[i])+ \
+                         '\nrequested threshold:' +str(round(cleanthresh[i],6))+'Jy'
+        
+        #plt.text(0.055,-0.3, summarytxt, fontsize=10, bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
+        #plt.annotate(summarytxt,(0,0),(0,-20), fontsize=12, xycoords='axes fraction', textcoords='offset points', va='top')
+        ax1.xaxis.tick_top()
+        ax1.xaxis.set_label_position('top') 
+        plt.xlabel("X (pixel units)",fontsize=10)
+        plt.ylabel("Y (pixel units)",fontsize=10)
+        plt.title(labelname[i] +" (Chan.# " + str(channel) + ")", fontsize=12)
+        #plt.tight_layout(pad=1., w_pad=1., h_pad=1.0)
+        
+
+
+    # Save plot?
+    if save == True:
+        if plotname == '':
+            plotname="Combined_maps_tmp"
+        plt.savefig(plotname+'.png')
+        print(" See results: "+plotname+".png")
+     
+        plt.close()
+    # out
+    print("---------------------------------------------")
+    return True
+
+    # # Panel #2: Target image at Reference resolution
+    # ax1 = plt.subplot(grid[0, 1])
+    # image = fits.open(target_image+"_convo2ref.fits")
+    # # Continuum or cube?
+    # Ndims = np.shape(np.shape(image[0].data))
+    # if (Ndims[0] == 2):
+    #     # Continuum
+    #     im = ax1.imshow(image[0].data,vmin=vmin,vmax=vmax,cmap='jet')
+    # else:
+    #     # Cubes
+    #     im = ax1.imshow(image[0].data[channel],vmin=vmin,vmax=vmax,cmap='jet')
+    # # Plot parameters, limits, axis, labels ...
+    # plt.gca().invert_yaxis()
+    # cbar = plt.colorbar(im, ax=ax1,orientation='vertical')
+    # cbar.ax.set_ylabel('Flux (image units)', fontsize=15)
+    # plt.text(0.1,0.1,"Target", bbox={'facecolor': 'white', 'pad': 10},transform=ax1.transAxes)
+    # plt.xlabel("X (pixel units)",fontsize=15)
+    # plt.ylabel("Y (pixel units)",fontsize=15)
+    # plt.title(" Target at ref. resolution (Chan.# " + str(channel) + ")")
+    # 
+    # # Panel #3: A-par map
+    # ax1 = plt.subplot(grid[1, 0])
+    # 

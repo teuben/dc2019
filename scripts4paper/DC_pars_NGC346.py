@@ -1,14 +1,14 @@
-tclean( vis='/data/moser/data_combi/DC/DC_Ly_tests//NGC346/NGC346_3by3.alma.7M.ms', 
-selectdata=True, field='NGC_346', spw='0', timerange='', uvrange='', antenna='', scan='', 
-observation='', intent='', datacolumn='corrected', 
-imagename='/data/moser/data_combi/DC/DC_Ly_tests//NGC346/NGC346.cube_INTpar_HB_PB_nIA_n2.tclean', 
-imsize=640, cell='1.4arcsec', phasecenter='ICRS 00:59:05.089680 -72.10.33.24000', stokes='I', 
-projection='SIN', startmodel='', specmode='cube', reffreq='', nchan=7, start='230.405GHz', 
-width='3.333MHz', outframe='LSRK', veltype='radio', restfreq=['230.538GHz'], interpolation='linear', 
-gridder='mosaic', mosweight=True, pblimit=0.2, deconvolver='hogbom', scales=[0], nterms=1, smallscalebias=0.0, restoration=True, 
-restoringbeam='common', pbcor=True, outlierfile='', weighting='briggs', robust=0.5,
-niter=2, gain=0.1, threshold='0.21883350374493826Jy', interactive=0, usemask='pb', 
-mask='/data/moser/data_combi/DC/DC_Ly_tests//NGC346/NGC346.cube_INTpar_manual-tclean.mask', pbmask=0.2)
+#tclean( vis='/data/moser/data_combi/DC/DC_Ly_tests//NGC346/NGC346_3by3.alma.7M.ms', 
+#selectdata=True, field='NGC_346', spw='0', timerange='', uvrange='', antenna='', scan='', 
+#observation='', intent='', datacolumn='corrected', 
+#imagename='/data/moser/data_combi/DC/DC_Ly_tests//NGC346/NGC346.cube_INTpar_HB_PB_nIA_n2.tclean', 
+#imsize=640, cell='1.4arcsec', phasecenter='ICRS 00:59:05.089680 -72.10.33.24000', stokes='I', 
+#projection='SIN', startmodel='', specmode='cube', reffreq='', nchan=7, start='230.405GHz', 
+#width='3.333MHz', outframe='LSRK', veltype='radio', restfreq=['230.538GHz'], interpolation='linear', 
+#gridder='mosaic', mosweight=True, pblimit=0.2, deconvolver='hogbom', scales=[0], nterms=1, smallscalebias=0.0, restoration=True, 
+#restoringbeam='common', pbcor=True, outlierfile='', weighting='briggs', robust=0.5,
+#niter=2, gain=0.1, threshold='0.21883350374493826Jy', interactive=0, usemask='pb', 
+#mask='/data/moser/data_combi/DC/DC_Ly_tests//NGC346/NGC346.cube_INTpar_manual-tclean.mask', pbmask=0.2)
 
 
 
@@ -33,8 +33,8 @@ step_title = {0: 'Concat',
               }
 
 #thesteps=[0,1,2,3,4,5,6,8]   
-thesteps=[0,1,2]
 #thesteps=[7]
+thesteps=[0,2]
 
 dryrun = False    # False to execute combination, True to gather filenames only
 

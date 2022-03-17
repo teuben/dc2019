@@ -39,10 +39,22 @@ start = time.time()
 # switch this off, if you run multiple casa instances/DC_runs in the 
 # same work folder !  Else you delete files from another working process
 #          
-os.system('rm -rf '+pathtoimage + 'TempLattice*')
+#os.system('rm -rf '+pathtoimage + 'TempLattice*')
 
 
+### user information
 
+print(' ')
+print('### ')
+if dryrun==True:
+    print('Collecting filenames for assesment of ...')   
+else:     
+    print('Executing ...')    
+for mystep in thesteps:
+    print('step ', mystep, step_title[mystep])
+    
+print('### ')
+print(' ')
 
 
 
@@ -70,7 +82,7 @@ if vis=='':
             thesteps.sort()           # force execution of vis creation (Step 0)
             print('Need to execute step 0 to generate a concatenated ms')
 else:
-    file_check(vis)   
+    dc.file_check(vis)   
 
 
 
@@ -783,17 +795,21 @@ if mystep in thesteps:
     #print(allcombimask)
     #print(allcombires[0])
 
-    print(' ')
-    print(' ')
-    print('Showing residual maps and tclean masks, stopping criteria, and thresholds for ')
-    print(*allcombires, sep = "\n")
-    print(' ')
-
     stop_crit=[]
     cleanthresh=[]
     cleaniterdone = []
     
+    if mapchan==None:
+        mapchan=int(general_tclean_param['nchan']/2.)
+    
     if nit>0:
+		
+        print(' ')
+        print(' ')
+        print('Showing residual maps and tclean masks, stopping criteria, and thresholds for ')
+        print(*allcombires, sep = "\n")
+        print(' ')		
+		
         for i in range(0, len(allcombitxt)):
             os.system('rm -rf ' + allcombires[i] + '.fits')
             os.system('rm -rf ' + allcombimask[i] + '.fits')
@@ -812,9 +828,7 @@ if mystep in thesteps:
         #labelnames
         allcombireslabel = [a.replace(pathtoimage+sourcename+cleansetup+'.','') for a in allcombitxt]
         
-        if mapchan==None:
-            mapchan=int(general_tclean_param['nchan']/2.)
-            
+ 
         iqa.show_residual_maps(allcombires, allcombimask,
                               channel=mapchan, 
                               save=True, 
@@ -852,7 +866,51 @@ if mystep in thesteps:
     #labelnames
     allcombi = [a.replace(pathtoimage+sourcename+cleansetup+'.','').replace('.image.pbcor','') for a in allcombims]
     
+
+    # show combi products
+    
+    combitoplot=allcombims.copy()
+    labeltoplot=allcombi.copy()
+    
+    combitoplot.append(sdroregrid)
+    labeltoplot.append('SD image')
+    #print('combitoplot', combitoplot)
+    #print('labeltoplot', labeltoplot)    
+    
+    #if len(combitoplot)>6:
+    
+    # what to do, if there are more than 6 plots (=max per page) to do 
+    intdiv=int(len(combitoplot)/6)
+    mod=len(combitoplot)%6  
+
+
+    combitoploti=[]
+    labeltoploti=[]
+    
+    for n in range(0,intdiv):
+        combitoploti.append(combitoplot[n*6+0:n*6+6])
+        labeltoploti.append(labeltoplot[n*6+0:n*6+6])
+    combitoploti.append(combitoplot[intdiv*6+0:intdiv*6+mod])
+    labeltoploti.append(labeltoplot[intdiv*6+0:intdiv*6+mod])
+    #print('combitoploti', combitoploti)
+    #print('labeltoploti', labeltoploti)
+ 
+    for i in range(0,len(combitoploti)):
+        iqa.show_combi_maps(combitoploti[i], #allcombimask,
+                              channel=mapchan, 
+                              save=True, 
+                              plotname=assessment+'/Combined_maps_'+sourcename+cleansetup+steplist+'_'+str(i), 
+                              labelname=labeltoploti[i],
+                              titlename='Combined maps in channel '+str(mapchan)+' from the chosen \n  combination methods for '+sourcename+cleansetup+'_'+str(i)
+                          )    
+    
+    
+    
+    
     # make Apar and fidelity images
+   
+    #print(sdroregrid)
+    #print(allcombims)   
     
     iqa.get_IQA(ref_image = sdroregrid, target_image=allcombims)
     
@@ -918,6 +976,41 @@ if mystep in thesteps:
         os.system('rm -rf ' + sdroregrid + '.fits')
         cta.exportfits(imagename=sdroregrid, fitsimage=sdroregrid + '.fits', dropdeg=True)
     
+    
+        # show combi products
+        
+        combitoplot=allcombims.copy()
+        labeltoplot=allcombi.copy()
+        
+        combitoplot.append(sdroregrid)
+        labeltoplot.append('SD image')
+
+        # what to do, if there are more than 6 plots (=max per page) to do 
+        intdiv=int(len(combitoplot)/6)
+        mod=len(combitoplot)%6  
+	    
+        combitoploti=[]
+        labeltoploti=[]
+        
+        for n in range(0,intdiv):
+            combitoploti.append(combitoplot[n*6+0:n*6+6])
+            labeltoploti.append(labeltoplot[n*6+0:n*6+6])
+        combitoploti.append(combitoplot[intdiv*6+0:intdiv*6+mod])
+        labeltoploti.append(labeltoplot[intdiv*6+0:intdiv*6+mod])
+        #print('combitoploti', combitoploti)
+        #print('labeltoploti', labeltoploti)
+	    
+	    # plot 
+        for i in range(0,len(combitoploti)):
+            iqa.show_combi_maps(combitoploti[i], #allcombimask,
+                                  channel=0, 
+                                  save=True, 
+                                  plotname=assessment+'/Combined_mom0 maps_'+sourcename+cleansetup+steplist+'_'+str(i), 
+                                  labelname=labeltoploti[i],
+                                  titlename='Combined maps in moment 0 from the chosen \n  combination methods for '+sourcename+cleansetup+'_'+str(i)
+                              )    
+
+
         iqa.get_IQA(ref_image = sdroregrid, target_image=allcombims)
      
     
@@ -971,7 +1064,7 @@ if mystep in thesteps:
                               plotname=assessment+'/SD_Fidelity_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
                               labelname=allcombi[i],
                               titlename='Fidelity map for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
-  
+    
     
     
     allcombimsfits.append(sdroregrid + '.fits')
@@ -991,9 +1084,9 @@ if mystep in thesteps:
                    plotname=assessment+'/SD_Power_spectra_convo2ref_'+sourcename+cleansetup+steplist,
                    labelname=allcombi,
                    titlename='Power spectra (convolved to SD) for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
-
+    
     allcombimsfits_conv_Apar = [a.replace('_convo2ref.fits','_convo2ref_Apar.fits') for a in allcombimsfits_conv]
-
+    
     iqa.genmultisps(allcombimsfits_conv_Apar, save=True, 
                    plotname=assessment+'/SD_Power_spectra_convo2ref_Apar_'+sourcename+cleansetup+steplist,
                    labelname=allcombi,
@@ -1098,6 +1191,55 @@ if mystep in thesteps:
         os.system('rm -rf ' + skymodelconv + '.fits')
         cta.exportfits(imagename=skymodelconv, fitsimage=skymodelconv + '.fits', dropdeg=True)
                 
+
+        # show combi products
+        
+        combitoplot=allcombims.copy()
+        labeltoplot=allcombi.copy()
+
+        combitoplot.append(sdroregrid.replace('.mom0','')) # watch out for changes in the variable! who is at this stage of the script in - mom0 or the cube?
+        labeltoplot.append('SD image')
+
+        combitoplot.append(skymodelreg)
+        labeltoplot.append('model')
+        
+        combitoplot.append(skymodelconv)
+        labeltoplot.append('convolved model')
+
+
+        #print('combitoplot', combitoplot)
+        #print('labeltoplot', labeltoplot)    
+        
+        #if len(combitoplot)>6:
+        
+        # what to do, if there are more than 6 plots (=max per page) to do 
+        intdiv=int(len(combitoplot)/6)
+        mod=len(combitoplot)%6  
+	    
+	    
+        combitoploti=[]
+        labeltoploti=[]
+        
+        for n in range(0,intdiv):
+            combitoploti.append(combitoplot[n*6+0:n*6+6])
+            labeltoploti.append(labeltoplot[n*6+0:n*6+6])
+        combitoploti.append(combitoplot[intdiv*6+0:intdiv*6+mod])
+        labeltoploti.append(labeltoplot[intdiv*6+0:intdiv*6+mod])
+        #print('combitoploti', combitoploti)
+        #print('labeltoploti', labeltoploti)
+	    
+        for i in range(0,len(combitoploti)):
+            iqa.show_combi_maps(combitoploti[i], #allcombimask,
+                                  channel=mapchan, 
+                                  save=True, 
+                                  plotname=assessment+'/Combined_maps_'+sourcename+cleansetup+steplist+'_'+str(i), 
+                                  labelname=labeltoploti[i],
+                                  titlename='Combined maps in channel '+str(mapchan)+' from the chosen \n  combination methods for '+sourcename+cleansetup+'_'+str(i)
+                              )    
+	    
+
+
+
         
         # make Apar and fidelity images
         
@@ -1164,7 +1306,49 @@ if mystep in thesteps:
             skymodelconv = skymodelconv+'.mom0'
             os.system('rm -rf ' + skymodelconv + '.fits')
             cta.exportfits(imagename=skymodelconv, fitsimage=skymodelconv + '.fits', dropdeg=True)
-        
+      
+            # show combi products
+            
+            combitoplot=allcombims.copy()
+            labeltoplot=allcombi.copy()
+            
+            combitoplot.append(sdroregrid)
+            labeltoplot.append('SD image')
+		    
+            combitoplot.append(skymodelreg)
+            labeltoplot.append('model')
+            
+            combitoplot.append(skymodelconv)
+            labeltoplot.append('convolved model')
+		    
+            # what to do, if there are more than 6 plots (=max per page) to do 
+            intdiv=int(len(combitoplot)/6)
+            mod=len(combitoplot)%6  
+	        
+            combitoploti=[]
+            labeltoploti=[]
+            
+            for n in range(0,intdiv):
+                combitoploti.append(combitoplot[n*6+0:n*6+6])
+                labeltoploti.append(labeltoplot[n*6+0:n*6+6])
+            combitoploti.append(combitoplot[intdiv*6+0:intdiv*6+mod])
+            labeltoploti.append(labeltoplot[intdiv*6+0:intdiv*6+mod])
+            #print('combitoploti', combitoploti)
+            #print('labeltoploti', labeltoploti)
+	        
+	        # plot 
+            for i in range(0,len(combitoploti)):
+                iqa.show_combi_maps(combitoploti[i], #allcombimask,
+                                      channel=0, 
+                                      save=True, 
+                                      plotname=assessment+'/Combined_mom0 maps_'+sourcename+cleansetup+steplist+'_'+str(i), 
+                                      labelname=labeltoploti[i],
+                                      titlename='Combined maps in moment 0 from the chosen \n  combination methods for '+sourcename+cleansetup+'_'+str(i)
+                                  )    
+		    
+		    
+		    
+  
             iqa.get_IQA(ref_image = skymodelconv, target_image=allcombims)
          
         
@@ -1233,22 +1417,22 @@ if mystep in thesteps:
         allcombimsfits_conv = [a.replace('pbcor.fits','pbcor_convo2ref.fits') for a in allcombimsfits]
         allcombimsfits_conv = [a.replace('pbcor.mom0.fits','pbcor.mom0_convo2ref.fits') for a in allcombimsfits]
          
-
+    
         iqa.genmultisps(allcombimsfits_conv, save=True, 
                        plotname=assessment+'/Model_Power_spectra_convo2ref_'+sourcename+cleansetup+steplist,
                        labelname=allcombi,
                        titlename='Power spectra (convolved to model) for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
         
         allcombimsfits_conv_Apar = [a.replace('_convo2ref.fits','_convo2ref_Apar.fits') for a in allcombimsfits_conv]
-
+    
         iqa.genmultisps(allcombimsfits_conv_Apar, save=True, 
                        plotname=assessment+'/Model_Power_spectra_convo2ref_Apar_'+sourcename+cleansetup+steplist,
                        labelname=allcombi,
                        titlename='Apar power spectra (convolved to model) for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
         
-
-
-
+    
+    
+    
         #################### NOT YET WORKING !!! problems #######
         #
         #iqa.get_aperture(allcombimsfits,position=(1,1),Nbeams=10)
@@ -1263,8 +1447,8 @@ if mystep in thesteps:
     
     
     
-
-
+    
+    
 
 
 # delete tclean TempLattices
