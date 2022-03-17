@@ -1173,7 +1173,8 @@ def runWSM(vis,
               multiscale=multiscale,
               maxscale=maxscale,
               continueclean=continueclean,
-              loadmask=loadmask)
+              loadmask=loadmask,
+              fniteronusermask=fniteronusermask)
 
     runtclean(myvis, imname, startmodel=scaled_name, **WSM_arg)
  
