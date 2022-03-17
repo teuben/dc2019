@@ -2020,7 +2020,7 @@ def show_residual_maps(target_image,target_mask,
 
 
 
-    Note: plots up to 6 plots!
+    Note: plots up to 4 plots!
     
     Results: show_Apar_map will display the residual map for each tclean instance used by the chosen
     combination method and the corresponding tclean feedback (stopping criteria etc.)
@@ -2050,7 +2050,7 @@ def show_residual_maps(target_image,target_mask,
     
 
 
-    for i in range(0, min(6,len(target_image))):
+    for i in range(0, min(4,len(target_image))):
         # Panel #i: 
         # 0 -> [0,0]         [int(i/2)  ,i % 2] #modulo
         # 1 -> [0,1]
@@ -2172,7 +2172,7 @@ def show_combi_maps(target_image,#target_mask,
 
 
 
-    Note: plots up to 6 plots!
+    Note: plots up to 4 plots!
     
     Results: show_Apar_map will display the residual map for each tclean instance used by the chosen
     combination method and the corresponding tclean feedback (stopping criteria etc.)
@@ -2202,7 +2202,7 @@ def show_combi_maps(target_image,#target_mask,
     
 
 
-    for i in range(0, min(6,len(target_image))):
+    for i in range(0, min(4,len(target_image))):
         # Panel #i: 
         # 0 -> [0,0]         [int(i/2)  ,i % 2] #modulo
         # 1 -> [0,1]

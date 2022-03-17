@@ -1216,7 +1216,9 @@ if mystep in thesteps:
         
         #if len(combitoplot)>6:
         
-        # what to do, if there are more than 6 plots (=max per page) to do 
+
+        # what to do, if there are more than 4 plots (=max per page) to do 
+
         intdiv=int(len(combitoplot)/nplt)
         mod=len(combitoplot)%nplt  
 	    
@@ -1236,7 +1238,7 @@ if mystep in thesteps:
             iqa.show_combi_maps(combitoploti[i], #allcombimask,
                                   channel=mapchan, 
                                   save=True, 
-                                  plotname=assessment+'/Combined_maps_'+sourcename+cleansetup+steplist+'_'+str(i), 
+                                  plotname=assessment+'/Combined_maps_'+sourcename+cleansetup+steplist+'_model_'+str(i), 
                                   labelname=labeltoploti[i],
                                   titlename='Combined maps in channel '+str(mapchan)+' from the chosen \n  combination methods for '+sourcename+cleansetup+'_'+str(i)
                               )    
@@ -1345,7 +1347,7 @@ if mystep in thesteps:
                 iqa.show_combi_maps(combitoploti[i], #allcombimask,
                                       channel=0, 
                                       save=True, 
-                                      plotname=assessment+'/Combined_mom0 maps_'+sourcename+cleansetup+steplist+'_'+str(i), 
+                                      plotname=assessment+'/Combined_mom0 maps_'+sourcename+cleansetup+steplist+'_model_'+str(i), 
                                       labelname=labeltoploti[i],
                                       titlename='Combined maps in moment 0 from the chosen \n  combination methods for '+sourcename+cleansetup+'_'+str(i)
                                   )    
