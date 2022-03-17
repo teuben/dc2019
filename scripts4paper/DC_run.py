@@ -39,10 +39,22 @@ start = time.time()
 # switch this off, if you run multiple casa instances/DC_runs in the 
 # same work folder !  Else you delete files from another working process
 #          
-os.system('rm -rf '+pathtoimage + 'TempLattice*')
+#os.system('rm -rf '+pathtoimage + 'TempLattice*')
 
 
+### user information
 
+print(' ')
+print('### ')
+if dryrun==True:
+    print('Collecting filenames for assesment of ...')   
+else:     
+    print('Executing ...')    
+for mystep in thesteps:
+    print('step ', mystep, step_title[mystep])
+    
+print('### ')
+print(' ')
 
 
 
@@ -70,7 +82,7 @@ if vis=='':
             thesteps.sort()           # force execution of vis creation (Step 0)
             print('Need to execute step 0 to generate a concatenated ms')
 else:
-    file_check(vis)   
+    dc.file_check(vis)   
 
 
 
@@ -783,17 +795,21 @@ if mystep in thesteps:
     #print(allcombimask)
     #print(allcombires[0])
 
-    print(' ')
-    print(' ')
-    print('Showing residual maps and tclean masks, stopping criteria, and thresholds for ')
-    print(*allcombires, sep = "\n")
-    print(' ')
-
     stop_crit=[]
     cleanthresh=[]
     cleaniterdone = []
     
+    if mapchan==None:
+        mapchan=int(general_tclean_param['nchan']/2.)
+    
     if nit>0:
+		
+        print(' ')
+        print(' ')
+        print('Showing residual maps and tclean masks, stopping criteria, and thresholds for ')
+        print(*allcombires, sep = "\n")
+        print(' ')		
+		
         for i in range(0, len(allcombitxt)):
             os.system('rm -rf ' + allcombires[i] + '.fits')
             os.system('rm -rf ' + allcombimask[i] + '.fits')
@@ -812,9 +828,7 @@ if mystep in thesteps:
         #labelnames
         allcombireslabel = [a.replace(pathtoimage+sourcename+cleansetup+'.','') for a in allcombitxt]
         
-        if mapchan==None:
-            mapchan=int(general_tclean_param['nchan']/2.)
-            
+ 
         iqa.show_residual_maps(allcombires, allcombimask,
                               channel=mapchan, 
                               save=True, 
@@ -852,7 +866,51 @@ if mystep in thesteps:
     #labelnames
     allcombi = [a.replace(pathtoimage+sourcename+cleansetup+'.','').replace('.image.pbcor','') for a in allcombims]
     
+
+    # show combi products
+    
+    combitoplot=allcombims.copy()
+    labeltoplot=allcombi.copy()
+    
+    combitoplot.append(sdroregrid)
+    labeltoplot.append('SD image')
+    #print('combitoplot', combitoplot)
+    #print('labeltoplot', labeltoplot)    
+    
+    #if len(combitoplot)>6:
+    
+    # what to do, if there are more than 6 plots (=max per page) to do 
+    intdiv=int(len(combitoplot)/6)
+    mod=len(combitoplot)%6  
+
+
+    combitoploti=[]
+    labeltoploti=[]
+    
+    for n in range(0,intdiv):
+        combitoploti.append(combitoplot[n*6+0:n*6+6])
+        labeltoploti.append(labeltoplot[n*6+0:n*6+6])
+    combitoploti.append(combitoplot[intdiv*6+0:intdiv*6+mod])
+    labeltoploti.append(labeltoplot[intdiv*6+0:intdiv*6+mod])
+    #print('combitoploti', combitoploti)
+    #print('labeltoploti', labeltoploti)
+ 
+    for i in range(0,len(combitoploti)):
+        iqa.show_combi_maps(combitoploti[i], #allcombimask,
+                              channel=mapchan, 
+                              save=True, 
+                              plotname=assessment+'/Combined_maps_'+sourcename+cleansetup+steplist+'_'+str(i), 
+                              labelname=labeltoploti[i],
+                              titlename='Combined maps in channel '+str(mapchan)+' from the chosen \n  combination methods for '+sourcename+cleansetup+'_'+str(i)
+                          )    
+    
+    
+    
+    
     # make Apar and fidelity images
+   
+    print(sdroregrid)
+    print(allcombims)   
     
     iqa.get_IQA(ref_image = sdroregrid, target_image=allcombims)
     
@@ -918,6 +976,41 @@ if mystep in thesteps:
         os.system('rm -rf ' + sdroregrid + '.fits')
         cta.exportfits(imagename=sdroregrid, fitsimage=sdroregrid + '.fits', dropdeg=True)
     
+    
+        # show combi products
+        
+        combitoplot=allcombims.copy()
+        labeltoplot=allcombi.copy()
+        
+        combitoplot.append(sdroregrid)
+        labeltoplot.append('SD image')
+
+        # what to do, if there are more than 6 plots (=max per page) to do 
+        intdiv=int(len(combitoplot)/6)
+        mod=len(combitoplot)%6  
+	    
+        combitoploti=[]
+        labeltoploti=[]
+        
+        for n in range(0,intdiv):
+            combitoploti.append(combitoplot[n*6+0:n*6+6])
+            labeltoploti.append(labeltoplot[n*6+0:n*6+6])
+        combitoploti.append(combitoplot[intdiv*6+0:intdiv*6+mod])
+        labeltoploti.append(labeltoplot[intdiv*6+0:intdiv*6+mod])
+        #print('combitoploti', combitoploti)
+        #print('labeltoploti', labeltoploti)
+	    
+	    # plot 
+        for i in range(0,len(combitoploti)):
+            iqa.show_combi_maps(combitoploti[i], #allcombimask,
+                                  channel=0, 
+                                  save=True, 
+                                  plotname=assessment+'/Combined_mom0 maps_'+sourcename+cleansetup+steplist+'_'+str(i), 
+                                  labelname=labeltoploti[i],
+                                  titlename='Combined maps in moment 0 from the chosen \n  combination methods for '+sourcename+cleansetup+'_'+str(i)
+                              )    
+
+
         iqa.get_IQA(ref_image = sdroregrid, target_image=allcombims)
      
     
@@ -971,7 +1064,7 @@ if mystep in thesteps:
                               plotname=assessment+'/SD_Fidelity_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
                               labelname=allcombi[i],
                               titlename='Fidelity map for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
-  
+    
     
     
     allcombimsfits.append(sdroregrid + '.fits')
@@ -991,9 +1084,9 @@ if mystep in thesteps:
                    plotname=assessment+'/SD_Power_spectra_convo2ref_'+sourcename+cleansetup+steplist,
                    labelname=allcombi,
                    titlename='Power spectra (convolved to SD) for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
-
+    
     allcombimsfits_conv_Apar = [a.replace('_convo2ref.fits','_convo2ref_Apar.fits') for a in allcombimsfits_conv]
-
+    
     iqa.genmultisps(allcombimsfits_conv_Apar, save=True, 
                    plotname=assessment+'/SD_Power_spectra_convo2ref_Apar_'+sourcename+cleansetup+steplist,
                    labelname=allcombi,
@@ -1012,259 +1105,259 @@ if mystep in thesteps:
     
     
     
-    if skymodel!='':
-    
-        ########## Assessment with respect to SKYMODEL image ############
-        
-        #os.system('rm -rf ' + sdroregrid + '.fits')
-        #cta.exportfits(imagename=sdroregrid, fitsimage=sdroregrid + '.fits', dropdeg=True)
-        
-        if mode=='cube':   
-            allcombims0 = tcleanims  + featherims + SSCims     + hybridims  + sdintims  + TP2VISims   # need to fix TP2VIS for cont images without emission-free region first 
-        else:
-            print('Skip TP2VIS results in this selection - most likely no good result in mfs-mode')
-            allcombims0 = tcleanims  + featherims + SSCims     + hybridims  + sdintims  #+ TP2VISims   # need to fix TP2VIS for cont images without emission-free region first 
-        #print(allcombims)
-        print(' ')
-        print(' ')
-        print('Running assessment with respect to the SKYMODEL on ')
-        print(*allcombims0, sep = "\n")
-        print(' ')
-    
-        
-        allcombims = [a.replace('.image','.image.pbcor') for a in allcombims0]
-        allcombimsfits = [a.replace('.image.pbcor','.image.pbcor.fits') for a in allcombims]
-        
-        
-        
-        # make comparison plots
-        
-        #### imbase         = pathtoimage + 'skymodel-b_120L
-        #sourcename = imbase.replace(pathtoimage,'')
-        # folder to put the assessment images to 
-        #assessment=pathtoimage + 'assessment_'+sourcename+cleansetup
-        #os.system('mkdir '+assessment) 
-        
-        
-        #labelnames
-        allcombi = [a.replace(pathtoimage+sourcename+cleansetup+'.','').replace('.image.pbcor','') for a in allcombims]
-        
-        
-        ## step numbers 
-        #thesteps2 = map(str, thesteps)    
-        #stepsjoin=''.join(thesteps2)
-        #steps=stepsjoin.replace('0','').replace('1','').replace('8','')
-        #steplist='_s'+steps
-        
-        
-        # get largest beam axes present in the input images and smooth model image to them
-        
-        BeamMaj=[]
-        BeamMin=[]
-        BeamPA =[]
-        
-        # expects common beam and not perplanebeam @cube!
-         
-        for j in range(0,len(allcombims)): 
-            BeamMaj.append(cta.imhead(allcombims[j], mode='get', hdkey='bmaj')['value'])
-            BeamMin.append(cta.imhead(allcombims[j], mode='get', hdkey='bmin')['value'])
-            BeamPA.append(cta.imhead(allcombims[j], mode='get', hdkey='bpa' )['value'])
-    
-        print(BeamMaj)
-        print(BeamMin) 
-        print(BeamPA )
-        
-        skymodelreg=imbase +'.skymodel.regrid'
-        os.system('rm -rf '+skymodelreg)
-        dc.regrid_SD(skymodel, skymodelreg, allcombims[0])
-            
-        skymodelconv=imbase +'.skymodel.regrid.conv'
-        os.system('rm -rf '+skymodelconv+'*')
-        
-        import numpy as np  
-            
-        cta.imsmooth(imagename = skymodelreg,
-                     kernel    = 'gauss',               
-                     targetres = True,                                                             
-                     major     = str(max(np.array(BeamMaj))*1.1)+'arcsec', 
-                     minor     = str(max(np.array(BeamMin))*1.1)+'arcsec',    
-                     pa        = str(np.mean(np.array(BeamPA)))+'deg',                                       
-                     outfile   = skymodelconv,            
-                     overwrite = True)    
-        # have to add 10% in size (factor 1.1), else imsmooth in get_IQA might fail for largest beam size in image set                                              
-        
-        
-        
-        os.system('rm -rf ' + skymodelconv + '.fits')
-        cta.exportfits(imagename=skymodelconv, fitsimage=skymodelconv + '.fits', dropdeg=True)
-                
-        
-        # make Apar and fidelity images
-        
-        iqa.get_IQA(ref_image = skymodelconv, target_image=allcombims)
-        
-        
-        
-         
-        
-        
-        if mode=='cube':   
-            iqa.Compare_Apar_cubes(ref_image = skymodelconv, 
-                                   target_image=allcombims,
-                                   save=True,
-                                   plotname=assessment+'/Model_Apar_channels_'+sourcename+cleansetup+steplist,
-                                   labelname=allcombi, 
-                                   titlename='Accuracy Parameter of cube: comparison for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.','')
-                                   )
-            iqa.Compare_Fidelity_cubes(ref_image = skymodelconv, 
-                                   target_image=allcombims,
-                                   save=True,
-                                   plotname=assessment+'/Model_Fidelity_channels_'+sourcename+cleansetup+steplist,
-                                   labelname=allcombi, 
-                                   titlename='Fidelity of cube: comparison for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.','')
-                                   )      
-                
-            for i in range(0,len(allcombims)):
-                #os.system('rm -rf ' + allcombims[i]+'.mom0')
-                #cta.immoments(imagename=allcombims[i],
-                #           moments=[0],                                           
-                #           chans=momchans,                                         
-                #           outfile=allcombims[i]+'.mom0')
-                #os.system('rm -rf ' + allcombims[i]+'.mom0.fits')
-                #cta.exportfits(imagename=allcombims[i]+'.mom0', fitsimage=allcombims[i]+'.mom0.fits', dropdeg=True)
-                #mapchan=general_tclean_param['nchan']/2.
-                iqa.show_Apar_map(    skymodelconv,allcombims[i],
-                                      channel=mapchan, 
-                                      save=True, 
-                                      plotname=assessment+'/Model_Accuracy_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor','')+'_channel', #expecting only one file name entry per combi-method
-                                      labelname=allcombi[i],
-                                      titlename='Accuracy map in channel '+str(mapchan)+' for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+skymodelconv.replace(pathtoimage,''))                                    
-               
-                iqa.show_Fidelity_map(skymodelconv,
-                                      allcombims[i],
-                                      channel=mapchan, 
-                                      save=True, 
-                                      plotname=assessment+'/Model_Fidelity_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor','')+'_channel', #expecting only one file name entry per combi-method
-                                      labelname=allcombi[i],
-                                      titlename='Fidelity map in channel '+str(mapchan)+' for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+skymodelconv.replace(pathtoimage,''))                                    
-           
-            os.system('rm -rf ' + skymodelconv+'.mom0')               
-            cta.immoments(imagename=skymodelconv,
-                       moments=[0],                                           
-                       chans=momchans,                                         
-                       outfile=skymodelconv+'.mom0')
-            
-           
-            
-            
-            # use mom0-maps as input for the cont-defined Apar/fidelity functions
-            allcombims = [a.replace('.image.pbcor', '.image.pbcor.mom0') for a in allcombims]
-            allcombimsfits = [a.replace('.image.pbcor.mom0','.image.pbcor.mom0.fits') for a in allcombims]
-        
-            skymodelconv = skymodelconv+'.mom0'
-            os.system('rm -rf ' + skymodelconv + '.fits')
-            cta.exportfits(imagename=skymodelconv, fitsimage=skymodelconv + '.fits', dropdeg=True)
-        
-            iqa.get_IQA(ref_image = skymodelconv, target_image=allcombims)
-         
-        
-        
-        
-          
-                  
-        
-        
-        # all Apar and fidelity plots
-        iqa.Compare_Apar(ref_image = skymodelconv, 
-                         target_image=allcombims, 
-                         save=True, 
-                         plotname=assessment+'/Model_AparALL_'+sourcename+cleansetup+steplist,
-                         labelname=allcombi, 
-                         titlename='Accuracy Parameter: comparison for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))
-        iqa.Compare_Fidelity(ref_image = skymodelconv, 
-                         target_image=allcombims,
-                         save=True, 
-                         plotname=assessment+'/Model_FidelityALL_'+sourcename+cleansetup+steplist,
-                         labelname=allcombi, 
-                         titlename='Fidelity: comparison for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
-        for i in range(0,len(allcombims)):
-            # Apar and fidelity vs signal plots
-            iqa.Compare_Apar_signal(ref_image = skymodelconv, 
-                                     target_image=[allcombims[i]],
-                                     save=True,
-                                     noise=0.0, 
-                                     plotname=assessment+'/Model_Apar_signal_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
-                                     labelname=[allcombi[i]],
-                                     titlename='Accuracy vs. Signal for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
-            iqa.Compare_Fidelity_signal(ref_image = skymodelconv, 
-                                     target_image=[allcombims[i]],
-                                     save=True,
-                                     noise=0.0, 
-                                     plotname=assessment+'/Model_Fidelity_signal_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
-                                     labelname=[allcombi[i]],
-                                     titlename='Fidelity vs. Signal for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                                    
-            # Apar and fidelity image plots
-            iqa.show_Apar_map(    skymodelconv,
-                                  allcombims[i],
-                                  channel=0, 
-                                  save=True, 
-                                  plotname=assessment+'/Model_Accuracy_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
-                                  labelname=allcombi[i],
-                                  titlename='Accuracy map for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
-        
-            iqa.show_Fidelity_map(skymodelconv,
-                                  allcombims[i],
-                                  channel=0, 
-                                  save=True, 
-                                  plotname=assessment+'/Model_Fidelity_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
-                                  labelname=allcombi[i],
-                                  titlename='Fidelity map for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
-        
-        
-        
-        allcombimsfits.append(skymodelconv + '.fits')
-        allcombi.append('model')
-        
-        iqa.genmultisps(allcombimsfits, save=True, 
-                       plotname=assessment+'/Model_Power_spectra_'+sourcename+cleansetup+steplist,
-                       labelname=allcombi,
-                       titlename='Power spectra for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
-            
-        allcombimsfits_conv = [a.replace('pbcor.fits','pbcor_convo2ref.fits') for a in allcombimsfits]
-        allcombimsfits_conv = [a.replace('pbcor.mom0.fits','pbcor.mom0_convo2ref.fits') for a in allcombimsfits]
-         
-
-        iqa.genmultisps(allcombimsfits_conv, save=True, 
-                       plotname=assessment+'/Model_Power_spectra_convo2ref_'+sourcename+cleansetup+steplist,
-                       labelname=allcombi,
-                       titlename='Power spectra (convolved to model) for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
-        
-        allcombimsfits_conv_Apar = [a.replace('_convo2ref.fits','_convo2ref_Apar.fits') for a in allcombimsfits_conv]
-
-        iqa.genmultisps(allcombimsfits_conv_Apar, save=True, 
-                       plotname=assessment+'/Model_Power_spectra_convo2ref_Apar_'+sourcename+cleansetup+steplist,
-                       labelname=allcombi,
-                       titlename='Apar power spectra (convolved to model) for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
-        
-
-
-
-        #################### NOT YET WORKING !!! problems #######
-        #
-        #iqa.get_aperture(allcombimsfits,position=(1,1),Nbeams=10)
-        #
-        ##### !!!needs SD-fitsfile ----> to create in step 1 !!!!
-        
-        
-    
-    
-    
-    
-    
-    
-    
-
-
+    #if skymodel!='':
+    #
+    #    ########## Assessment with respect to SKYMODEL image ############
+    #    
+    #    #os.system('rm -rf ' + sdroregrid + '.fits')
+    #    #cta.exportfits(imagename=sdroregrid, fitsimage=sdroregrid + '.fits', dropdeg=True)
+    #    
+    #    if mode=='cube':   
+    #        allcombims0 = tcleanims  + featherims + SSCims     + hybridims  + sdintims  + TP2VISims   # need to fix TP2VIS for cont images without emission-free region first 
+    #    else:
+    #        print('Skip TP2VIS results in this selection - most likely no good result in mfs-mode')
+    #        allcombims0 = tcleanims  + featherims + SSCims     + hybridims  + sdintims  #+ TP2VISims   # need to fix TP2VIS for cont images without emission-free region first 
+    #    #print(allcombims)
+    #    print(' ')
+    #    print(' ')
+    #    print('Running assessment with respect to the SKYMODEL on ')
+    #    print(*allcombims0, sep = "\n")
+    #    print(' ')
+    #
+    #    
+    #    allcombims = [a.replace('.image','.image.pbcor') for a in allcombims0]
+    #    allcombimsfits = [a.replace('.image.pbcor','.image.pbcor.fits') for a in allcombims]
+    #    
+    #    
+    #    
+    #    # make comparison plots
+    #    
+    #    #### imbase         = pathtoimage + 'skymodel-b_120L
+    #    #sourcename = imbase.replace(pathtoimage,'')
+    #    # folder to put the assessment images to 
+    #    #assessment=pathtoimage + 'assessment_'+sourcename+cleansetup
+    #    #os.system('mkdir '+assessment) 
+    #    
+    #    
+    #    #labelnames
+    #    allcombi = [a.replace(pathtoimage+sourcename+cleansetup+'.','').replace('.image.pbcor','') for a in allcombims]
+    #    
+    #    
+    #    ## step numbers 
+    #    #thesteps2 = map(str, thesteps)    
+    #    #stepsjoin=''.join(thesteps2)
+    #    #steps=stepsjoin.replace('0','').replace('1','').replace('8','')
+    #    #steplist='_s'+steps
+    #    
+    #    
+    #    # get largest beam axes present in the input images and smooth model image to them
+    #    
+    #    BeamMaj=[]
+    #    BeamMin=[]
+    #    BeamPA =[]
+    #    
+    #    # expects common beam and not perplanebeam @cube!
+    #     
+    #    for j in range(0,len(allcombims)): 
+    #        BeamMaj.append(cta.imhead(allcombims[j], mode='get', hdkey='bmaj')['value'])
+    #        BeamMin.append(cta.imhead(allcombims[j], mode='get', hdkey='bmin')['value'])
+    #        BeamPA.append(cta.imhead(allcombims[j], mode='get', hdkey='bpa' )['value'])
+    #
+    #    print(BeamMaj)
+    #    print(BeamMin) 
+    #    print(BeamPA )
+    #    
+    #    skymodelreg=imbase +'.skymodel.regrid'
+    #    os.system('rm -rf '+skymodelreg)
+    #    dc.regrid_SD(skymodel, skymodelreg, allcombims[0])
+    #        
+    #    skymodelconv=imbase +'.skymodel.regrid.conv'
+    #    os.system('rm -rf '+skymodelconv+'*')
+    #    
+    #    import numpy as np  
+    #        
+    #    cta.imsmooth(imagename = skymodelreg,
+    #                 kernel    = 'gauss',               
+    #                 targetres = True,                                                             
+    #                 major     = str(max(np.array(BeamMaj))*1.1)+'arcsec', 
+    #                 minor     = str(max(np.array(BeamMin))*1.1)+'arcsec',    
+    #                 pa        = str(np.mean(np.array(BeamPA)))+'deg',                                       
+    #                 outfile   = skymodelconv,            
+    #                 overwrite = True)    
+    #    # have to add 10% in size (factor 1.1), else imsmooth in get_IQA might fail for largest beam size in image set                                              
+    #    
+    #    
+    #    
+    #    os.system('rm -rf ' + skymodelconv + '.fits')
+    #    cta.exportfits(imagename=skymodelconv, fitsimage=skymodelconv + '.fits', dropdeg=True)
+    #            
+    #    
+    #    # make Apar and fidelity images
+    #    
+    #    iqa.get_IQA(ref_image = skymodelconv, target_image=allcombims)
+    #    
+    #    
+    #    
+    #     
+    #    
+    #    
+    #    if mode=='cube':   
+    #        iqa.Compare_Apar_cubes(ref_image = skymodelconv, 
+    #                               target_image=allcombims,
+    #                               save=True,
+    #                               plotname=assessment+'/Model_Apar_channels_'+sourcename+cleansetup+steplist,
+    #                               labelname=allcombi, 
+    #                               titlename='Accuracy Parameter of cube: comparison for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.','')
+    #                               )
+    #        iqa.Compare_Fidelity_cubes(ref_image = skymodelconv, 
+    #                               target_image=allcombims,
+    #                               save=True,
+    #                               plotname=assessment+'/Model_Fidelity_channels_'+sourcename+cleansetup+steplist,
+    #                               labelname=allcombi, 
+    #                               titlename='Fidelity of cube: comparison for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.','')
+    #                               )      
+    #            
+    #        for i in range(0,len(allcombims)):
+    #            #os.system('rm -rf ' + allcombims[i]+'.mom0')
+    #            #cta.immoments(imagename=allcombims[i],
+    #            #           moments=[0],                                           
+    #            #           chans=momchans,                                         
+    #            #           outfile=allcombims[i]+'.mom0')
+    #            #os.system('rm -rf ' + allcombims[i]+'.mom0.fits')
+    #            #cta.exportfits(imagename=allcombims[i]+'.mom0', fitsimage=allcombims[i]+'.mom0.fits', dropdeg=True)
+    #            #mapchan=general_tclean_param['nchan']/2.
+    #            iqa.show_Apar_map(    skymodelconv,allcombims[i],
+    #                                  channel=mapchan, 
+    #                                  save=True, 
+    #                                  plotname=assessment+'/Model_Accuracy_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor','')+'_channel', #expecting only one file name entry per combi-method
+    #                                  labelname=allcombi[i],
+    #                                  titlename='Accuracy map in channel '+str(mapchan)+' for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+skymodelconv.replace(pathtoimage,''))                                    
+    #           
+    #            iqa.show_Fidelity_map(skymodelconv,
+    #                                  allcombims[i],
+    #                                  channel=mapchan, 
+    #                                  save=True, 
+    #                                  plotname=assessment+'/Model_Fidelity_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor','')+'_channel', #expecting only one file name entry per combi-method
+    #                                  labelname=allcombi[i],
+    #                                  titlename='Fidelity map in channel '+str(mapchan)+' for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+skymodelconv.replace(pathtoimage,''))                                    
+    #       
+    #        os.system('rm -rf ' + skymodelconv+'.mom0')               
+    #        cta.immoments(imagename=skymodelconv,
+    #                   moments=[0],                                           
+    #                   chans=momchans,                                         
+    #                   outfile=skymodelconv+'.mom0')
+    #        
+    #       
+    #        
+    #        
+    #        # use mom0-maps as input for the cont-defined Apar/fidelity functions
+    #        allcombims = [a.replace('.image.pbcor', '.image.pbcor.mom0') for a in allcombims]
+    #        allcombimsfits = [a.replace('.image.pbcor.mom0','.image.pbcor.mom0.fits') for a in allcombims]
+    #    
+    #        skymodelconv = skymodelconv+'.mom0'
+    #        os.system('rm -rf ' + skymodelconv + '.fits')
+    #        cta.exportfits(imagename=skymodelconv, fitsimage=skymodelconv + '.fits', dropdeg=True)
+    #    
+    #        iqa.get_IQA(ref_image = skymodelconv, target_image=allcombims)
+    #     
+    #    
+    #    
+    #    
+    #      
+    #              
+    #    
+    #    
+    #    # all Apar and fidelity plots
+    #    iqa.Compare_Apar(ref_image = skymodelconv, 
+    #                     target_image=allcombims, 
+    #                     save=True, 
+    #                     plotname=assessment+'/Model_AparALL_'+sourcename+cleansetup+steplist,
+    #                     labelname=allcombi, 
+    #                     titlename='Accuracy Parameter: comparison for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))
+    #    iqa.Compare_Fidelity(ref_image = skymodelconv, 
+    #                     target_image=allcombims,
+    #                     save=True, 
+    #                     plotname=assessment+'/Model_FidelityALL_'+sourcename+cleansetup+steplist,
+    #                     labelname=allcombi, 
+    #                     titlename='Fidelity: comparison for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
+    #    for i in range(0,len(allcombims)):
+    #        # Apar and fidelity vs signal plots
+    #        iqa.Compare_Apar_signal(ref_image = skymodelconv, 
+    #                                 target_image=[allcombims[i]],
+    #                                 save=True,
+    #                                 noise=0.0, 
+    #                                 plotname=assessment+'/Model_Apar_signal_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
+    #                                 labelname=[allcombi[i]],
+    #                                 titlename='Accuracy vs. Signal for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
+    #        iqa.Compare_Fidelity_signal(ref_image = skymodelconv, 
+    #                                 target_image=[allcombims[i]],
+    #                                 save=True,
+    #                                 noise=0.0, 
+    #                                 plotname=assessment+'/Model_Fidelity_signal_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
+    #                                 labelname=[allcombi[i]],
+    #                                 titlename='Fidelity vs. Signal for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                                    
+    #        # Apar and fidelity image plots
+    #        iqa.show_Apar_map(    skymodelconv,
+    #                              allcombims[i],
+    #                              channel=0, 
+    #                              save=True, 
+    #                              plotname=assessment+'/Model_Accuracy_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
+    #                              labelname=allcombi[i],
+    #                              titlename='Accuracy map for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
+    #    
+    #        iqa.show_Fidelity_map(skymodelconv,
+    #                              allcombims[i],
+    #                              channel=0, 
+    #                              save=True, 
+    #                              plotname=assessment+'/Model_Fidelity_map_'+allcombims[i].replace(pathtoimage,'').replace('.image.pbcor',''), #expecting only one file name entry per combi-method
+    #                              labelname=allcombi[i],
+    #                              titlename='Fidelity map for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
+    #    
+    #    
+    #    
+    #    allcombimsfits.append(skymodelconv + '.fits')
+    #    allcombi.append('model')
+    #    
+    #    iqa.genmultisps(allcombimsfits, save=True, 
+    #                   plotname=assessment+'/Model_Power_spectra_'+sourcename+cleansetup+steplist,
+    #                   labelname=allcombi,
+    #                   titlename='Power spectra for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
+    #        
+    #    allcombimsfits_conv = [a.replace('pbcor.fits','pbcor_convo2ref.fits') for a in allcombimsfits]
+    #    allcombimsfits_conv = [a.replace('pbcor.mom0.fits','pbcor.mom0_convo2ref.fits') for a in allcombimsfits]
+    #     
+    #
+    #    iqa.genmultisps(allcombimsfits_conv, save=True, 
+    #                   plotname=assessment+'/Model_Power_spectra_convo2ref_'+sourcename+cleansetup+steplist,
+    #                   labelname=allcombi,
+    #                   titlename='Power spectra (convolved to model) for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
+    #    
+    #    allcombimsfits_conv_Apar = [a.replace('_convo2ref.fits','_convo2ref_Apar.fits') for a in allcombimsfits_conv]
+    #
+    #    iqa.genmultisps(allcombimsfits_conv_Apar, save=True, 
+    #                   plotname=assessment+'/Model_Power_spectra_convo2ref_Apar_'+sourcename+cleansetup+steplist,
+    #                   labelname=allcombi,
+    #                   titlename='Apar power spectra (convolved to model) for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
+    #    
+    #
+    #
+    #
+    #    #################### NOT YET WORKING !!! problems #######
+    #    #
+    #    #iqa.get_aperture(allcombimsfits,position=(1,1),Nbeams=10)
+    #    #
+    #    ##### !!!needs SD-fitsfile ----> to create in step 1 !!!!
+    #    
+    #    
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
 
 
 # delete tclean TempLattices
