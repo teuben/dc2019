@@ -17,7 +17,6 @@ step_title = {0: 'Concat',
 
 #thesteps=[0,1,2,3,4,5,6,8]   
 thesteps=[0,2]
-#thesteps=[7]
 
 dryrun = False    # False to execute combination, True to gather filenames only
 
