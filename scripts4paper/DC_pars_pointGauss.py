@@ -17,7 +17,7 @@ step_title = {0: 'Concat',
               }
 
 #thesteps=[0,1,2,3,4,5,6,7,8]
-thesteps=[7]
+thesteps=[6]
 
 dryrun = False    # False to execute combination, True to gather filenames only
  
@@ -92,7 +92,7 @@ t_maxscale = -1               # for 'MS': number for largest scale size ('arcsec
 ### user interaction and iterations and threshold
 
 inter       = 'nIA'           # interactive ('IA') or non-interactive ('nIA')
-nit         = 10000000        # number of iterations
+nit         = 10000001        # number of iterations
 t_threshold = '0.005Jy'       # = 7*5*RMS in box from step 1 - but make mask at another level i.e. RMSfactor 1500 
 
 
@@ -111,7 +111,7 @@ t_negativethreshold = 0.0     # specify for 'AM', default: 0.0
 
 #### SD-INT-AM mask fine-tuning (step 1)
 
-smoothing    = 5.                # smoothing of the threshold mask (by 'smoothing x beam')
+smoothing    = 10. #15.                # smoothing of the threshold mask (by 'smoothing x beam')
 threshregion = '924,48,1111,169' # emission free region in template continuum or channel image
 RMSfactor    = 1500.0            # continuum rms level (not noise from emission-free regions but entire image)
 cube_rms     = 3.                # cube noise (true noise) x this factor
@@ -126,7 +126,7 @@ tclean_SDAMmask = 'INT'
 hybrid_SDAMmask = 'INT'     
 sdint_SDAMmask  = 'INT'     
 TP2VIS_SDAMmask = 'INT'     
-fniteronusermask = 0.3 
+fniteronusermask = 1.0 
 
 
 ### SDINT options (step 6)
