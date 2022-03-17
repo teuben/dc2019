@@ -1255,7 +1255,10 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
 
     # use function for reordering instead of commented code down here 
 
-    print('### Start feather')                    
+    print('')                    
+    print('### Start feather for sdfactor', sdfactor)       
+    print('')                    
+             
 
     os.system('rm -rf lowres.* ')
 
@@ -2838,7 +2841,9 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
 
 
 
-
+    print('')                    
+    print('### Start Faridani SSC for sdfactor', sdfactor)       
+    print('')  
 
 
 
