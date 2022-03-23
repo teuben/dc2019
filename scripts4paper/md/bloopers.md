@@ -167,7 +167,7 @@ correct RESTFREQ.  It was thus important not to use a commonbeam.
 2. The requirement of having to use **concat()** in simulations vs. real obs.
 Not well described what the cause is.
 
-3. That feather bug
+3. That feather bug : https://open-jira.nrao.edu/browse/CAS-13162
 
 4. not a bug, but be careful with weight and older data. Melissa will have
 a reminder of this as well somewhere in the paper.
