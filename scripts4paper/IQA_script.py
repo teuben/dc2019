@@ -459,6 +459,11 @@ def get_IQA(ref_image = '',target_image=[''], pb_image=None, masking_RMS=None, t
         immath(imagename=[pb_image+'_convo2ref'], outfile=target_image[target_beam_index]+'_thrsh', expr='3*'+str(masking_RMS)+'*'+str(effrefbeam)+'/'+str(efftargetbeam)+'/IM0')
         os.system("rm -rf temp.mask")
         immath(imagename=[ref_image,target_image[target_beam_index]+'_thrsh'], outfile='temp.mask', expr='iif(IM0>IM1,1,0)')
+        # Masking also the reference
+        os.system("rm -rf "+ ref_image + "_masked")
+        drop_axis("temp.mask")  # Regridding mask to ref_image (remove/add extra dim)
+        immath(imagename=ref_image,mode='evalexpr',expr='IM0',outfile=ref_image+'_masked',mask='temp.mask_subimage')
+        exportfits(imagename=ref_image + "_masked",fitsimage=ref_image + "_masked.fits",dropdeg=True,overwrite=True)
 
     for j in np.arange(0,np.shape(target_image)[0],1):
         # print file
