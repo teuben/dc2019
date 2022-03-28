@@ -1008,7 +1008,7 @@ if mystep in thesteps:
             iqa.show_combi_maps(combitoploti[i], #allcombimask,
                                   channel=0, 
                                   save=True, 
-                                  plotname=assessment+'/Combined_mom0 maps_'+sourcename+cleansetup+steplist+'_'+str(i), 
+                                  plotname=assessment+'/Combined_mom0_maps_'+sourcename+cleansetup+steplist+'_'+str(i), 
                                   labelname=labeltoploti[i],
                                   titlename='Combined maps in moment 0 from the chosen \n  combination methods for '+sourcename+cleansetup+'_'+str(i)
                               )    
@@ -1347,7 +1347,7 @@ if mystep in thesteps:
                 iqa.show_combi_maps(combitoploti[i], #allcombimask,
                                       channel=0, 
                                       save=True, 
-                                      plotname=assessment+'/Combined_mom0 maps_'+sourcename+cleansetup+steplist+'_model_'+str(i), 
+                                      plotname=assessment+'/Combined_mom0_maps_'+sourcename+cleansetup+steplist+'_model_'+str(i), 
                                       labelname=labeltoploti[i],
                                       titlename='Combined maps in moment 0 from the chosen \n  combination methods for '+sourcename+cleansetup+'_'+str(i)
                                   )    
