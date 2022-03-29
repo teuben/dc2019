@@ -112,6 +112,16 @@ def get_convo2target(convo_file,ref_image):
         pa=beam_PA,
         targetres=True)
 
+def get_beam(image):
+    # Get beam info from image: return [maj, min, pa, effbeamsize]
+    hdr = imhead(image,mode='summary')
+    beam_major = hdr['restoringbeam']['major']
+    beam_minor = hdr['restoringbeam']['minor']
+    beam_PA = hdr['restoringbeam']['positionangle']
+    effbeamsize = np.sqrt((beam_major.get("value")**2.)/2. + (beam_minor.get("value")**2.)/2.)
+
+    return [beam_major, beam_minor, beam_PA, effbeamsize]
+    
 ## same as get_convo2target but for FITS
 def getFITS_convo2target(convo_file,ref_image):
     # FITS into CASA
@@ -396,14 +406,20 @@ def noise_image(fitsfile,noise=0.1,noisefile="noise"):
 ## Wrappers
 
 # IQA methods: Accuracy, Fidelity, etc...
-def get_IQA(ref_image = '',target_image=['']):
+def get_IQA(ref_image = '',target_image=[''], pb_image=None, masking_RMS=None, target_beam_index=0):
     """
-    get_IQA (A. Hacar, Univ. of Vienna)
+    get_IQA (A. Hacar, Univ. of Vienna; Dirk Petry, ESO)
     
     Obtain all Image Quality Assesment images
     Arguments:
       ref_image - image used as reference
       target_image - list of images to be compared with reference
+      pb_image - primary beam image needed to evaluate assessment area
+      masking_RMS - masking RMS in units of Jy/beam of the targer_image (e.g. Interferometric image)
+                    Assesssing Mask: AM = 3*masking_RMS*1/PB*(beam_ref/beam_target)
+                    (see main paper for further details)
+          Note that ideally masking_RMS should correspond to 3*RMS_target, that is, the noise level of the Interferometric images
+      target_beam_index - defines which target_image is used to evaluate the targetbeam
     Procedure:
      1.- Each target image will be convolved and resapled into the ref_image resolution and grid.
          Results are stored in: target_image[i]_convo2ref
@@ -415,7 +431,7 @@ def get_IQA(ref_image = '',target_image=['']):
         - Depending on the image/cube size, this process may take a while
         - Exectute this script to procude the Apar, Fidelity,... images. This script only needs to be executed once
     Example:
-      get_IQA(ref_image = 'TP_image',target_image=['Feather.image','TP2vis.image'])
+      get_IQA(ref_image = 'TP_image',target_image=['Feather.image','TP2vis.image'], pb_image='Feather.pb', masking_RMS=0.1, target_beam_index=0)
 
     """
     # Reference image
@@ -425,15 +441,43 @@ def get_IQA(ref_image = '',target_image=['']):
     print(" Depending on the image/cube size, this process may take a while...")
     print("---------------------------------------------")
     # Target images
+    do_mask=False
+    if(pb_image!=None and masking_RMS!=None):
+        do_mask=True
+        myrefbeaminfo = get_beam(ref_image)
+        effrefbeam = myrefbeaminfo[3]
+
+        # convolve PB image to reference resolution
+        get_convo2target(pb_image,ref_image)
+        os.system("mv convo2ref " + pb_image + "_convo2ref")
+
+        mybeaminfo = get_beam(target_image[target_beam_index])
+        efftargetbeam = mybeaminfo[3]
+       
+        # compute masking threshold image temp.mask
+        os.system("rm -rf " + target_image[target_beam_index]+'_thrsh')
+        immath(imagename=[pb_image+'_convo2ref'], outfile=target_image[target_beam_index]+'_thrsh', expr='3*'+str(masking_RMS)+'*'+str(effrefbeam)+'/'+str(efftargetbeam)+'/IM0')
+        os.system("rm -rf temp.mask")
+        immath(imagename=[ref_image,target_image[target_beam_index]+'_thrsh'], outfile='temp.mask', expr='iif(IM0>IM1,1,0)')
+        # Masking also the reference
+        os.system("rm -rf "+ ref_image + "_masked")
+        drop_axis("temp.mask")  # Regridding mask to ref_image (remove/add extra dim)
+        immath(imagename=ref_image,mode='evalexpr',expr='IM0',outfile=ref_image+'_masked',mask='temp.mask_subimage')
+        exportfits(imagename=ref_image + "_masked",fitsimage=ref_image + "_masked.fits",dropdeg=True,overwrite=True)
+
     for j in np.arange(0,np.shape(target_image)[0],1):
         # print file
         print(" Target image " + str(j+1) + " : " + str(target_image[j]))
         # Convolve data into reference resolution
         get_convo2target(target_image[j],ref_image)
+
+        # Mask it
+        os.system("rm -rf " + target_image[j] + "_convo2ref_masked") 
+        if do_mask:
+                immath(imagename='convo2ref',mode='evalexpr',expr='IM0',outfile='convo2ref_masked',mask='temp.mask')
+        else:
+                immath(imagename='convo2ref',mode='evalexpr',expr='IM0',outfile='convo2ref_masked',mask='mask("'+str(ref_image)+'")')
         os.system("rm -rf " + target_image[j] + "_convo2ref")
-        # Mask it similar to reference
-        #immath(imagename='convo2ref',mode='evalexpr',expr='IM0',outfile='convo2ref_masked',mask='mask('+str(ref_image.replace('-','\-').replace('_','\_'))+')')
-        immath(imagename='convo2ref',mode='evalexpr',expr='IM0',outfile='convo2ref_masked',mask='mask("'+str(ref_image)+'")')
         os.system("mv convo2ref_masked " + target_image[j] + "_convo2ref")
         #
         # Get Apar, Fidelity, etc... images
