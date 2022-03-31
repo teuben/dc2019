@@ -647,7 +647,8 @@ def Compare_Apar_signal(ref_image = '',target_image=[''],
         im1 = fits.open(ref_image+".fits")
         im2 = fits.open(target_image[m]+"_convo2ref_Apar.fits")
         # Define plot limits
-        xmin = np.min(im1[0].data[np.isnan(im1[0].data)==False])
+        ##xmin = np.min(im1[0].data[np.isnan(im1[0].data)==False])
+        xmin = np.percentile(im1[0].data[np.isnan(im1[0].data)==False],0.01) #np.im replaced by 0.01 percentile to avoid outlayers
         xmax = np.max(im1[0].data[np.isnan(im1[0].data)==False])
         if (xmax > xmax0):
             xmax0=xmax+xmax/10. # Slightly larger
@@ -656,7 +657,7 @@ def Compare_Apar_signal(ref_image = '',target_image=[''],
         if (xmin < 0.0):          #Lydia's modification to avoid negative values!
             xmin0=0.0001
         # Plot results
-        ax0.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,edgecolor='none')
+        ax0.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,edgecolor='none',alpha=0.01)
 
     # Goal (A-par = 0)
     ax0.hlines(0.,xmin,xmax0,linestyle="--",color="black",linewidth=3,alpha=1.,zorder=2)
@@ -738,7 +739,8 @@ def Compare_Apar_signal(ref_image = '',target_image=[''],
         im1 = fits.open(ref_image+".fits")
         im2 = fits.open(target_image[m]+"_convo2ref.fits")
         # Define plot limits
-        xmin = np.min(im1[0].data[np.isnan(im1[0].data)==False])
+        ##xmin = np.min(im1[0].data[np.isnan(im1[0].data)==False])
+        xmin = np.percentile(im1[0].data[np.isnan(im1[0].data)==False],0.01) #np.im replaced by 0.01 percentile to avoid outlayers
         xmax = np.max(im1[0].data[np.isnan(im1[0].data)==False])
         if (xmax > xmax0):
             xmax0=xmax+xmax/10. # Slightly larger
@@ -749,9 +751,29 @@ def Compare_Apar_signal(ref_image = '',target_image=[''],
 
         # Plot results
         if labelname[m]=='':
-            ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,label=target_image[m],edgecolor='none')
+            ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,label=target_image[m],edgecolor='none',alpha=0.01)
         else:    
-            ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,label=labelname[m],edgecolor='none')
+            ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,label=labelname[m],edgecolor='none',alpha=0.01)
+
+        count=0
+        for j in xvalueslog:
+            # Define bin ranges in log-space
+            idx = (im1[0].data >= 10.**j) & (im1[0].data < 10.**(j+steplog)) & (np.isnan(im1[0].data)==False) & (np.isfinite(im1[0].data)==True)
+            values = im2[0].data[idx]
+            values = values[ (np.isnan(values)==False) & (np.isfinite(values)==True) ] # remove Nan & Inf.
+            # Stats
+            if (np.shape(values)[0] > 0):
+                means[count] = np.mean(values)  # Mean
+                stds[count] = np.std(values)    # STD
+                medians[count] = np.median(values)  # Median
+                q1values[count] = np.percentile(values, 10) # 10% Quartile
+                q3values[count] = np.percentile(values, 90) # 90% Quartile
+            # Counter +1
+            count+=1
+            #
+        # Display mean and STD
+        ax1.errorbar(10.**(xvalueslog+steplog/2.),means, yerr=stds, fmt='o',c="blue",label=r"|y|$\pm 1 \sigma$ ",linewidth=2,markersize=10,zorder=2,capsize=5)
+        #ax0.errorbar(10.**(xvalueslog+steplog/2.),medians, yerr=[q1values,q3values], fmt='o',c="cyan",label=r"[Q1,Median,Q3]",linewidth=2)
 
     # Show A values lines
     xvalues=np.arange(xmin0,xmax0,(xmax0-xmin0)/20.)
