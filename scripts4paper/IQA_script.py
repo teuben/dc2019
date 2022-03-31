@@ -112,6 +112,16 @@ def get_convo2target(convo_file,ref_image):
         pa=beam_PA,
         targetres=True)
 
+def get_beam(image):
+    # Get beam info from image: return [maj, min, pa, effbeamsize]
+    hdr = imhead(image,mode='summary')
+    beam_major = hdr['restoringbeam']['major']
+    beam_minor = hdr['restoringbeam']['minor']
+    beam_PA = hdr['restoringbeam']['positionangle']
+    effbeamsize = np.sqrt((beam_major.get("value")**2.)/2. + (beam_minor.get("value")**2.)/2.)
+
+    return [beam_major, beam_minor, beam_PA, effbeamsize]
+    
 ## same as get_convo2target but for FITS
 def getFITS_convo2target(convo_file,ref_image):
     # FITS into CASA
@@ -396,14 +406,20 @@ def noise_image(fitsfile,noise=0.1,noisefile="noise"):
 ## Wrappers
 
 # IQA methods: Accuracy, Fidelity, etc...
-def get_IQA(ref_image = '',target_image=['']):
+def get_IQA(ref_image = '',target_image=[''], pb_image=None, masking_RMS=None, target_beam_index=0):
     """
-    get_IQA (A. Hacar, Univ. of Vienna)
+    get_IQA (A. Hacar, Univ. of Vienna; Dirk Petry, ESO)
     
     Obtain all Image Quality Assesment images
     Arguments:
       ref_image - image used as reference
       target_image - list of images to be compared with reference
+      pb_image - primary beam image needed to evaluate assessment area
+      masking_RMS - masking RMS in units of Jy/beam of the targer_image (e.g. Interferometric image)
+                    Assesssing Mask: AM = 3*masking_RMS*1/PB*(beam_ref/beam_target)
+                    (see main paper for further details)
+          Note that ideally masking_RMS should correspond to 3*RMS_target, that is, the noise level of the Interferometric images
+      target_beam_index - defines which target_image is used to evaluate the targetbeam
     Procedure:
      1.- Each target image will be convolved and resapled into the ref_image resolution and grid.
          Results are stored in: target_image[i]_convo2ref
@@ -415,7 +431,7 @@ def get_IQA(ref_image = '',target_image=['']):
         - Depending on the image/cube size, this process may take a while
         - Exectute this script to procude the Apar, Fidelity,... images. This script only needs to be executed once
     Example:
-      get_IQA(ref_image = 'TP_image',target_image=['Feather.image','TP2vis.image'])
+      get_IQA(ref_image = 'TP_image',target_image=['Feather.image','TP2vis.image'], pb_image='Feather.pb', masking_RMS=0.1, target_beam_index=0)
 
     """
     # Reference image
@@ -425,15 +441,43 @@ def get_IQA(ref_image = '',target_image=['']):
     print(" Depending on the image/cube size, this process may take a while...")
     print("---------------------------------------------")
     # Target images
+    do_mask=False
+    if(pb_image!=None and masking_RMS!=None):
+        do_mask=True
+        myrefbeaminfo = get_beam(ref_image)
+        effrefbeam = myrefbeaminfo[3]
+
+        # convolve PB image to reference resolution
+        get_convo2target(pb_image,ref_image)
+        os.system("mv convo2ref " + pb_image + "_convo2ref")
+
+        mybeaminfo = get_beam(target_image[target_beam_index])
+        efftargetbeam = mybeaminfo[3]
+       
+        # compute masking threshold image temp.mask
+        os.system("rm -rf " + target_image[target_beam_index]+'_thrsh')
+        immath(imagename=[pb_image+'_convo2ref'], outfile=target_image[target_beam_index]+'_thrsh', expr='3*'+str(masking_RMS)+'*'+str(effrefbeam)+'/'+str(efftargetbeam)+'/IM0')
+        os.system("rm -rf temp.mask")
+        immath(imagename=[ref_image,target_image[target_beam_index]+'_thrsh'], outfile='temp.mask', expr='iif(IM0>IM1,1,0)')
+        # Masking also the reference
+        os.system("rm -rf "+ ref_image + "_masked")
+        drop_axis("temp.mask")  # Regridding mask to ref_image (remove/add extra dim)
+        immath(imagename=ref_image,mode='evalexpr',expr='IM0',outfile=ref_image+'_masked',mask='temp.mask_subimage')
+        exportfits(imagename=ref_image + "_masked",fitsimage=ref_image + "_masked.fits",dropdeg=True,overwrite=True)
+
     for j in np.arange(0,np.shape(target_image)[0],1):
         # print file
         print(" Target image " + str(j+1) + " : " + str(target_image[j]))
         # Convolve data into reference resolution
         get_convo2target(target_image[j],ref_image)
+
+        # Mask it
+        os.system("rm -rf " + target_image[j] + "_convo2ref_masked") 
+        if do_mask:
+                immath(imagename='convo2ref',mode='evalexpr',expr='IM0',outfile='convo2ref_masked',mask='temp.mask')
+        else:
+                immath(imagename='convo2ref',mode='evalexpr',expr='IM0',outfile='convo2ref_masked',mask='mask("'+str(ref_image)+'")')
         os.system("rm -rf " + target_image[j] + "_convo2ref")
-        # Mask it similar to reference
-        #immath(imagename='convo2ref',mode='evalexpr',expr='IM0',outfile='convo2ref_masked',mask='mask('+str(ref_image.replace('-','\-').replace('_','\_'))+')')
-        immath(imagename='convo2ref',mode='evalexpr',expr='IM0',outfile='convo2ref_masked',mask='mask("'+str(ref_image)+'")')
         os.system("mv convo2ref_masked " + target_image[j] + "_convo2ref")
         #
         # Get Apar, Fidelity, etc... images
@@ -603,7 +647,8 @@ def Compare_Apar_signal(ref_image = '',target_image=[''],
         im1 = fits.open(ref_image+".fits")
         im2 = fits.open(target_image[m]+"_convo2ref_Apar.fits")
         # Define plot limits
-        xmin = np.min(im1[0].data[np.isnan(im1[0].data)==False])
+        ##xmin = np.min(im1[0].data[np.isnan(im1[0].data)==False])
+        xmin = np.percentile(im1[0].data[np.isnan(im1[0].data)==False],0.01) #np.im replaced by 0.01 percentile to avoid outlayers
         xmax = np.max(im1[0].data[np.isnan(im1[0].data)==False])
         if (xmax > xmax0):
             xmax0=xmax+xmax/10. # Slightly larger
@@ -612,7 +657,7 @@ def Compare_Apar_signal(ref_image = '',target_image=[''],
         if (xmin < 0.0):          #Lydia's modification to avoid negative values!
             xmin0=0.0001
         # Plot results
-        ax0.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,edgecolor='none')
+        ax0.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,edgecolor='none',alpha=0.01)
 
     # Goal (A-par = 0)
     ax0.hlines(0.,xmin,xmax0,linestyle="--",color="black",linewidth=3,alpha=1.,zorder=2)
@@ -694,7 +739,8 @@ def Compare_Apar_signal(ref_image = '',target_image=[''],
         im1 = fits.open(ref_image+".fits")
         im2 = fits.open(target_image[m]+"_convo2ref.fits")
         # Define plot limits
-        xmin = np.min(im1[0].data[np.isnan(im1[0].data)==False])
+        ##xmin = np.min(im1[0].data[np.isnan(im1[0].data)==False])
+        xmin = np.percentile(im1[0].data[np.isnan(im1[0].data)==False],0.01) #np.im replaced by 0.01 percentile to avoid outlayers
         xmax = np.max(im1[0].data[np.isnan(im1[0].data)==False])
         if (xmax > xmax0):
             xmax0=xmax+xmax/10. # Slightly larger
@@ -705,9 +751,29 @@ def Compare_Apar_signal(ref_image = '',target_image=[''],
 
         # Plot results
         if labelname[m]=='':
-            ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,label=target_image[m],edgecolor='none')
+            ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,label=target_image[m],edgecolor='none',alpha=0.01)
         else:    
-            ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,label=labelname[m],edgecolor='none')
+            ax1.scatter(im1[0].data,im2[0].data,c=IQA_colours[m],marker="o",rasterized=True,label=labelname[m],edgecolor='none',alpha=0.01)
+
+        count=0
+        for j in xvalueslog:
+            # Define bin ranges in log-space
+            idx = (im1[0].data >= 10.**j) & (im1[0].data < 10.**(j+steplog)) & (np.isnan(im1[0].data)==False) & (np.isfinite(im1[0].data)==True)
+            values = im2[0].data[idx]
+            values = values[ (np.isnan(values)==False) & (np.isfinite(values)==True) ] # remove Nan & Inf.
+            # Stats
+            if (np.shape(values)[0] > 0):
+                means[count] = np.mean(values)  # Mean
+                stds[count] = np.std(values)    # STD
+                medians[count] = np.median(values)  # Median
+                q1values[count] = np.percentile(values, 10) # 10% Quartile
+                q3values[count] = np.percentile(values, 90) # 90% Quartile
+            # Counter +1
+            count+=1
+            #
+        # Display mean and STD
+        ax1.errorbar(10.**(xvalueslog+steplog/2.),means, yerr=stds, fmt='o',c="blue",label=r"|y|$\pm 1 \sigma$ ",linewidth=2,markersize=10,zorder=2,capsize=5)
+        #ax0.errorbar(10.**(xvalueslog+steplog/2.),medians, yerr=[q1values,q3values], fmt='o',c="cyan",label=r"[Q1,Median,Q3]",linewidth=2)
 
     # Show A values lines
     xvalues=np.arange(xmin0,xmax0,(xmax0-xmin0)/20.)
