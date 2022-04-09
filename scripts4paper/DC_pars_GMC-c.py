@@ -174,3 +174,5 @@ momchans = ''                 # channels to compute moment maps (integrated inte
 mapchan  = None               # cube channel (integer) of interest to use for assessment in step 8
 
 skymodel = a12m[0].replace('.ms','.skymodel')    # model used for simulating the observation, expected to be CASA-imported
+
+assessment_thresh = None #0.025        # default: None, format: float, translated units: Jy/bm, threshold mask to exclude low SNR pixels, if None, use rms measurement from threshold_mask for tclean (see SD-INT-AM)

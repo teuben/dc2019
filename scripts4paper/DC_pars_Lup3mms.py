@@ -1,9 +1,8 @@
-#  DC_pars_M100.py:    parameters for M100
+#  DC_pars_Lup3mms.py:    parameters for Lup3mms
 #
 #  to work with, and edit parameters here, copy this script to DC_pars.py to be used by your DC_script.py
 
-#  Data and procedure are described here:
-#        https://casaguides.nrao.edu/index.php?title=M100_Band3_Combine_5.4
+#  inputs based on dc2019/scripts/datacomb2019_outflowsWG.py
 
 step_title = {0: 'Concat',
               1: 'Prepare the SD-image',
@@ -16,9 +15,8 @@ step_title = {0: 'Concat',
               8: 'Assessment of the combination results'
               }
 
-thesteps=[0,1,2,3,4,5,6,7,8]
-
-#thesteps=[7]
+thesteps=[2,3,4,5,6,7,8]
+#thesteps=[0,5]
 
 dryrun = True    # False to execute combination, True to gather filenames only
 
@@ -33,13 +31,19 @@ dryrun = True    # False to execute combination, True to gather filenames only
 #  _s4p_data :  for read-only data
 #  _s4p_work :  for reading/writing
 
-pathtoconcat = _s4p_data #+ '/M100/'
-pathtoimage  = _s4p_work + '/M100/'
+pathtoconcat = _s4p_data + '/Lup3mms/'
+pathtoimage  = _s4p_work + '/Lup3mms/'
 
 # to quote the casaguide, "In order to run this guide you will need the following three files:"
-_7ms  = '/M100_Band3_7m_CalibratedData/M100_Band3_7m_CalibratedData.ms'
-_12ms = '/M100_Band3_12m_CalibratedData/M100_Band3_12m_CalibratedData.ms'
-_sdim = '/M100_Band3_ACA_ReferenceImages_5.1/M100_TP_CO_cube.spw3.image.bl'
+_7ms  = 'mst_07_nchan10_start0kms.ms'
+_12ms = 'mst_12_nchan10_start0kms.ms'
+_sdim_fits = 'TP_12CO.fits'
+_sdim = 'TP_12CO.image'
+
+os.system('rm -rf ' +pathtoconcat+_sdim)
+importfits(fitsimage=pathtoconcat+_sdim_fits, imagename=pathtoconcat+_sdim)
+#rstfrq='115.27120GHz'
+#imhead(pathtoconcat+_sdim, hdkey='restfreq', mode='put', hdvalue=rstfrq)
 
 
 # setup for concat (step 0)
@@ -51,7 +55,8 @@ a7m = [pathtoconcat + _7ms
 weight12m = [1.]
 weight7m  = [1.]  # weigthing for REAL data !  If CASA calibration older than 4.3.0: weight: 0.193
 
-concatms     = pathtoimage + 'M100-B3.alma.all_int-weighted.ms'  # path and name of concatenated file
+concatms     = pathtoimage + 'Lup3mms.alma.all_int-weighted.ms'  # path and name of concatenated file
+#concatms     = pathtoimage + 'Lup3mms.12m.ms'  # path and name of concatenated file
 
 
 
@@ -59,8 +64,8 @@ concatms     = pathtoimage + 'M100-B3.alma.all_int-weighted.ms'  # path and name
 
 vis            = ''                                  # set to '' if concatms is to be used, else define your own ms-file
 sdimage_input  = pathtoconcat + _sdim                #
-imbase         = pathtoimage + 'M100-B3'  # path + image base name
-sdbase         = pathtoimage + 'M100-B3'  # path + sd image base name
+imbase         = pathtoimage + 'Lup3mms'  # path + image base name
+sdbase         = pathtoimage + 'Lup3mms'  # path + sd image base name
 
 
 
@@ -69,10 +74,10 @@ sdbase         = pathtoimage + 'M100-B3'  # path + sd image base name
 ### general  - data selection and image parameters
 						
 t_spw         = '' 
-t_field       = ''
-t_imsize      = 560  
-t_cell        = '0.5arcsec' 
-t_phasecenter = 'J2000 12h22m54.9 +15d49m15'  	
+t_field       = 'Lupus_3_MMS*'
+t_imsize      = [896,630]
+t_cell        = '0.4arcsec' 
+t_phasecenter = 'J2000 16h09m18.1 -39d04m44.0' 	
 
 
 ### spectral mode - mfs -cube
@@ -80,33 +85,33 @@ t_phasecenter = 'J2000 12h22m54.9 +15d49m15'
 mode       = 'cube'          # 'mfs' or 'cube'
 specsetup  =  'INTpar'       # 'SDpar' (use SD cube's spectral setup) or 'INTpar' (user defined cube setup)
                              
-t_start    = '1400km/s'      # e.g.,  0 (first chan),  '10km/s',  '10MHz'
-t_width    = '5km/s'       # e.g.,  1 (one chan),  '-100km/s', '200GHz'
-t_nchan    = 70              # e.g., -1 (all chans),        20 ,     100
-t_restfreq = '115.271202GHz' # e.g., '234.567GHz'
+t_start    = '0.0km/s'      # e.g.,  0 (first chan),  '10km/s',  '10MHz'
+t_width    = '1.0km/s'       # e.g.,  1 (one chan),  '-100km/s', '200GHz'
+t_nchan    = 8              # e.g., -1 (all chans),        20 ,     100
+t_restfreq = '115.27120GHz' #rstfrq        # e.g., '234.567GHz'
                              			          
-startchan  = 30      # None  # e.g., 30, start-value of the SD image channel range you want to cut out 
-endchan    = 39      # None  # e.g., 39,   end-value of the SD image channel range you want to cut out
+startchan  = None      # None  # e.g., 30, start-value of the SD image channel range you want to cut out 
+endchan    = None      # None  # e.g., 39,   end-value of the SD image channel range you want to cut out
 		
 				      
 ### multiscale                
 
-mscale     = 'MS'             # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
+mscale     = 'HB'             # 'MS' (multiscale) or 'HB' (hogbom; MTMFS in SDINT by default!)) 
 t_maxscale = -1               # for 'MS': number for largest scale size ('arcsec') expected in source
 
 
 ### user interaction and iterations and threshold
 
 inter       = 'nIA'           # interactive ('IA') or non-interactive ('nIA')
-nit         = 10000000      # number of iterations
-t_threshold = ''              # e.g. '0.1mJy', can be left blank -> DC_run will estimate from SD-INT-AM mask for all other masking modes, too
+nit         = 1 #0000000      # number of iterations
+t_threshold = '0.022Jy'        # 4sigma      # e.g. '0.1mJy', can be left blank -> DC_run will estimate from SD-INT-AM mask for all other masking modes, too
 
 
 ### masking
 
-masking  = 'SD-INT-AM'        # 'UM' (user mask), 'SD-INT-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
+masking  = 'PB' #'SD-INT-AM'        # 'UM' (user mask), 'SD-INT-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 t_mask              = ''      # specify for 'UM', mask name
-t_pbmask            = 0.2     # specify for 'PM', cut-off level
+t_pbmask            = 0.4     # specify for 'AM' and 'PM', cut-off level
 t_sidelobethreshold = 2.0     # specify for 'AM', default: 2.0 
 t_noisethreshold    = 4.25    # specify for 'AM', default: 4.25 
 t_lownoisethreshold = 1.5     # specify for 'AM', default: 1.5             
@@ -117,11 +122,11 @@ t_negativethreshold = 0.0     # specify for 'AM', default: 0.0
 
 #### SD-INT-AM mask fine-tuning (step 1)
 
-smoothing    = 5.               # smoothing of the threshold mask (by 'smoothing x beam')
-threshregion = ''               # emission free region in template continuum or channel image
+smoothing    = 3.               # smoothing of the threshold mask (by 'smoothing x beam')
+threshregion = '122,283,311,482' # emission free region in template continuum or channel image
 RMSfactor    = 0.5              # continuum rms level (not noise from emission-free regions but entire image)
-cube_rms     = 3.               # cube noise (true noise) x this factor
-cont_chans   = '1~7,64~69'      # line free channels for cube rms estimation
+cube_rms     = 10. #5. #20.               # cube noise (true noise) x this factor
+cont_chans   = '0'      # line free channels for cube rms estimation
 sdmasklev    = 0.3              # maximum x this factor = threshold for SD mask
 				              
 
@@ -130,9 +135,9 @@ sdmasklev    = 0.3              # maximum x this factor = threshold for SD mask
 
 tclean_SDAMmask = 'INT'  
 hybrid_SDAMmask = 'INT'     
-sdint_SDAMmask  = 'INT'     
+sdint_SDAMmask  = 'combined'     
 TP2VIS_SDAMmask = 'INT' 
-fniteronusermask = 0.3
+fniteronusermask = 0.6
 
 
 ### SDINT options (step 6)
@@ -155,20 +160,19 @@ TPfac   = [1.0]               # TP2VIS parameter
 TPpointingTemplate        = a12m[0]
 listobsOutput             = imbase+'.12m.log'
 TPpointinglist            = imbase+'.12m.ptg'
-Epoch                     = 'J2000'    # Epoch in listobs, e.g. 'J2000'
+Epoch                     = 'ICRS'    # Epoch in listobs, e.g. 'J2000'
 
-TPpointinglistAlternative = 'user-defined.ptg' 
+TPpointinglistAlternative = imbase+'.12m.ptg' #'user-defined.ptg' 
 
-TPnoiseRegion             = '150,200,150,200'  # in unregridded SD image (i.e. sdreordered = sdbase +'.SD_ro.image')
-TPnoiseChannels           = '1~7'              # in unregridded and un-cut SD cube (i.e. sdreordered = sdbase +'.SD_ro.image')!
+TPnoiseRegion             = ''  # in unregridded SD image (i.e. sdreordered = sdbase +'.SD_ro.image')
+TPnoiseChannels           = '1~30'              # in unregridded and un-cut SD cube (i.e. sdreordered = sdbase +'.SD_ro.image')!
 
       
 ## Assessment related (step 8)
 
-momchans = '8~63'             # line-free: '1~7,64~69'      # channels to compute moment maps (integrated intensity, etc.) 
-mapchan  = None               # cube channel (integer) of interest to use for assessment in step 8. None = central channel
+momchans = '0~7'             # line-free: '1~7,64~69'      # channels to compute moment maps (integrated intensity, etc.) 
+mapchan  = 4                 # cube channel (integer) of interest to use for assessment in step 8. None = central channel
 				              
 skymodel = ''                 # model used for simulating the observation, expected to be CASA-imported
 
 assessment_thresh = None #0.025        # default: None, format: float, translated units: Jy/bm, threshold mask to exclude low SNR pixels, if None, use rms measurement from threshold_mask for tclean (see SD-INT-AM)
-
