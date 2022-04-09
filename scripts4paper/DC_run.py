@@ -269,7 +269,7 @@ mask_tclean_param = dict(phasecenter = general_tclean_param['phasecenter'],
 
 # mask generation: execute step 1 or use existing template 
    
-if 1 in thesteps:
+if 1 in thesteps and dryrun==False: 
         pass    
 elif not os.path.exists(imnameth + '.image'):
 #elif not os.path.exists(threshmask + '.mask') or not os.path.exists(imnameth + '.image'):
@@ -296,7 +296,7 @@ else: #if imnameth + '.image' exists, simply re-derive the mask etc.
     #                             makemask=True)
     #    
         
-    thresh = dc. make_masks_and_thresh(imnameth, threshmask,
+    thresh = dc.make_masks_and_thresh(imnameth, threshmask,
                                          #overwrite=True,
                                  sdimage, sdmasklev, SD_mask_root,
                                  combined_mask,                                         
@@ -688,12 +688,14 @@ if mystep in thesteps:
     if dryrun == True:
         print('Skip execution!')
     else:    
-        if a12m!=[]:    # if 12m-data exists ...
+        if TPpointingTemplate!='' and file_check_vis_str_only(TPpointingTemplate)==TPpointingTemplate: #a12m!=[]:    # if 12m-data exists ...
+            print('Creating pointing table from template data set:', TPpointingTemplate)
             #dc.ms_ptg(TPpointingTemplate, outfile=TPpointinglist, uniq=True)
             dc.listobs_ptg(TPpointingTemplate, listobsOutput, TPpointinglist, Epoch=Epoch)
         else:
+            print('Using user-provided pointing table:', TPpointinglistAlternative)
             TPpointinglist = TPpointinglistAlternative    
-    
+        print('')
     
     # create 'TP.ms', i.e. SD visibilities  
     
@@ -805,13 +807,13 @@ if mystep in thesteps:
         mapchan=int(general_tclean_param['nchan']/2.)
     
     if nit>0:
-		
+        
         print(' ')
         print(' ')
         print('Showing residual maps and tclean masks, stopping criteria, and thresholds for ')
         print(*allcombires, sep = "\n")
-        print(' ')		
-		
+        print(' ')      
+        
         for i in range(0, len(allcombitxt)):
             os.system('rm -rf ' + allcombires[i] + '.fits')
             os.system('rm -rf ' + allcombimask[i] + '.fits')
@@ -861,6 +863,7 @@ if mystep in thesteps:
     
     
     allcombims = [a.replace('.image','.image.pbcor') for a in allcombims0]
+    allcombpbs = [a.replace('.image','.pb') for a in allcombims0]
     allcombimsfits = [a.replace('.image.pbcor','.image.pbcor.fits') for a in allcombims]
     
     # make comparison plots
@@ -915,7 +918,15 @@ if mystep in thesteps:
     #print(sdroregrid)
     #print(allcombims)   
     
-    iqa.get_IQA(ref_image = sdroregrid, target_image=allcombims)
+    if assessment_thresh == None:   
+        if mode=='cube':
+            image_rms = thresh/cube_rms #*3.     # 3 sigma limit
+        if mode=='mfs':
+            image_rms = thresh/RMSfactor #*3.    # 3 sigma limit
+    else:
+        image_rms = assessment_thresh
+    
+    iqa.get_IQA(ref_image = sdroregrid, target_image=allcombims, pb_image=allcombpbs[0], masking_RMS=image_rms, target_beam_index=0)
     
     
     
@@ -940,12 +951,21 @@ if mystep in thesteps:
             
         for i in range(0,len(allcombims)):
             os.system('rm -rf ' + allcombims[i]+'.mom0')
+            # sigma clipped moment maps
             cta.immoments(imagename=allcombims[i],
                        moments=[0],                                           
-                       chans=momchans,                                         
+                       chans=momchans, includepix=[image_rms, 10000000000.0],                                        
                        outfile=allcombims[i]+'.mom0')
             os.system('rm -rf ' + allcombims[i]+'.mom0.fits')
             cta.exportfits(imagename=allcombims[i]+'.mom0', fitsimage=allcombims[i]+'.mom0.fits', dropdeg=True)
+            midchan=int(general_tclean_param['nchan']/2)
+            os.system('rm -rf ' + allcombpbs[i]+'.chan'+str(midchan))
+            cta.immath(imagename=[allcombpbs[i]],
+                   expr='IM0', chans=str(midchan),
+                   outfile=allcombpbs[i]+'.chan'+str(midchan))
+            os.system('rm -rf ' + allcombpbs[i]+'.chan'+str(midchan)+'.fits')
+            cta.exportfits(imagename=allcombpbs[i]+'.chan'+str(midchan), fitsimage=allcombpbs[i]+'.chan'+str(midchan)+'.fits', dropdeg=True)
+
             #mapchan=general_tclean_param['nchan']/2.
             iqa.show_Apar_map(    sdroregrid,allcombims[i],
                                   channel=mapchan, 
@@ -962,7 +982,8 @@ if mystep in thesteps:
                                   labelname=allcombi[i],
                                   titlename='Fidelity map in channel '+str(mapchan)+' for \ntarget: '+allcombims[i].replace(pathtoimage,'')+' and \nreference: '+sdroregrid.replace(pathtoimage,''))                                    
        
-        os.system('rm -rf ' + sdroregrid+'.mom0')               
+        os.system('rm -rf ' + sdroregrid+'.mom0')  
+        # no sigma clipped moment maps - no measurement implemented yet
         cta.immoments(imagename=sdroregrid,
                    moments=[0],                                           
                    chans=momchans,                                         
@@ -991,7 +1012,7 @@ if mystep in thesteps:
         # what to do, if there are more than 6 plots (=max per page) to do 
         intdiv=int(len(combitoplot)/nplt)
         mod=len(combitoplot)%nplt  
-	    
+        
         combitoploti=[]
         labeltoploti=[]
         
@@ -1002,8 +1023,8 @@ if mystep in thesteps:
         labeltoploti.append(labeltoplot[intdiv*nplt+0:intdiv*nplt+mod])
         #print('combitoploti', combitoploti)
         #print('labeltoploti', labeltoploti)
-	    
-	    # plot 
+        
+        # plot 
         for i in range(0,len(combitoploti)):
             iqa.show_combi_maps(combitoploti[i], #allcombimask,
                                   channel=0, 
@@ -1014,7 +1035,8 @@ if mystep in thesteps:
                               )    
 
 
-        iqa.get_IQA(ref_image = sdroregrid, target_image=allcombims)
+        iqa.get_IQA(ref_image = sdroregrid, target_image=allcombims, pb_image=allcombpbs[0]+'.chan'+str(midchan), masking_RMS=image_rms, target_beam_index=0)
+    
      
     
     
@@ -1221,8 +1243,8 @@ if mystep in thesteps:
 
         intdiv=int(len(combitoplot)/nplt)
         mod=len(combitoplot)%nplt  
-	    
-	    
+        
+        
         combitoploti=[]
         labeltoploti=[]
         
@@ -1233,7 +1255,7 @@ if mystep in thesteps:
         labeltoploti.append(labeltoplot[intdiv*nplt+0:intdiv*nplt+mod])
         #print('combitoploti', combitoploti)
         #print('labeltoploti', labeltoploti)
-	    
+        
         for i in range(0,len(combitoploti)):
             iqa.show_combi_maps(combitoploti[i], #allcombimask,
                                   channel=mapchan, 
@@ -1242,14 +1264,15 @@ if mystep in thesteps:
                                   labelname=labeltoploti[i],
                                   titlename='Combined maps in channel '+str(mapchan)+' from the chosen \n  combination methods for '+sourcename+cleansetup+'_'+str(i)
                               )    
-	    
+        
 
 
 
         
         # make Apar and fidelity images
         
-        iqa.get_IQA(ref_image = skymodelconv, target_image=allcombims)
+        iqa.get_IQA(ref_image = skymodelconv, target_image=allcombims, pb_image=allcombpbs[0], masking_RMS=image_rms, target_beam_index=0)
+   
         
         
         
@@ -1301,6 +1324,7 @@ if mystep in thesteps:
                        moments=[0],                                           
                        chans=momchans,                                         
                        outfile=skymodelconv+'.mom0')
+
             
            
             
@@ -1320,17 +1344,17 @@ if mystep in thesteps:
             
             combitoplot.append(sdroregrid)
             labeltoplot.append('SD image')
-		    
+            
             combitoplot.append(skymodelreg)
             labeltoplot.append('model')
             
             combitoplot.append(skymodelconv)
             labeltoplot.append('convolved model')
-		    
+            
             # what to do, if there are more than 6 plots (=max per page) to do 
             intdiv=int(len(combitoplot)/nplt)
             mod=len(combitoplot)%nplt  
-	        
+            
             combitoploti=[]
             labeltoploti=[]
             
@@ -1341,8 +1365,8 @@ if mystep in thesteps:
             labeltoploti.append(labeltoplot[intdiv*nplt+0:intdiv*nplt+mod])
             #print('combitoploti', combitoploti)
             #print('labeltoploti', labeltoploti)
-	        
-	        # plot 
+            
+            # plot 
             for i in range(0,len(combitoploti)):
                 iqa.show_combi_maps(combitoploti[i], #allcombimask,
                                       channel=0, 
@@ -1351,11 +1375,11 @@ if mystep in thesteps:
                                       labelname=labeltoploti[i],
                                       titlename='Combined maps in moment 0 from the chosen \n  combination methods for '+sourcename+cleansetup+'_'+str(i)
                                   )    
-		    
-		    
-		    
+            
+            
+            
   
-            iqa.get_IQA(ref_image = skymodelconv, target_image=allcombims)
+            iqa.get_IQA(ref_image = skymodelconv, target_image=allcombims, pb_image=allcombpbs[0]+'.chan'+str(midchan), masking_RMS=image_rms, target_beam_index=0)
          
         
         

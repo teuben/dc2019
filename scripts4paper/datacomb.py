@@ -44,6 +44,39 @@ reload(t2v)
 
 ##########################################
 
+
+def export_fits(imname, clean_origin=''):
+
+    """
+    standardized output from a combination method  (Moser-Fischer, L.)
+
+    imname - file name base
+    clean_origin - file name base of intermediate cleaning products that imname is based on (e.g. feather products is based on tclean products)
+                   
+    """
+
+    print('')
+    print('Exporting following final image products to FITS:')
+
+    for suffix in ['.image.pbcor', '.pb']:
+        if clean_origin!='' and suffix=='.pb':
+            os.system('cp -r '+clean_origin+suffix+' '+imname+suffix)
+        os.system('rm -rf '+imname+suffix+'.fits')   
+        print('-', suffix)
+        cta.exportfits(imname+suffix, imname+suffix+'.fits')
+    print('Export done.')
+    print('')
+    
+    return True
+
+
+
+
+
+
+##########################################
+
+
 def convert_JypB_JypP(sdimage):
 
     """
@@ -948,7 +981,10 @@ def runsdintimg(vis,
             os.system('rm -rf '+imname+'.sd.cube*')
             os.system('rm -rf '+imname+'.joint.cube*')
         
-            cta.exportfits(imname+'.image.pbcor', imname+'.image.pbcor.fits')
+            # cta.exportfits(imname+'.image.pbcor', imname+'.image.pbcor.fits')
+            # cta.exportfits(imname+'.pb', imname+'.pb.fits')
+            export_fits(imname)
+
             
         elif sdint_arg['deconvolver'] =='hogbom' or sdint_arg['deconvolver'] =='multiscale':
             os.system('rm -rf '+imname+'.int.cube*')
@@ -959,7 +995,10 @@ def runsdintimg(vis,
                 os.system('mv '+nam+' '+nam.replace('.joint.cube',''))
             
             #exportfits(imname+'.joint.cube.image.pbcor', imname+'.joint.cube.image.pbcor.fits')
-            cta.exportfits(imname+'.image.pbcor', imname+'.image.pbcor.fits')
+            # cta.exportfits(imname+'.image.pbcor', imname+'.image.pbcor.fits')
+            # cta.exportfits(imname+'.pb', imname+'.pb.fits')
+            export_fits(imname)
+
     else:
         print('Keeping native file names - no export!')
 
@@ -1279,6 +1318,7 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
     # Feather together the low*pb and hi images
 
     print('Feathering...')
+    os.system('rm -rf '+featherim+'.*')
     cta.feather(imagename=featherim+'.image',
                 highres=myintimage,
                 lowres='lowres.multiplied',
@@ -1297,7 +1337,7 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
     #               dishdia=12.0,
     #               chanwt=chanwt)
 
-    os.system('rm -rf '+featherim+'.image.pbcor')
+    #os.system('rm -rf '+featherim+'.image.pbcor')
     cta.immath(imagename=[featherim+'.image', myintpb],
                expr='IM0/IM1',
                outfile=featherim+'.image.pbcor')
@@ -1305,11 +1345,15 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
     highres_unit = cta.imhead(featherim+'.image', mode='get', hdkey='Bunit')
     cta.imhead(featherim+'.image.pbcor', mode='put', hdkey='Bunit', hdvalue=highres_unit)
     
+    # print('Exporting final pbcor image to FITS ...')
+    # os.system('rm -rf '+featherim+'.image.pbcor.fits')
+    # cta.exportfits(featherim+'.image.pbcor', featherim+'.image.pbcor.fits')
+	# 
+    # os.system('cp -r '+myintpb+' '+featherim+'.pb')
+    # os.system('rm -rf '+featherim+'.pb.fits')
+    # cta.exportfits(myintpb, featherim+'.pb.fits')
     
-    
-    print('Exporting final pbcor image to FITS ...')
-    os.system('rm -rf '+featherim+'.image.pbcor.fits')
-    cta.exportfits(featherim+'.image.pbcor', featherim+'.image.pbcor.fits')
+    export_fits(featherim, clean_origin=myintimage.replace('.image', ''))
 
     os.system('rm -rf lowres.*')
 
@@ -1790,10 +1834,15 @@ def runtclean(vis,
 
 
 
-    print('Exporting final pbcor image to FITS ...')
-    #exportfits(imname+'.TCLEAN.image.pbcor', imname+'.TCLEAN.pbcor.fits')
-    os.system('rm -rf '+imname+'.image.pbcor.fits') #+'.TCLEAN.*')   
-    cta.exportfits(imname+'.image.pbcor', imname+'.image.pbcor.fits')
+    # print('Exporting final pbcor image to FITS ...')
+    # #exportfits(imname+'.TCLEAN.image.pbcor', imname+'.TCLEAN.pbcor.fits')
+    # os.system('rm -rf '+imname+'.image.pbcor.fits') #+'.TCLEAN.*')   
+    # os.system('rm -rf '+imname+'.pb.fits') #+'.TCLEAN.*')   
+    # cta.exportfits(imname+'.image.pbcor', imname+'.image.pbcor.fits')
+    # cta.exportfits(imname+'.pb', imname+'.pb.fits')
+
+    export_fits(imname)
+
 
     return True
 
@@ -2103,7 +2152,7 @@ def regrid_SD(old_image, new_image, template_image):
 
     cta.imregrid(imagename=old_image,
                  template=template_image,
-                 axes=[0,1,2,3], decimate=10,
+                 axes=[0,1,2,3], #decimate=10,
                  output=new_image)  
 
 
@@ -2735,11 +2784,11 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     highres  - high resolution (interferometer) image
     lowres   - low resolution (single dish (SD)/ total power (TP)) image
     pb       - high resolution (interferometer) primary beam image 
-    combined - output image name 
+    combined - output image name base 
     sdfactor - scaling factor for the SD/TP contribution
 
     Example: ssc(highres='INT.image', lowres='SD.image', pb='INT.pb',
-                 combined='INT_SD_1.7.image', sdfactor=1.7)
+                 combined='INT_SD_1.7', sdfactor=1.7)
 
     """
 
@@ -2967,19 +3016,27 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     highres_unit = cta.imhead(combined, mode='get', hdkey='Bunit')
     cta.imhead(combined +'.pbcor', mode='put', hdkey='Bunit', hdvalue=highres_unit)
 
+    # os.system('cp -r '+pb+' '+combined.replace('.image','.pb'))
+	# 
+    # myimages = [combined]
+	# 
+	# 
+    # 
+    # for myimagebase in myimages:
+    #      cta.exportfits(imagename = myimagebase+'.pbcor',
+    #                     fitsimage = myimagebase+'.pbcor.fits',
+    #                     overwrite = True
+    #      )
+    # 
+    #      cta.exportfits(imagename = myimagebase,
+    #                     fitsimage = myimagebase+'.fits',
+    #                     overwrite = True
+    #      )
+	# 
+	
+    export_fits(combined.replace('.image',''), clean_origin=pb.replace('.pb', ''))
 
-    myimages = [combined]
-    
-    for myimagebase in myimages:
-         cta.exportfits(imagename = myimagebase+'.pbcor',
-                        fitsimage = myimagebase+'.pbcor.fits',
-                        overwrite = True
-         )
-    
-         cta.exportfits(imagename = myimagebase,
-                        fitsimage = myimagebase+'.fits',
-                        overwrite = True
-         )
+
 
     # Tidy up 
     os.system('rm -rf lowres.*')
@@ -3607,15 +3664,21 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
     # 2021-03-02 13:16:59   WARN    MSTransformRegridder::combineSpwsCore   SPW 4 cannot be combined with SPW 3. Non-matching ref. frame.
     # 2021-03-02 13:16:59   SEVERE  MSTransformRegridder::combineSpwsCore   Error combining SpWs
     
-    os.system('rm -rf '+imname+'.tweak.image.pbcor.fits')            
-    os.system('rm -rf '+imname+'.image.pbcor.fits')            
+    #os.system('rm -rf '+imname+'.tweak.image.pbcor.fits')            
+    #os.system('rm -rf '+imname+'.image.pbcor.fits')            
 
 
     if niter!=0:
         t2v.tp2vistweak(imname+'_dirty', imname, mask='\'' + imname +'.image' + '\'' + '>0.2') # in CASA 6.x
-        cta.exportfits(imagename=imname+'.tweak.image.pbcor', fitsimage=imname+'.tweak.image.pbcor.fits')
-        
-    cta.exportfits(imagename=imname+'.image.pbcor', fitsimage=imname+'.image.pbcor.fits')
+        export_fits(imname+'.tweak', clean_origin=imname)
+
+        # os.system('rm -rf '+imname+'.tweak.pb')            
+        # os.system('cp -r '+imname+'.pb '+imname+'.tweak.pb')            
+        # cta.exportfits(imagename=imname+'.tweak.image.pbcor', fitsimage=imname+'.tweak.image.pbcor.fits')
+  
+    export_fits(imname, clean_origin='')
+
+    # cta.exportfits(imagename=imname+'.image.pbcor', fitsimage=imname+'.image.pbcor.fits')
     ##exportfits(imagename=TP2VISim+'.pb', fitsimage=TP2VISim+'.pb.fits')
     
      
