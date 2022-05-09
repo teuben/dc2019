@@ -49,7 +49,7 @@ start = time.time()
 print(' ')
 print('### ')
 if dryrun==True:
-    print('Collecting filenames for assesment of ...')   
+    print('Collecting filenames for assessment of ...')   
 else:     
     print('Executing ...')    
 for mystep in thesteps:
@@ -84,7 +84,9 @@ if vis=='':
             thesteps.sort()           # force execution of vis creation (Step 0)
             print('Need to execute step 0 to generate a concatenated ms')
 else:
-    dc.file_check(vis)   
+    dc.file_check(vis)  
+    os.system('rm -rf '+vis+'.listobs')
+    cta.listobs(vis, listfile=vis+'.listobs')  
 
 
 
@@ -171,7 +173,7 @@ else:
 sdreordered_cut = sdbase +'.SD_ro.image'                    # SD image axis-reordering
 sdroregrid      = sdbase +'.SD_ro-rg_'+specsetup+'.image'   # SD image regridding
 
-imnameth      = imbase + '.'+mode +'_'+ specsetup +'_template'  # dirty image for thershold and mask generation
+imnameth        = imbase + '.'+mode +'_'+ specsetup +'_template'  # dirty image for thershold and mask generation
 threshmask      = imbase + '.'+mode +'_'+ specsetup+ '_RMS'       # thresold mask name
 SD_mask_root    = sdbase + '.'+mode +'_'+ specsetup+ '_SD'        # SD mask name
 combined_mask   = SD_mask_root + '-RMS.mask'                      # SD+AM+threshold mask name
@@ -185,7 +187,10 @@ if masking == 'PB':
 if masking == 'AM':
     general_tclean_param['usemask'] = 'auto-multithresh'                   
 if masking == 'UM':
-    general_tclean_param['usemask'] = 'user'
+    #general_tclean_param['usemask'] = 'user'
+    general_tclean_param['usemask']     = 'auto-multithresh'   
+    general_tclean_param['loadmask']    = True   
+    general_tclean_param['fniteronusermask']  = fniteronusermask  
 if masking == 'SD-INT-AM': 
     if not os.path.exists(combined_mask) or not os.path.exists(threshmask+'.mask') or not os.path.exists(SD_mask_root+'.mask'):
         if 1 in thesteps:
@@ -267,11 +272,12 @@ mask_tclean_param = dict(phasecenter = general_tclean_param['phasecenter'],
                          )
 
 
-# mask generation: execute step 1 or use existing template 
-   
+# mask generation: execute step 1 or 2, or use existing template 
+tcleanname = imbase + cleansetup + tcleansetup   
+
 if 1 in thesteps and dryrun==False: 
         pass    
-elif not os.path.exists(imnameth + '.image'):
+elif not os.path.exists(imnameth + '.image'): # or not os.path.exists(tcleanname + '.image'):
 #elif not os.path.exists(threshmask + '.mask') or not os.path.exists(imnameth + '.image'):
     #if 1 in thesteps:
     #    pass
@@ -279,10 +285,16 @@ elif not os.path.exists(imnameth + '.image'):
     thesteps.append(1)      
     thesteps.sort()           # force execution of SDint mask creation (Step 1)
     print('Need to execute step 1 to estimate a thresold')
+else: #if imnameth/tcleanname + '.image' exists, simply re-derive the mask etc.
+    if os.path.exists(tcleanname + '.image'):
+        tempname = tcleanname
+        print('')
+        print('Derive mask and threshold from tcleaned image (step 2).')
+    else:
+        tempname = imnameth
+        print('')
+        print('Derive mask and threshold from dirty image (step 1).')
 
-else: #if imnameth + '.image' exists, simply re-derive the mask etc.
-    
-    
     #thresh = dc.derive_threshold(#vis, 
     #                             imnameth , threshmask,
     #                             #overwrite=False,   # False for read-only, 
@@ -296,7 +308,7 @@ else: #if imnameth + '.image' exists, simply re-derive the mask etc.
     #                             makemask=True)
     #    
         
-    thresh = dc.make_masks_and_thresh(imnameth, threshmask,
+    thresh = dc.make_masks_and_thresh(tempname, threshmask,
                                          #overwrite=True,
                                  sdimage, sdmasklev, SD_mask_root,
                                  combined_mask,                                         
@@ -314,11 +326,11 @@ else: #if imnameth + '.image' exists, simply re-derive the mask etc.
     if general_tclean_param['threshold'] == '':                         # don't forget to run *_pars_* before
         rederivethresh=True  # TP2VIS parameter 
         general_tclean_param['threshold']  = str(thresh)+'Jy' 
-        print('Use mask threshold as clean threshold ', general_tclean_param['threshold']) 
-            
+        #print('### Use mask threshold as clean threshold ', general_tclean_param['threshold']) 
+        print('### Use INT mask threshold as clean threshold ', general_tclean_param['threshold'])          
     else:
         rederivethresh=False  # TP2VIS parameter 
-        print('Use user-defined clean threshold ', general_tclean_param['threshold'])          
+        print('### Use user-defined clean threshold ', general_tclean_param['threshold'])          
             
 
 
@@ -360,12 +372,12 @@ if mystep in thesteps:
     print(' ')    
     print('### ')
     print('Step ', mystep, step_title[mystep])
-    print('  vis:')
-    print(*thevis, sep = "\n")
-    print('  concatvis:')
-    print(concatms)
+
     print('### ')
     print(' ')
+
+
+
 
 
     if dryrun == True:
@@ -374,7 +386,12 @@ if mystep in thesteps:
         if thevis ==[]:
             print('No data to concat!')
             
-        else:   
+        else: 
+            print('  vis:')
+            print(*thevis, sep = "\n")
+            print('  concatvis:')
+            print(concatms)  
+            
             for i in range(0,len(thevis)):
                 if '.aca.tp.' in thevis[i]:
                     print('')
@@ -397,6 +414,10 @@ if mystep in thesteps:
             os.system('rm -rf '+concatms)
             
             cta.concat(vis = thevis, concatvis = concatms, visweightscale = weightscale)
+
+            os.system('rm -rf '+concatms+'.listobs')
+            cta.listobs(concatms, listfile=concatms+'.listobs')
+
             print('--- Done! ---')         
 
 
@@ -499,12 +520,12 @@ if mystep in thesteps:
             rederivethresh=True  # TP2VIS parameter 
             #userthresh=False    ### parameter gone?
             general_tclean_param['threshold']  = str(thresh)+'Jy' 
-            print('Use INT mask threshold as clean threshold ', general_tclean_param['threshold'])          
+            print('### Use INT mask threshold as clean threshold ', general_tclean_param['threshold'])          
             #print('Set the tclean-threshold to ', general_tclean_param['threshold'])
         else:
             rederivethresh=False  # TP2VIS parameter 
             #userthresh=True     ### parameter gone?
-            print('Use user-defined clean threshold ', general_tclean_param['threshold'])          
+            print('### Use user-defined clean threshold ', general_tclean_param['threshold'])          
            
        
            
@@ -533,6 +554,39 @@ if mystep in thesteps:
     else:
         dc.runtclean(vis, imname, startmodel='', 
                      **z)
+
+    
+        # update masking for tcleaned image as template !
+
+        # Derive INT threshold, INT mask, SD mask, and combined mask
+
+        thresh = dc.make_masks_and_thresh(imname, threshmask,
+                                     #overwrite=True,
+                                     sdimage, sdmasklev, SD_mask_root,
+                                     combined_mask,
+                                     specmode = general_tclean_param['specmode'],
+                                     smoothing = smoothing,
+                                     threshregion = threshregion,
+                                     RMSfactor = RMSfactor,
+                                     cube_rms   = cube_rms,    
+                                     cont_chans = cont_chans,
+                                     makemask=True
+                                     )
+
+        print(' ')   
+     
+        if general_tclean_param['threshold'] == '':
+            rederivethresh=True  # TP2VIS parameter 
+            #userthresh=False    ### parameter gone?
+            general_tclean_param['threshold']  = str(thresh)+'Jy' 
+            print('### Use INT mask threshold as clean threshold ', general_tclean_param['threshold'])          
+            #print('Set the tclean-threshold to ', general_tclean_param['threshold'])
+        else:
+            rederivethresh=False  # TP2VIS parameter 
+            #userthresh=True     ### parameter gone?
+            print('### Use user-defined clean threshold ', general_tclean_param['threshold'])          
+           
+
 
 
     tcleanims.append(imname+'.image')
@@ -688,7 +742,7 @@ if mystep in thesteps:
     if dryrun == True:
         print('Skip execution!')
     else:    
-        if TPpointingTemplate!='' and file_check_vis_str_only(TPpointingTemplate)==TPpointingTemplate: #a12m!=[]:    # if 12m-data exists ...
+        if TPpointingTemplate!='' and dc.file_check_vis_str_only(TPpointingTemplate)==TPpointingTemplate: #a12m!=[]:    # if 12m-data exists ...
             print('Creating pointing table from template data set:', TPpointingTemplate)
             #dc.ms_ptg(TPpointingTemplate, outfile=TPpointinglist, uniq=True)
             dc.listobs_ptg(TPpointingTemplate, listobsOutput, TPpointinglist, Epoch=Epoch)
@@ -768,12 +822,34 @@ if mystep in thesteps:
     print(' ')
 
 
+    # set assessment threshold value
+
+    if assessment_thresh == None:   
+        if mode=='cube':
+            image_rms = thresh/cube_rms #*3.     # 3 sigma limit
+        if mode=='mfs':
+            image_rms = thresh/RMSfactor #*3.    # 3 sigma limit
+        clip_string = 'Clipping maps at rms level of %.6f Jy/beam' %image_rms                                             
+    elif assessment_thresh == 'clean-thresh':
+        image_rms = float(general_tclean_param['threshold'].replace('Jy',''))
+        clip_string = 'Clipping maps at clean threshold level of %.6f Jy/beam' %image_rms   
+    else:
+        image_rms = assessment_thresh
+        clip_string = 'Clipping maps at user-defined level of %.6f Jy/beam' %image_rms   
+
+    
+
+    print('###')    
+    print('### Assessment:', clip_string)       
+    #print('### Clipping level for the assessment of the maps was at %.6f Jy/beam' %image_rms)       
+    print('###') 
+    print('') 
 
     
     #### imbase         = pathtoimage + 'skymodel-b_120L
     sourcename = imbase.replace(pathtoimage,'')
     # folder to put the assessment images to 
-    assessment=pathtoimage + 'assessment_'+sourcename+cleansetup
+    assessment=pathtoimage + 'assessment_'+sourcename+cleansetup+'_thresh'+str(round(image_rms,6))
     os.system('mkdir '+assessment) 
 
 
@@ -918,15 +994,10 @@ if mystep in thesteps:
     #print(sdroregrid)
     #print(allcombims)   
     
-    if assessment_thresh == None:   
-        if mode=='cube':
-            image_rms = thresh/cube_rms #*3.     # 3 sigma limit
-        if mode=='mfs':
-            image_rms = thresh/RMSfactor #*3.    # 3 sigma limit
-    else:
-        image_rms = assessment_thresh
-    
-    iqa.get_IQA(ref_image = sdroregrid, target_image=allcombims, pb_image=allcombpbs[0], masking_RMS=image_rms, target_beam_index=0)
+
+    iqa.get_IQA(ref_image = sdroregrid, target_image=allcombims, 
+                pb_image=allcombpbs[0], masking_RMS=image_rms, 
+                target_beam_index=0) #, pbval=pbval)
     
     
     
@@ -951,11 +1022,24 @@ if mystep in thesteps:
             
         for i in range(0,len(allcombims)):
             os.system('rm -rf ' + allcombims[i]+'.mom0')
+            os.system('rm -rf ' + allcombims0[i]+'_clipped*')
             # sigma clipped moment maps
+            cta.immath(imagename=allcombims0[i],
+                   expr='IM0[IM0>'+str(image_rms)+']', 
+                   outfile=allcombims0[i]+'_clipped')            
+            cta.immath(imagename=[allcombims0[i]+'_clipped', allcombpbs[i]],
+                   expr='IM0/IM1', 
+                   outfile=allcombims0[i]+'_clipped_pbcorr')             
+            cta.immoments(imagename=allcombims0[i]+'_clipped_pbcorr',
+                       moments=[0],                                           
+                       chans=momchans,                                       
+                       outfile=allcombims0[i]+'_clipped_pbcorr.mom0')
+            # smoothing *'_clipped_pbcorr.mom0' gives much lower flux value than it should --> use its minimum value for masking mom0 in get_IQA        
+            imrms_mom0min = cta.imstat(allcombims0[i]+'_clipped_pbcorr.mom0')['min'][0]           
             cta.immoments(imagename=allcombims[i],
                        moments=[0],                                           
-                       chans=momchans, includepix=[image_rms, 10000000000.0],                                        
-                       outfile=allcombims[i]+'.mom0')
+                       chans=momchans, #includepix=[image_rms, 10000000000.0],                                        
+                       outfile=allcombims[i]+'.mom0')                       
             os.system('rm -rf ' + allcombims[i]+'.mom0.fits')
             cta.exportfits(imagename=allcombims[i]+'.mom0', fitsimage=allcombims[i]+'.mom0.fits', dropdeg=True)
             midchan=int(general_tclean_param['nchan']/2)
@@ -1034,8 +1118,10 @@ if mystep in thesteps:
                                   titlename='Combined maps in moment 0 from the chosen \n  combination methods for '+sourcename+cleansetup+'_'+str(i)
                               )    
 
-
-        iqa.get_IQA(ref_image = sdroregrid, target_image=allcombims, pb_image=allcombpbs[0]+'.chan'+str(midchan), masking_RMS=image_rms, target_beam_index=0)
+        image_rms = 10.*imrms_mom0min   # use minimum value of moment 0 map of image_rms-clipped cube as new mask threshold
+        iqa.get_IQA(ref_image = sdroregrid, target_image=allcombims, 
+                     pb_image=allcombpbs[0]+'.chan'+str(midchan), masking_RMS=image_rms, 
+                     target_beam_index=0) #, pbval=pbval)
     
      
     
@@ -1271,7 +1357,9 @@ if mystep in thesteps:
         
         # make Apar and fidelity images
         
-        iqa.get_IQA(ref_image = skymodelconv, target_image=allcombims, pb_image=allcombpbs[0], masking_RMS=image_rms, target_beam_index=0)
+        iqa.get_IQA(ref_image = skymodelconv, target_image=allcombims, 
+                    pb_image=allcombpbs[0], masking_RMS=image_rms, 
+                    target_beam_index=0) #, pbval=pbval)
    
         
         
@@ -1379,7 +1467,9 @@ if mystep in thesteps:
             
             
   
-            iqa.get_IQA(ref_image = skymodelconv, target_image=allcombims, pb_image=allcombpbs[0]+'.chan'+str(midchan), masking_RMS=image_rms, target_beam_index=0)
+            iqa.get_IQA(ref_image = skymodelconv, target_image=allcombims, 
+                        pb_image=allcombpbs[0]+'.chan'+str(midchan), masking_RMS=image_rms, 
+                        target_beam_index=0) #, pbval=pbval)
          
         
         
@@ -1459,8 +1549,7 @@ if mystep in thesteps:
                        plotname=assessment+'/Model_Power_spectra_convo2ref_Apar_'+sourcename+cleansetup+steplist,
                        labelname=allcombi,
                        titlename='Apar power spectra (convolved to model) for \nsource: '+sourcename+' and \nclean setup: '+cleansetup.replace('.',''))                         
-        
-    
+            
     
     
         #################### NOT YET WORKING !!! problems #######
@@ -1469,12 +1558,15 @@ if mystep in thesteps:
         #
         ##### !!!needs SD-fitsfile ----> to create in step 1 !!!!
         
-        
+    print('###')    
+    print('### Assessment:', clip_string)
+    print('### Clean threshold was', general_tclean_param['threshold'])       
+    print('### Mom0-Assessment cut-off', imrms_mom0min)
+    #print('### Clipping level for the assessment of the maps was at %.6f Jy/beam' %image_rms)       
+    print('###')    
     
     
-    
-    
-    
+
     
     
     

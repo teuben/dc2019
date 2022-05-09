@@ -56,7 +56,7 @@ def export_fits(imname, clean_origin=''):
     """
 
     print('')
-    print('Exporting following final image products to FITS:')
+    print('Exporting following final image products to FITS for '+imname+':')
 
     for suffix in ['.image.pbcor', '.pb']:
         if clean_origin!='' and suffix=='.pb':
@@ -1348,7 +1348,7 @@ def runfeather(intimage,intpb, sdimage, sdfactor = 1.0, featherim='featherim'):
     # print('Exporting final pbcor image to FITS ...')
     # os.system('rm -rf '+featherim+'.image.pbcor.fits')
     # cta.exportfits(featherim+'.image.pbcor', featherim+'.image.pbcor.fits')
-	# 
+    # 
     # os.system('cp -r '+myintpb+' '+featherim+'.pb')
     # os.system('rm -rf '+featherim+'.pb.fits')
     # cta.exportfits(myintpb, featherim+'.pb.fits')
@@ -2581,7 +2581,12 @@ def derive_threshold(#vis,
         #print('full_RMS', full_RMS)
         #peak_val = imstat(imnameth+'.image')['max'][0]
         thresh = full_RMS*RMSfactor
-        print('The "RMS" of the entire image (incl emission) is ', round(full_RMS,6), 'Jy')
+        if threshregion == '':
+            region_string='entire image (incl emission)'
+        else:
+            region_string='region "' + threshregion +'"'
+        print('The "RMS" of the ' + region_string+ ' is', round(full_RMS,6), 'Jy')
+        #print('The "RMS" of the entire image (incl emission) is ', round(full_RMS,6), 'Jy')
         print('You set the mask threshold to ', round(RMSfactor,6), ' times the RMS, i.e. ', round(thresh,6), 'Jy')
     
     #### cube
@@ -3017,10 +3022,10 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     cta.imhead(combined +'.pbcor', mode='put', hdkey='Bunit', hdvalue=highres_unit)
 
     # os.system('cp -r '+pb+' '+combined.replace('.image','.pb'))
-	# 
+    # 
     # myimages = [combined]
-	# 
-	# 
+    # 
+    # 
     # 
     # for myimagebase in myimages:
     #      cta.exportfits(imagename = myimagebase+'.pbcor',
@@ -3032,8 +3037,8 @@ def ssc(highres=None, lowres=None, pb=None, combined=None,
     #                     fitsimage = myimagebase+'.fits',
     #                     overwrite = True
     #      )
-	# 
-	
+    # 
+    
     export_fits(combined.replace('.image',''), clean_origin=pb.replace('.pb', ''))
 
 
@@ -3676,7 +3681,7 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
         # os.system('cp -r '+imname+'.pb '+imname+'.tweak.pb')            
         # cta.exportfits(imagename=imname+'.tweak.image.pbcor', fitsimage=imname+'.tweak.image.pbcor.fits')
   
-    export_fits(imname, clean_origin='')
+    #export_fits(imname, clean_origin='')  # happend already at runtclean stage
 
     # cta.exportfits(imagename=imname+'.image.pbcor', fitsimage=imname+'.image.pbcor.fits')
     ##exportfits(imagename=TP2VISim+'.pb', fitsimage=TP2VISim+'.pb.fits')
@@ -3771,24 +3776,25 @@ def docstrings_list(filename):
                derive_maxscale.__doc__,
                derive_threshold.__doc__,
                docstrings_list.__doc__,
+               export_fits.__doc__,
                feather_int_sd.__doc__,
                file_check.__doc__,
                file_check_vis.__doc__,
-               file_check_vis_str_only__doc__,
+               file_check_vis_str_only.__doc__,
                file_to_pydict.__doc__,
                file_to_pydict2.__doc__,
                getFreqList.__doc__,
                get_SD_cube_params.__doc__,
                listobs_ptg.__doc__,
                make_SD_mask.__doc__,
-               make_SDint_mask.__doc__,
+               make_masks_and_thresh.__doc__,
                ms_ptg.__doc__,
                pydict_to_file.__doc__,
                pydict_to_file2.__doc__,
                regrid_SD.__doc__,
                reorder_axes.__doc__,
                reorder_axes2.__doc__,
-               report_mask__doc__,
+               report_mask.__doc__,
                runWSM.__doc__,
                runfeather.__doc__,
                runsdintimg.__doc__,

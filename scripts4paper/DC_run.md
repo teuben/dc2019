@@ -362,24 +362,28 @@ Purpose:
 analyze combination results
 For this, specify in *_pars_*-file:
 * momchans
+* mapchan
 * skymodel     
+* assessment_thresh
 
 what it does:
-* residual maps + tclean masks, stopping criteria NUMBERS, and thresholds
-stopping criteria codes are dwefined as in
+* residual maps + tclean masks, stopping criteria, and thresholds
+stopping criteria codes are defined as in
 https://casa.nrao.edu/casadocs/casa-5.4.0/synthesis-imaging/user-interaction
 https://casadocs.readthedocs.io/en/v6.2.0/notebooks/synthesis_imaging.html#Iteration-Control
 under "Global Stopping Criteria"
+* combined image products, SD image, and skymodel if provided
 
 * Combined image vs. SD image (and model image, if skymodel from simulation is given)
-  * Compare_Apar/Fidelity_(cubes)
+  * Compare_Apar/Fidelity(_cubes)
   * show_Apar/Fidelity_map
   * Compare_Apar/Fidelity_signal
   * genmultisps: power spectra of images and apar images
 
-
+all functions on continuum and mom0, Compare_Apar/Fidelity_cubes on cubes
   
-- numbers of involved step a file name end ---> allows assessment/comparison of subselection of steps.
+- numbers of involved step appear at file name end ---> allows assessment/comparison of subselection of steps.
+
 
 
 
