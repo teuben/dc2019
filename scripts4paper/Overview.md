@@ -73,7 +73,19 @@ Details on the work-flow of core-script **DC_run.py** are given in
 * Play with all other steps
 * For running step 8 alone: activate combination steps of interest (2-7) and use dryrun=True (no active combination - just load products from previous runs)
 
-
+NEW:
+* If you just want the feedback on the rms and threshold that DC_run has derived from your DC_pars_* input, set ``thesteps`` to any step except from step 8 and ``dryrun = True``
+* In theory: Thanks to full paths the script can be executed in any arbitrary folder. Having several CASA instances started in the same folder makes them interfere with each other intermediate products (e.g. erase each other's *temp*-folders) leading to crashes. Therefore, execute each script in the corresponding output folder to stay safe.
+* Check path names in your DC_locals.py and DC_pars_*.py: A '/' too few or too many might be the reason for trouble.
+* In case of a poor PSF (blotchy sidelobes, often for 7m snapshot data)
+      * automatically generated masks might let CLEAN diverge
+      * create interactive user mask by executing step 2 in ``interactive='IA'`` - mode and rename the resulting <tclean-product>.mask to another name, so that it does not get erased the next time step 2 is executed.
+      * execute DC_run from now on with ``masking = 'UM'`` and ``interactive = 'nIA'`` 
+        (NOT YET IMPLEMENTED!: and use few 100 of cycleniter. Faint emission might require cycleniter of few tens only!)
+* Unknown issue: We had hick-ups with data concatenated in another CASA version that DC_run was executed in. We recommend that you re-do the concatenation in DC-run, if the original data sets are accessible to you. 
+* Restarting CASA and or using a new shell can sometimes solve weird processing crashes.
+      
+      
 
 ## Flexibility
 
