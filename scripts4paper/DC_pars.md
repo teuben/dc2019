@@ -74,6 +74,9 @@ and their corresponding data weights in the concatenation (visweight-parameter i
       weight7m  = [1.,1.,...]
 
 In most cases, the weights are 1.0, except for 7m data, that have been simulated (0.166 = (D_7m/D_12m)^4 *(t_int_7m/t_int_12m)) or that have been manually calibrated in a CASA version < 4.3.0. Follow the instructions on https://casaguides.nrao.edu/index.php/DataWeightsAndCombination to prepare your data and choose the weights correctly. 
+
+NEW: You should make sure that you input data contains solely the science observation on the target (i.e. intent = '*TARGET*') and no data for other observing intents. This is especially relevant for the combination of 12m data in TP2VIS-mode.
+
 The ``concatms``-parameter holds the file name of the concatenated data sets.
 
       concatms = pathtoimage + 'skymodel-b_120L.alma.all_int-weighted.ms'       
@@ -128,8 +131,8 @@ whereas setting it to ``SDpar`` automatically uses the channel setup of the SD i
        endchan   = 39  #None  #   end-value of the SD image channel range you want to cut out
 
 If specsetup = ``INTpar``, the cut-out-channel inputs are ignored.
-In ``mode='mfs'``  , ``specsetup`` is set to ``nt1`` meaning the number of Taylor terms for mtmfs-clean. an mfs-clean corresponds then to a mtmfs-clean with nterms=1. Currently, mfs is the only continuum mode offered and ``nt1`` is only inserted for the name without any effect on the tclean parameters.
-
+In ``mode='mfs'``  , ``specsetup`` is set to ``nt1`` meaning the number of Taylor terms for mtmfs-clean. An mfs-clean corresponds then to a mtmfs-clean with nterms=1. Currently, mfs is the only continuum mode offered and ``nt1`` is only inserted for the name without any effect on the tclean parameters.
+Any accidental channel setup is ignored in this mode.
       
       
 ### multiscale
@@ -171,6 +174,15 @@ With the parameter ``masking`` the user can define the masking mode, i.e.
 
 In most cases, ``masking = 'AM'`` with its subparameters set to default (as above) is the best choice, but tends to fail for extremely extended emission.
 
+NEW I.E. SHIFTED: The ``UM``- and the ``SD-INT-AM``-mode are designed such that a user-defined fraction of the tclean iterations 
+
+       fniteronusermask = 0.3   # valid between 0.0 an 1.0
+       
+is spent on the provided mask. Once the stopping-threshold or interation limit ``fniteronusermask``*``nit`` is reached, tclean is restarted in ``AM``-mode and continues cleaning also on regions outside the providedmask until the threshold or the (1-``fniteronusermask``)*``nit`` is reached. 
+With n ``fniteronusermask`` = 0.0, DC_run loads the provided mask with one iteration and then moves over to the ``AM``-mode. An ``fniteronusermask`` = 1.0 makes DC_run work solely on the provided mask for all iterations. Both extremes can give insufficient cleaning results, therefore a flexible mixture of the two modes is introduced by the 
+``fniteronusermask``-parameter.
+       
+       
 
 #### SD-INT-AM mask fine-tuning (step 1)
 
@@ -192,7 +204,7 @@ For an interferometric image based mask, a dirty image of the ``vis`` with the b
 In order to setup the parameters above it is best to execute step 1 once - SD_INT_AM parameters are irrelevant at this moment. 
 This step regrids the SD and creates a dirty image of the ``vis`` with the basic clean parameters defining the image shape. Inspect dirty image and SD image 
 
-      imnameth      = imbase + '.'+mode +'_'+ specsetup +'_templateor.image'
+      imnameth      = imbase + '.'+mode +'_'+ specsetup +'_template.image'
       sdreordered_cut = sdbase +potential-channel-cut-out+'.SD_ro.image' # SDpar case 
          or 
       sdroregrid      = sdbase +'.SD_ro-rg_'+specsetup+'.image'          # INTpar case
@@ -203,7 +215,9 @@ The resulting threshold-clipped mask is smoothed by the ``smoothing``-factor tim
 
 The flux threshold for a single dish image based mask is given by the ``sdmasklevel`` times the SD image peak flux.
 
-Having the parameters set, a second execution of step 1 is not necessary, because the mask is recalculated for any changes in the mask fine-tuning parameters at the beginning of each DC_run execution. Nevertheless, the updated *pars*-file needs to be executed before DC_run, else your new SD_INT_AM parameter are not implemented.
+NEW: Having the parameters set, a second execution of step 1 is not necessary, because the threshold and masks are recalculated for any changes in the mask fine-tuning parameters at the beginning of each DC_run execution. In fact, when step 2 (ordinary tclean) has been executed, the tclean-product will be used as a templete for threshold and mask generation instead - under the assumption that the strongest sidelobes have been removed by cleaning and therefore yielding a more accurate representation of the actual brightness distribution.
+
+Nevertheless, the updated *pars*-file needs to be executed before DC_run, else your new SD_INT_AM parameter are not implemented.
 
 Whenever the interferometric masks is created, DC_run gives feedback in the terminal about the measured RMS and the applied threshold that is used for the mask - and for cleaning if specified ``t_threshold`` is not specified.
 
@@ -230,15 +244,7 @@ the options are: 'SD', 'INT', 'combined'
        sdint_SDAMmask  = 'INT'     
        TP2VIS_SDAMmask = 'INT'
 
-The ``SD-INT-AM``-mode is designed such that a user-defined fraction of the tclean iterations 
 
-       fniteronusermask = 0.3   # valid between 0.0 an 1.0
-       
-is spent on a user mask. Once the stopping-threshold or interation limit ``fniteronusermask``*``nit`` is reached, tclean is restarted in ``AM``-mode and continues cleaning also on regions outside the ``SD-INT-AM``-mask until the threshold or the (1-``fniteronusermask``)*``nit`` is reached. 
-With n ``fniteronusermask`` = 0.0, DC_run loads the ``SD-INT-AM``-mask with one iteration and then moves over to the ``AM``-mode. An ``fniteronusermask`` = 1.0 makes DC_run work solely on the ``SD-INT-AM``-mask for all iterations. Both extremes give insufficient cleaning results, therefore a flexible mixture of the two modes is introduced by the 
-``fniteronusermask``-parameter.
-       
-       
        
 
 
@@ -324,4 +330,11 @@ If present, we can specify a ``skymodel``-image to compare our results to. In ou
       skymodel = a12m[0].replace('.ms','.skymodel')    # model path/name used for simulating the observation, else set to ''
       
 The skymodel image is expected to be CASA-imported!
+To exclude low flux values from the assessment, you can set a threshold below which the data is masked. Option 'None' will use the rms derived by the CLEAN threshold and masking routine, 'clean-thresh' the CLEANing threshold used, and a number(float) will be the cut-off threshold in Jy/beam
+
+      assessment_thresh = 0.01        # default: None, option: None, 'clean-thresh', or flux value(float, translated units: Jy/bm), 
+                                       # threshold mask to exclude low SNR pixels, if None, use rms measurement from threshold_mask for tclean (see SD-INT-AM)
+                                       # also used as lower flux limit for moment 0 map creation
+
+
 

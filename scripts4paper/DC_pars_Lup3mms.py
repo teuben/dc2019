@@ -109,7 +109,7 @@ t_threshold = '0.022Jy'        # 4sigma      # e.g. '0.1mJy', can be left blank 
 
 ### masking
 
-masking  = 'PB' #'SD-INT-AM'        # 'UM' (user mask), 'SD-INT-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
+masking  = 'PB' #'SD-INT-AM'        # 'UM' (user mask), 'SD-INT-AM' (SD+INT+AM mask), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 t_mask              = ''      # specify for 'UM', mask name
 t_pbmask            = 0.4     # specify for 'AM' and 'PM', cut-off level
 t_sidelobethreshold = 2.0     # specify for 'AM', default: 2.0 
@@ -118,6 +118,7 @@ t_lownoisethreshold = 1.5     # specify for 'AM', default: 1.5
 t_minbeamfrac       = 0.3     # specify for 'AM', default: 0.3 
 t_growiterations    = 75      # specify for 'AM', default: 75 
 t_negativethreshold = 0.0     # specify for 'AM', default: 0.0 
+fniteronusermask    = 0.6
 
 
 #### SD-INT-AM mask fine-tuning (step 1)
@@ -137,7 +138,6 @@ tclean_SDAMmask = 'INT'
 hybrid_SDAMmask = 'INT'     
 sdint_SDAMmask  = 'combined'     
 TP2VIS_SDAMmask = 'INT' 
-fniteronusermask = 0.6
 
 
 ### SDINT options (step 6)

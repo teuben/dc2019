@@ -16,6 +16,7 @@ step_title = {0: 'Concat',
               8: 'Assessment of the combination results'
               }
 
+#thesteps=[2,4,5,8]
 thesteps=[0,1,2,3,4,5,6,7,8]
 
 #thesteps=[7]
@@ -104,7 +105,7 @@ t_threshold = ''              # e.g. '0.1mJy', can be left blank -> DC_run will 
 
 ### masking
 
-masking  = 'SD-INT-AM'        # 'UM' (user mask), 'SD-INT-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
+masking  = 'SD-INT-AM'        # 'UM' (user mask), 'SD-INT-AM' (SD+INT+AM mask), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 t_mask              = ''      # specify for 'UM', mask name
 t_pbmask            = 0.2     # specify for 'PM', cut-off level
 t_sidelobethreshold = 2.0     # specify for 'AM', default: 2.0 
@@ -113,14 +114,15 @@ t_lownoisethreshold = 1.5     # specify for 'AM', default: 1.5
 t_minbeamfrac       = 0.3     # specify for 'AM', default: 0.3 
 t_growiterations    = 75      # specify for 'AM', default: 75 
 t_negativethreshold = 0.0     # specify for 'AM', default: 0.0 
+fniteronusermask    = 0.7
 
 
 #### SD-INT-AM mask fine-tuning (step 1)
 
-smoothing    = 5.               # smoothing of the threshold mask (by 'smoothing x beam')
+smoothing    = 2.               # smoothing of the threshold mask (by 'smoothing x beam')
 threshregion = ''               # emission free region in template continuum or channel image
 RMSfactor    = 0.5              # continuum rms level (not noise from emission-free regions but entire image)
-cube_rms     = 3.               # cube noise (true noise) x this factor
+cube_rms     = 4.               # cube noise (true noise) x this factor
 cont_chans   = '1~7,64~69'      # line free channels for cube rms estimation
 sdmasklev    = 0.3              # maximum x this factor = threshold for SD mask
 				              
@@ -132,7 +134,6 @@ tclean_SDAMmask = 'INT'
 hybrid_SDAMmask = 'INT'     
 sdint_SDAMmask  = 'INT'     
 TP2VIS_SDAMmask = 'INT' 
-fniteronusermask = 0.3
 
 
 ### SDINT options (step 6)
@@ -165,10 +166,14 @@ TPnoiseChannels           = '1~7'              # in unregridded and un-cut SD cu
       
 ## Assessment related (step 8)
 
-momchans = '8~63'             # line-free: '1~7,64~69'      # channels to compute moment maps (integrated intensity, etc.) 
-mapchan  = None               # cube channel (integer) of interest to use for assessment in step 8. None = central channel
+momchans = '8~63'             # channels to compute moment maps (integrated intensity, etc.) 
+mapchan  = 55               # cube channel (integer) of interest to use for assessment in step 8. None = central channel
 				              
 skymodel = ''                 # model used for simulating the observation, expected to be CASA-imported
 
-assessment_thresh = None #0.025        # default: None, format: float, translated units: Jy/bm, threshold mask to exclude low SNR pixels, if None, use rms measurement from threshold_mask for tclean (see SD-INT-AM)
+assessment_thresh = 0.011        # default: None, option: None, 'clean-thresh', or flux value(float, translated units: Jy/bm), 
+                                       # threshold mask to exclude low SNR pixels, if None, use rms measurement from threshold_mask for tclean (see SD-INT-AM)
+                                       # also used as lower flux limit for moment 0 map creation
+
+#pbval = 0.6                # PB-mask cut-off level
 

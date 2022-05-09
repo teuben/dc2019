@@ -96,7 +96,7 @@ t_threshold = ''              # e.g. '0.1mJy', can be left blank -> DC_run will 
 
 ### masking
 
-masking             = 'AM'    # 'UM' (user mask), 'SD-INT-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
+masking             = 'AM'    # 'UM' (user mask), 'SD-INT-AM' (SD+INT+AM mask), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 t_mask              = ''      # specify for 'UM', mask name
 t_pbmask            = 0.2     # specify for 'PM', cut-off level
 t_sidelobethreshold = 2.0     # specify for 'AM', default: 2.0 
@@ -105,6 +105,7 @@ t_lownoisethreshold = 1.5     # specify for 'AM', default: 1.5
 t_minbeamfrac       = 0.3     # specify for 'AM', default: 0.3 
 t_growiterations    = 75      # specify for 'AM', default: 75 
 t_negativethreshold = 0.0     # specify for 'AM', default: 0.0 
+fniteronusermask    = 0.3
 
 
 #### SD-INT-AM mask fine-tuning (step 1)
@@ -124,7 +125,6 @@ tclean_SDAMmask = 'INT'
 hybrid_SDAMmask = 'SD'     
 sdint_SDAMmask  = 'INT'     
 TP2VIS_SDAMmask = 'INT' 
-fniteronusermask = 0.3
 
 
 ### SDINT options (step 6)

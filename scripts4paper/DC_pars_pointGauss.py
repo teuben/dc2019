@@ -17,9 +17,9 @@ step_title = {0: 'Concat',
               }
 
 thesteps=[0,1,2,3,4,5,6,7,8]
-#thesteps=[2,6]
+#thesteps=[7]
 
-dryrun = False    # False to execute combination, True to gather filenames only
+dryrun = True    # False to execute combination, True to gather filenames only
  
 
 
@@ -98,7 +98,7 @@ t_threshold = '0.05Jy'       # 1/4 level of residual ring in sdint for mask smoo
 
 ### masking
 
-masking             = 'SD-INT-AM'    # 'UM' (user mask), 'SD-INT-AM' (SD+AM mask)), 'AM' ('auto-multithresh') or 'PB' (primary beam)
+masking             = 'SD-INT-AM'    # 'UM' (user mask), 'SD-INT-AM' (SD+INT+AM mask), 'AM' ('auto-multithresh') or 'PB' (primary beam)
 t_mask              = ''      # specify for 'UM', mask name
 t_pbmask            = 0.2     # specify for 'PM', cut-off level
 t_sidelobethreshold = 2.0     # specify for 'AM', default: 2.0 
@@ -107,6 +107,7 @@ t_lownoisethreshold = 1.5     # specify for 'AM', default: 1.5
 t_minbeamfrac       = 0.3     # specify for 'AM', default: 0.3 
 t_growiterations    = 75      # specify for 'AM', default: 75 
 t_negativethreshold = 0.0     # specify for 'AM', default: 0.0 
+fniteronusermask    = 1.0 
 
 
 #### SD-INT-AM mask fine-tuning (step 1)
@@ -126,7 +127,6 @@ tclean_SDAMmask = 'INT'
 hybrid_SDAMmask = 'INT'     
 sdint_SDAMmask  = 'INT'     
 TP2VIS_SDAMmask = 'INT'     
-fniteronusermask = 1.0 
 
 
 ### SDINT options (step 6)
@@ -164,4 +164,7 @@ mapchan = None                # cube channel (integer) of interest to use for as
 
 skymodel=a12m[0].replace('.ms','.skymodel')    # model used for simulating the observation, expected to be CASA-imported
 
-assessment_thresh = None #0.025        # default: None, format: float, translated units: Jy/bm, threshold mask to exclude low SNR pixels, if None, use rms measurement from threshold_mask for tclean (see SD-INT-AM)
+assessment_thresh = 0.01        # default: None, option: None, 'clean-thresh', or flux value(float, translated units: Jy/bm), 
+                                       # threshold mask to exclude low SNR pixels, if None, use rms measurement from threshold_mask for tclean (see SD-INT-AM)
+                                       # also used as lower flux limit for moment 0 map creation
+
