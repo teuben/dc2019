@@ -82,7 +82,7 @@ NEW:
       * create interactive user mask by executing step 2 in ``interactive='IA'`` - mode and rename the resulting <tclean-product>.mask to another name, so that it does not get erased the next time step 2 is executed.
       * execute DC_run from now on with ``masking = 'UM'`` and ``interactive = 'nIA'`` 
         (NOT YET IMPLEMENTED!: and use few 100 of cycleniter. Faint emission might require cycleniter of few tens only!)
-* Unknown issue: We had hick-ups with data concatenated in another CASA version that DC_run was executed in. We recommend that you re-do the concatenation in DC-run, if the original data sets are accessible to you. 
+* Unknown issue: We had hick-ups with data concatenated in another CASA version than DC_run was executed in. We recommend that you re-do the concatenation in DC-run, if the original data sets are accessible to you. 
 * Restarting CASA and or using a new shell can sometimes solve weird processing crashes.
       
       
