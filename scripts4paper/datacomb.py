@@ -35,12 +35,36 @@ from casatools import image  as iatool
 from casatools import quanta as qatool
 from casatools import msmetadata as msmdtool
 
+import casalith
+
 
 reload(t2v)
 
 
 
+decimal_places=6
 
+
+
+##########################################
+
+
+def get_casa_version():
+
+    """
+    determine the version of the running CASA  (Moser-Fischer, L.)
+                 
+    """
+
+    version = casalith.version_string()
+    #print ("You are using " + version)
+    #if (version < '6.1.1'):
+
+    return version
+    
+    
+    
+    
 
 ##########################################
 
@@ -180,14 +204,14 @@ def derive_maxscale(vis, restfreq=''):
     freq= float(repfreq)
     radiantoarcsec = 3600. * 180 / np.pi
     
-    mrs = round((0.983 * c / freq / p05 * radiantoarcsec),3)
+    mrs = 0.983 * c / freq / p05 * radiantoarcsec
     mrsfac=0.5
-    maxscale = round((mrs * mrsfac),3)
-    freqout=round(freq/10**9,3)
+    maxscale = mrs * mrsfac
+    freqout=freq/10**9
     
     print('')
-    print('### Maximum recoverable scale (mrs) for ' + vis + ' at', freqout ,'GHz is', mrs, 'arcsec')
-    print('### Will use', mrsfac, 'of it as maxscale, i.e.', maxscale, 'arcsec' )
+    print('### Maximum recoverable scale (mrs) for ' + vis + ' at', round(freqout,3) ,'GHz is', round(mrs,3), 'arcsec')
+    print('### Will use', mrsfac, 'of it as maxscale, i.e.', round(maxscale,3), 'arcsec' )
                   
     return maxscale
     
@@ -249,6 +273,7 @@ def check_prep_tclean_param(
                 restfreq,
                 threshold, 
                 niter,
+                cycleniter,
                 usemask,
                 sidelobethreshold,
                 noisethreshold,
@@ -289,6 +314,7 @@ def check_prep_tclean_param(
     restfreq,
     threshold, 
     niter,
+    cycleniter,
     usemask,
     sidelobethreshold,
     noisethreshold,
@@ -384,7 +410,10 @@ def check_prep_tclean_param(
     if specmode == 'mfs':
         weightingscheme ='briggs'     # cont mode 
     elif specmode == 'cube':
-        weightingscheme ='briggs'#bwtaper'   # special briggs for cubes --- WAIT FOR IMPLEMENTATION IN SDINT 
+        if get_casa_version() >= '6.2.0':
+            weightingscheme ='briggsbwtaper'   # special briggs for cubes --- CURRENTLY SWITCHED OFF FOR SDINT 
+        else:
+            weightingscheme ='briggs'#bwtaper'   # special briggs for cubes --- WAIT FOR IMPLEMENTATION IN SDINT 
 
         
 
@@ -420,6 +449,7 @@ def check_prep_tclean_param(
                    robust = 0.5,
                    restoringbeam = 'common',   # SD-cube has only one beam - INT-cube needs it, too, else feather etc. fail
                    niter=niter,
+                   cycleniter=cycleniter,
                    cyclefactor=2.0,
                    threshold=threshold,
                    interactive = interactive,
@@ -469,6 +499,7 @@ def runsdintimg(vis,
                 restfreq='',
                 threshold='', 
                 niter=0,
+                cycleniter=-1,
                 usemask= 'auto-multithresh',
                 sidelobethreshold=2.0,
                 noisethreshold=4.25,
@@ -525,7 +556,7 @@ def runsdintimg(vis,
     field - the standard selection parameter field of tclean
            default: '' i.e. all fields
     specmode - the standard tclean specmode parameter: supported are msf or cube
-           default: msf 
+           default: mfs 
     imsize - the standard tclean imsize parameter 
             should correspond to the imagesize for the most extended
             interferometer config.
@@ -546,6 +577,7 @@ def runsdintimg(vis,
     threshold - the tclean threshold     
     niter - the standard tclean niter parameter
              default: 0, example: niter=1000000
+    cycleniter -          
     usemask - the standard tclean mask parameter.  If usemask='auto-multithresh', can specify:
              sidelobethreshold, noisethreshold, lownoisethreshold, minbeamfrac, growiterations - 
              if usemask='user', must specify mask='maskname.mask' 
@@ -626,6 +658,11 @@ def runsdintimg(vis,
     mysdpsf = ''
     if sdpsf!='':
         mysdpsf = file_check(sdpsf)
+
+    if get_casa_version() >= '6.2.0': 
+        if specmode == 'mfs':
+            print('For mysterious reasons sdintimaging in CASA versions >= 6.2.0 cannot handle mfs-mode (i.e. mtmfs with nterms=1) anymore :-( Please go back to CASA 6.1.2.7.')
+            #return sys.exit()  
 
 
 
@@ -724,7 +761,7 @@ def runsdintimg(vis,
         cta.casalog.post('Needed to give the sdimage a per-channel beam. Modifed image is in '+mysdimage, 'WARN', 
                          origin='runsdintimg')
 
-
+    
     #   # specmode, deconvolver and multiscale setup
     #   if multiscale:
     #       if specmode == 'mfs':
@@ -857,6 +894,7 @@ def runsdintimg(vis,
                 restfreq,
                 threshold, 
                 niter,
+                cycleniter,
                 usemask,
                 sidelobethreshold,
                 noisethreshold,
@@ -882,6 +920,9 @@ def runsdintimg(vis,
     sdint_arg['sdgain']     =sdgain
     sdint_arg['usedata']    ='sdint'
     
+    if get_casa_version() >= '6.2.0': 
+        sdint_arg['weighting']  = 'briggs'    # switch this off as soon as 'briggsbwtaper' is implemented into sdintimaging! 
+        print('The applied weighting scheme is "briggs" and since "briggsbwtaper" is not yet implemented into sdintimaging.')
     
     if specmode == 'mfs':
         sdint_arg['deconvolver'] = 'mtmfs'
@@ -1024,6 +1065,7 @@ def runWSM(vis,
            restfreq='',
            threshold='',
            niter=0,
+           cycleniter=-1,
            usemask='auto-multithresh' ,
            sidelobethreshold=2.0,
            noisethreshold=4.25,
@@ -1091,6 +1133,7 @@ def runWSM(vis,
              default: None, example: '12mJy'
     niter - the standard tclean niter parameter
              default: 0, example: niter=1000000
+    cycleniter -          
     usemask - the standard tclean mask parameter.  If usemask='auto-multithresh', can specify:
              sidelobethreshold, noisethreshold, lownoisethreshold, minbeamfrac, growiterations - 
              if usemask='user', must specify mask='maskname.mask' 
@@ -1199,6 +1242,7 @@ def runWSM(vis,
               restfreq=restfreq,
               threshold=threshold,
               niter=niter,
+              cycleniter=cycleniter,
               usemask=usemask,
               sidelobethreshold=sidelobethreshold,  
               noisethreshold=noisethreshold,
@@ -1230,7 +1274,15 @@ def runWSM(vis,
     featherim = imname+str(sdfactorh)
     
     runfeather(intimage=highres,intpb=pb,sdimage=sdimage,sdfactor = sdfactorh, 
-               featherim=featherim)    
+               featherim=featherim) 
+      
+               
+    ### try out Faridani SSC   
+    #sscname = imname+'SSC'+str(sdfactorh)
+    #
+    #ssc(highres=highres, lowres=sdimage, pb=pb, sdfactor = sdfactorh, combined=sscname)        
+     
+                  
     return True
 
 #################################
@@ -1524,6 +1576,7 @@ def runtclean(vis,
               restfreq='',
               threshold='', 
               niter=0, 
+              cycleniter=-1,
               usemask='auto-multithresh' ,
               sidelobethreshold=2.0, 
               noisethreshold=4.25, 
@@ -1590,6 +1643,7 @@ def runtclean(vis,
              default: None, example: '12mJy'
     niter - the standard tclean niter parameter
              default: 0, example: niter=1000000
+    cycleniter -          
     usemask - the standard tclean mask parameter.  If usemask='auto-multithresh', can specify:
              sidelobethreshold, noisethreshold, lownoisethreshold, minbeamfrac, growiterations - 
              if usemask='user', must specify mask='maskname.mask' 
@@ -1757,6 +1811,7 @@ def runtclean(vis,
                 restfreq,
                 threshold, 
                 niter,
+                cycleniter,
                 usemask,
                 sidelobethreshold,
                 noisethreshold,
@@ -2454,6 +2509,23 @@ def make_SD_mask(#vis,
 
 
 
+
+
+######################################
+# 
+# def decimal_places(places=6):
+# 
+#     """
+#     decimal_places (L. Moser-Fischer)
+#     define number of places after comma up to which a float number is printed
+#     
+#     default: 6 places
+#     """
+# 
+#     return places 
+# 
+#     
+
 ######################################
 
 def derive_threshold(#vis, 
@@ -2467,6 +2539,7 @@ def derive_threshold(#vis,
                     RMSfactor = 0.5, 
                     cube_rms = 3.,   
                     cont_chans ='2~4',
+                    theoreticalRMS=False,
                     makemask=True):
 
     """
@@ -2527,6 +2600,7 @@ def derive_threshold(#vis,
             If cont_chans is set to line-free channels, this factor can be used
             to set the threshold as 3sigma, 10sigma, etc level) 
     cont_chans - define the line-free channels here to get a pure noise RMS of a cube 
+    theoreticalRMS - 
     
                                     
     Example: derive_threshold('gmc_120L.alma.all_int-weighted.ms',
@@ -2577,41 +2651,58 @@ def derive_threshold(#vis,
      
     #### continuum
     if specmode == 'mfs':
-        full_RMS = cta.imstat(imnameth+'.image', box=threshregion)['rms'][0]
-        #print('full_RMS', full_RMS)
-        #peak_val = imstat(imnameth+'.image')['max'][0]
-        thresh = full_RMS*RMSfactor
-        if threshregion == '':
-            region_string='entire image (incl emission)'
-        else:
-            region_string='region "' + threshregion +'"'
-        print('The "RMS" of the ' + region_string+ ' is', round(full_RMS,6), 'Jy')
-        #print('The "RMS" of the entire image (incl emission) is ', round(full_RMS,6), 'Jy')
-        print('You set the mask threshold to ', round(RMSfactor,6), ' times the RMS, i.e. ', round(thresh,6), 'Jy')
+        if theoreticalRMS==True:
+            sumwt = cta.imstat(imnameth+'.sumwt')['mean'][0]
+            thRMS = np.sqrt(1/sumwt)
+            thresh = thRMS*RMSfactor
+            print('The theoretical RMS is', round(thRMS,decimal_places), 'Jy')
+            #print('The "RMS" of the entire image (incl emission) is ', round(full_RMS,6), 'Jy')
+            print('You set the mask threshold to ', round(RMSfactor,decimal_places), ' times this RMS, i.e. ', round(thresh,decimal_places), 'Jy')
+    
+        else:   
+            full_RMS = cta.imstat(imnameth+'.image', box=threshregion)['rms'][0]
+            #print('full_RMS', full_RMS)
+            #peak_val = imstat(imnameth+'.image')['max'][0]
+            thresh = full_RMS*RMSfactor
+            if threshregion == '':
+                region_string='entire image (incl emission)'
+            else:
+                region_string='region "' + threshregion +'"'
+            print('The RMS of the ' + region_string+ ' is', round(full_RMS,decimal_places), 'Jy')
+            #print('The "RMS" of the entire image (incl emission) is ', round(full_RMS,6), 'Jy')
+            print('You set the mask threshold to ', round(RMSfactor,decimal_places), ' times this RMS, i.e. ', round(thresh,decimal_places), 'Jy')
     
     #### cube
     elif specmode == 'cube':
-        os.system('rm -rf '+imnameth+'.mom6')
-        cta.immoments(imagename=imnameth+'.image', moments=[6], 
-                      outfile=imnameth+'.mom6', chans=cont_chans)
-        cube_RMS = cta.imstat(imnameth+'.mom6', box=threshregion)['rms'][0]
-    
-        thresh = cube_RMS*cube_rms   # 3 sigma level
- 
-        print('The RMS of the cube (check cont_chans for emission-free channels) is ', round(cube_RMS,6), 'Jy')
-        print('You set the mask threshold to ', round(cube_rms,6), ' times the RMS, i.e. ', round(thresh,6), 'Jy')
-     
-    
-        #immmoments(imagename=imname+'_template.image', mom=[8], 
-        #           outfile=imname+'_template.mom8', chans='' )
-        #peak_val = imstat(imname+'_template.mom8')['max'][0]
+        if theoreticalRMS==True:
+            sumwt = cta.imstat(imnameth+'.sumwt', chans=cont_chans)['mean'][0]
+            thRMS = np.sqrt(1/sumwt)
+            thresh = thRMS*cube_rms
+            print('The theoretical RMS is', round(thRMS,decimal_places), 'Jy.')
+            #print('The "RMS" of the entire image (incl emission) is ', round(full_RMS,6), 'Jy')
+            print('You set the mask threshold to ', round(cube_rms,decimal_places), ' times this RMS, i.e. ', round(thresh,decimal_places), 'Jy.')
+        else:   
+            os.system('rm -rf '+imnameth+'.mom6')
+            cta.immoments(imagename=imnameth+'.image', moments=[6], 
+                          outfile=imnameth+'.mom6', chans=cont_chans)
+            cube_RMS = cta.imstat(imnameth+'.mom6', box=threshregion)['rms'][0]
+            
+            thresh = cube_RMS*cube_rms   # 3 sigma level
+            
+            print('The RMS of the cube (check cont_chans for emission-free channels) is ', round(cube_RMS,decimal_places), 'Jy.')
+            print('You set the mask threshold to ', round(cube_rms,decimal_places), ' times the RMS, i.e. ', round(thresh,decimal_places), 'Jy.')
+            
+            
+            #immmoments(imagename=imname+'_template.image', mom=[8], 
+            #           outfile=imname+'_template.mom8', chans='' )
+            #peak_val = imstat(imname+'_template.mom8')['max'][0]
     
     #print(full_RMS)
     #print(peak_val)
     
 
     if makemask == True:
-        print('Creating a mask from threshold of', round(thresh,6), 'Jy with a smoothing of', smoothing)
+        print('Creating a mask from threshold of', round(thresh,decimal_places), 'Jy with a smoothing of', smoothing)
 
         threshmask1 = threshmask+'_1.mask'
         os.system('rm -rf '+threshmask+'*.mask')     
@@ -2645,14 +2736,22 @@ def derive_threshold(#vis,
         BeamMin = cta.imhead(imnameth+'.image', mode='get', hdkey='bmin')['value']
         BeamPA  = cta.imhead(imnameth+'.image', mode='get', hdkey='bpa' )['value']
         
+        BeamAvg = np.sqrt(BeamMaj * BeamMin)
+        
+        print('Beam major axis is', round(BeamMaj, 6), 'arcsec')
+        print('Beam minor axis is', round(BeamMin, 6), 'arcsec')
+        print('Use a geometric average for smoothing of', round(BeamAvg, 6), 'arcsec')
         
         
         cta.imsmooth(imagename = threshmask1,
                      kernel    = 'gauss',               
                      targetres = False,                                                             
-                     major     = str(convfactor*round(BeamMaj, 6))+'arcsec',                                                     
-                     minor     = str(convfactor*round(BeamMin, 6))+'arcsec',    
-                     pa        = str(round(BeamPA, 3))+'deg',                                       
+                     #major     = str(convfactor*round(BeamMaj, 6))+'arcsec',                                                     
+                     #minor     = str(convfactor*round(BeamMin, 6))+'arcsec',    
+                     #pa        = str(round(BeamPA, 3))+'deg',                                       
+                     major     = str(convfactor*round(BeamAvg, 6))+'arcsec',                                                     
+                     minor     = str(convfactor*round(BeamAvg, 6))+'arcsec',    
+                     pa        = '0.0deg',  
                      outfile   = threshmaskconv,            
                      overwrite = True)                 
         
@@ -2679,6 +2778,7 @@ def make_masks_and_thresh(imnameth, threshmask,
                     RMSfactor = 0.5, 
                     cube_rms = 3.,   
                     cont_chans ='2~4',
+                    theoreticalRMS=False,
                     makemask=True
                     ):
     """
@@ -2714,6 +2814,7 @@ def make_masks_and_thresh(imnameth, threshmask,
                                  RMSfactor = RMSfactor,
                                  cube_rms   = cube_rms,    
                                  cont_chans = cont_chans,
+                                 theoreticalRMS=theoreticalRMS,
                                  makemask=True) #, 
                                  #**mask_tclean_param) 
                       
@@ -3265,10 +3366,12 @@ def create_TP2VIS_ms(imTP=None, TPresult=None,
         #peak_val = imstat(imnameth+'.image')['max'][0]
         #thresh = full_RMS*RMSfactor
         rms = cont_RMS
-        
-        #t2v.tp2vis(imTP,TPresult,TPpointinglist,nvgrp=5,rms=rms)# winpix=3)  # in CASA 6.x
-        print('Deriving TP.ms from deconvolved image')        
-        t2v.tp2vis(imTP,TPresult,TPpointinglist,deconv=True,maxuv=10,nvgrp=4)
+ 
+        print('Deriving TP.ms using image rms')
+        print('rms in image:', rms) 
+        t2v.tp2vis(imTP,TPresult,TPpointinglist,nvgrp=5,rms=rms)# winpix=3)  # in CASA 6.x
+        #print('Deriving TP.ms from deconvolved image')        
+        #t2v.tp2vis(imTP,TPresult,TPpointinglist,deconv=True,maxuv=10,nvgrp=4)
 
 
   
@@ -3444,6 +3547,7 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
     restfreq='',
     threshold='', 
     niter=0, 
+    cycleniter=-1,
     usemask='auto-multithresh' ,
     sidelobethreshold=2.0, 
     noisethreshold=4.25, 
@@ -3460,6 +3564,7 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
     threshregion='',
     cube_rms=3.0,
     cont_chans ='2~4',
+    theoreticalRMS=False,
     loadmask=False,
     fniteronusermask=0.3,
     rederivethresh=True
@@ -3571,6 +3676,7 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
                   restfreq=restfreq,
                   threshold=threshold,
                   niter=0,
+                  cycleniter=cycleniter,
                   usemask=usemask,
                   sidelobethreshold=sidelobethreshold,  
                   noisethreshold=noisethreshold,
@@ -3602,24 +3708,51 @@ def runtclean_TP2VIS_INT(TPresult, TPfac,
         
         #### continuum
         if specmode == 'mfs':
-            cont_RMS = cta.imstat(TPINTim, box=threshregion)['rms'][0]
-            #peak_val = imstat(imnameth+'.image')['max'][0]
-            #thresh = full_RMS*RMSfactor
-            thresh = cont_RMS*RMSfactor
+            if theoreticalRMS==True:
+                TPINTsumwt=TPINTim.replace('.image','.sumwt')
+                sumwt = cta.imstat(TPINTsumwt)['mean'][0]
+                thRMS = np.sqrt(1/sumwt)
+                thresh = thRMS*RMSfactor
+                print('The theoretical RMS is', round(thRMS,decimal_places), 'Jy')
+                #print('The "RMS" of the entire image (incl emission) is ', round(full_RMS,6), 'Jy')
+                print('You set the threshold to ', round(RMSfactor,decimal_places), ' times this RMS, i.e. ', round(thresh,decimal_places), 'Jy')
+            else:   
+                cont_RMS = cta.imstat(TPINTim, box=threshregion)['rms'][0]
+                #print('full_RMS', full_RMS)
+                #peak_val = imstat(imnameth+'.image')['max'][0]
+                thresh = cont_RMS*RMSfactor
+                if threshregion == '':
+                    region_string='entire image (incl emission)'
+                else:
+                    region_string='region "' + threshregion +'"'
+                print('The RMS of the ' + region_string+ ' is', round(cont_RMS,decimal_places), 'Jy')
+                #print('The "RMS" of the entire image (incl emission) is ', round(full_RMS,6), 'Jy')
+                print('You set the threshold to ', round(RMSfactor,decimal_places), ' times this RMS, i.e. ', round(thresh,decimal_places), 'Jy')
+    
         
         
         #### cube
         elif specmode == 'cube':
-            TPINTmom6=TPINTim.replace('.image','.mom6')
-            os.system('rm -rf '+TPINTmom6)
-            cta.immoments(imagename=TPINTim, moments=[6], 
-                          outfile=TPINTmom6, chans=cont_chans)
-            cube_RMS = cta.imstat(TPINTmom6, box=threshregion)['rms'][0]
-            thresh = cube_RMS*cube_rms
-        
-            #thresh = cube_RMS*cube_rms   # 3 sigma level
-        
-        
+            if theoreticalRMS==True:
+                TPINTsumwt=TPINTim.replace('.image','.sumwt')
+                sumwt = cta.imstat(TPINTsumwt, chans=cont_chans)['mean'][0]
+                thRMS = np.sqrt(1/sumwt)
+                thresh = thRMS*cube_rms
+                print('The theoretical RMS is', round(thRMS,decimal_places), 'Jy')
+                #print('The "RMS" of the entire image (incl emission) is ', round(full_RMS,6), 'Jy')
+                print('You set the mask threshold to ', round(cube_rms,decimal_places), ' times this RMS, i.e. ', round(thresh,decimal_places), 'Jy')
+            else:   
+                TPINTmom6=TPINTim.replace('.image','.mom6')
+                os.system('rm -rf '+TPINTmom6)
+                cta.immoments(imagename=TPINTim, moments=[6], 
+                              outfile=TPINTmom6, chans=cont_chans)
+                cube_RMS = cta.imstat(TPINTmom6, box=threshregion)['rms'][0]
+                
+                thresh = cube_RMS*cube_rms   # 3 sigma level
+                
+                print('The RMS of the cube (check cont_chans for emission-free channels) is ', round(cube_RMS,decimal_places), 'Jy')
+                print('You set the threshold to ', round(cube_rms,decimal_places), ' times the RMS, i.e. ', round(thresh,decimal_places), 'Jy')
+                    
         
         
         # make clean image for the given niter

@@ -36,6 +36,8 @@ reload(iqa)
 import time
 start = time.time()
 
+decimal_places=6
+
 
 ### Tidy up old left-overs from previous runs 
 # switch this off, if you run multiple casa instances/DC_runs in the 
@@ -57,6 +59,24 @@ for mystep in thesteps:
     
 print('### ')
 print(' ')
+
+
+
+print(' ')
+print('### ')
+version = dc.get_casa_version()
+print('You are running CASA version', version, '.')
+if (2 in thesteps) or (5 in thesteps) or (6 in thesteps) or (7 in thesteps):
+    if version < '6.2.0':
+        print('All cleans are done with briggs weighting.')
+    if version >= '6.2.0':
+        print('All cubes are cleaned with briggsbwtaper weighting, except from sdintimaging (step 6, briggs weighting).')
+        print('All mfs images are cleaned with briggs weighting.')
+        print('sdintimaging does not offer mfs-mode in CASA >= 6.2.0')
+#print('### ')
+print('### ')
+print(' ')
+
 
 
 
@@ -93,7 +113,8 @@ else:
 ### set up tclean parameter dictionary 
 general_tclean_param = dict(#overwrite  = overwrite,
                            specmode    = mode,             
-                           niter       = nit,            
+                           niter       = nit,     
+                           cycleniter  = t_cycleniter,       
                            spw         = t_spw,  
                            field       = t_field, 
                            imsize      = t_imsize,     
@@ -318,6 +339,7 @@ else: #if imnameth/tcleanname + '.image' exists, simply re-derive the mask etc.
                                  RMSfactor = RMSfactor,
                                  cube_rms   = cube_rms,    
                                  cont_chans = cont_chans,
+                                 theoreticalRMS=theoreticalRMS,
                                  makemask=True
                                  )        
 
@@ -327,7 +349,7 @@ else: #if imnameth/tcleanname + '.image' exists, simply re-derive the mask etc.
         rederivethresh=True  # TP2VIS parameter 
         general_tclean_param['threshold']  = str(thresh)+'Jy' 
         #print('### Use mask threshold as clean threshold ', general_tclean_param['threshold']) 
-        print('### Use INT mask threshold as clean threshold ', general_tclean_param['threshold'])          
+        print('### Use INT mask threshold as clean threshold ', round(thresh, decimal_places), 'Jy' )          
     else:
         rederivethresh=False  # TP2VIS parameter 
         print('### Use user-defined clean threshold ', general_tclean_param['threshold'])          
@@ -370,10 +392,10 @@ if mystep in thesteps:
     cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     cta.casalog.post('### ','INFO')
     print(' ')    
-    print('### ')
+    print('### ------------------------------------------------')
     print('Step ', mystep, step_title[mystep])
 
-    print('### ')
+    print('### ------------------------------------------------')
     print(' ')
 
 
@@ -430,9 +452,9 @@ if mystep in thesteps:
     cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     cta.casalog.post('### ','INFO')
     print(' ')    
-    print('### ')
+    print('### ------------------------------------------------')
     print('Step ', mystep, step_title[mystep])
-    print('### ')
+    print('### ------------------------------------------------')
     print(' ')
 
     if dryrun == True:
@@ -508,6 +530,7 @@ if mystep in thesteps:
                                      RMSfactor = RMSfactor,
                                      cube_rms   = cube_rms,    
                                      cont_chans = cont_chans,
+                                     theoreticalRMS=theoreticalRMS,
                                      makemask=True
                                      )
                                       
@@ -520,7 +543,7 @@ if mystep in thesteps:
             rederivethresh=True  # TP2VIS parameter 
             #userthresh=False    ### parameter gone?
             general_tclean_param['threshold']  = str(thresh)+'Jy' 
-            print('### Use INT mask threshold as clean threshold ', general_tclean_param['threshold'])          
+            print('### Use INT mask threshold as clean threshold ', round(thresh, decimal_places), 'Jy' )          
             #print('Set the tclean-threshold to ', general_tclean_param['threshold'])
         else:
             rederivethresh=False  # TP2VIS parameter 
@@ -536,9 +559,9 @@ if mystep in thesteps:
     cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     cta.casalog.post('### ','INFO')
     print(' ')
-    print('### ')
+    print('### ------------------------------------------------')
     print('Step ', mystep, step_title[mystep])
-    print('### ')
+    print('### ------------------------------------------------')
     print(' ')
     
 
@@ -570,6 +593,7 @@ if mystep in thesteps:
                                      RMSfactor = RMSfactor,
                                      cube_rms   = cube_rms,    
                                      cont_chans = cont_chans,
+                                     theoreticalRMS=theoreticalRMS,
                                      makemask=True
                                      )
 
@@ -579,7 +603,7 @@ if mystep in thesteps:
             rederivethresh=True  # TP2VIS parameter 
             #userthresh=False    ### parameter gone?
             general_tclean_param['threshold']  = str(thresh)+'Jy' 
-            print('### Use INT mask threshold as clean threshold ', general_tclean_param['threshold'])          
+            print('### Use INT mask threshold as clean threshold ', round(thresh, decimal_places), 'Jy' )          
             #print('Set the tclean-threshold to ', general_tclean_param['threshold'])
         else:
             rederivethresh=False  # TP2VIS parameter 
@@ -601,9 +625,9 @@ if mystep in thesteps:
     cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     cta.casalog.post('### ','INFO')
     print(' ')
-    print('### ')
+    print('### ------------------------------------------------')
     print('Step ', mystep, step_title[mystep])
-    print('### ')
+    print('### ------------------------------------------------')
     print(' ')
 
 
@@ -633,9 +657,9 @@ if mystep in thesteps:
     cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     cta.casalog.post('### ','INFO')
     print(' ')
-    print('### ')
+    print('### ------------------------------------------------')
     print('Step ', mystep, step_title[mystep])
-    print('### ')
+    print('### ------------------------------------------------')
     print(' ')
 
 
@@ -666,9 +690,9 @@ if mystep in thesteps:
     cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     cta.casalog.post('### ','INFO')
     print(' ')
-    print('### ')
+    print('### ------------------------------------------------')
     print('Step ', mystep, step_title[mystep])
-    print('### ')
+    print('### ------------------------------------------------')
     print(' ')
 
 
@@ -697,9 +721,9 @@ if mystep in thesteps:
     cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     cta.casalog.post('### ','INFO')
     print(' ')
-    print('### ')
+    print('### ------------------------------------------------')
     print('Step ', mystep, step_title[mystep])
-    print('### ')
+    print('### ------------------------------------------------')
     print(' ')
     
     
@@ -731,9 +755,9 @@ if mystep in thesteps:
     cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     cta.casalog.post('### ','INFO')
     print(' ')
-    print('### ')
+    print('### ------------------------------------------------')
     print('Step ', mystep, step_title[mystep])
-    print('### ')
+    print('### ------------------------------------------------')
     print(' ')
 
 
@@ -798,8 +822,8 @@ if mystep in thesteps:
         else:
             dc.runtclean_TP2VIS_INT(TPresult, TPfac[i], vis, imname,
                                     RMSfactor=RMSfactor, threshregion=threshregion,
-                                    cube_rms=cube_rms, 
-                                    cont_chans = cont_chans, **z)   
+                                    cube_rms=cube_rms, cont_chans = cont_chans, 
+                                    theoreticalRMS=theoreticalRMS, **z)   
 
         if os.path.exists(imname+'.tweak.image'):
             TP2VISims.append(imname+'.tweak.image')
@@ -816,9 +840,9 @@ if mystep in thesteps:
     cta.casalog.post('Step '+str(mystep)+' '+step_title[mystep],'INFO')
     cta.casalog.post('### ','INFO')
     print(' ')
-    print('### ')
+    print('### ------------------------------------------------')
     print('Step ', mystep, step_title[mystep])
-    print('### ')
+    print('### ------------------------------------------------')
     print(' ')
 
 
@@ -829,18 +853,18 @@ if mystep in thesteps:
             image_rms = thresh/cube_rms #*3.     # 3 sigma limit
         if mode=='mfs':
             image_rms = thresh/RMSfactor #*3.    # 3 sigma limit
-        clip_string = 'Clipping maps at rms level of %.6f Jy/beam' %image_rms                                             
+        clip_string = 'Clipping maps at rms level of '+str(round(image_rms,decimal_places))+ ' Jy/beam'                                             
     elif assessment_thresh == 'clean-thresh':
         image_rms = float(general_tclean_param['threshold'].replace('Jy',''))
-        clip_string = 'Clipping maps at clean threshold level of %.6f Jy/beam' %image_rms   
+        clip_string = 'Clipping maps at clean threshold level of '+str(round(image_rms,decimal_places))+ ' Jy/beam' 
     else:
         image_rms = assessment_thresh
-        clip_string = 'Clipping maps at user-defined level of %.6f Jy/beam' %image_rms   
+        clip_string = 'Clipping maps at user-defined level of '+str(round(image_rms,decimal_places))+ ' Jy/beam'
 
     
 
     print('###')    
-    print('### Assessment:', clip_string)       
+    print('### Assessment: '+clip_string)       
     #print('### Clipping level for the assessment of the maps was at %.6f Jy/beam' %image_rms)       
     print('###') 
     print('') 
@@ -1118,7 +1142,10 @@ if mystep in thesteps:
                                   titlename='Combined maps in moment 0 from the chosen \n  combination methods for '+sourcename+cleansetup+'_'+str(i)
                               )    
 
-        image_rms = 10.*imrms_mom0min   # use minimum value of moment 0 map of image_rms-clipped cube as new mask threshold
+        #image_rms = 10.*imrms_mom0min   # use minimum value of moment 0 map of image_rms-clipped cube as new mask threshold
+        
+        nchans4mom0=int(momchans.split('~')[1])-int(momchans.split('~')[0])  
+        image_rms = 10.* np.sqrt(float(nchans4mom0)) * image_rms   # use old image_rms threshold + error porpagation times an arbitry factor (10.)
         iqa.get_IQA(ref_image = sdroregrid, target_image=allcombims, 
                      pb_image=allcombpbs[0]+'.chan'+str(midchan), masking_RMS=image_rms, 
                      target_beam_index=0) #, pbval=pbval)
@@ -1559,15 +1586,16 @@ if mystep in thesteps:
         ##### !!!needs SD-fitsfile ----> to create in step 1 !!!!
         
     print('###')    
-    print('### Assessment:', clip_string)
-    print('### Clean threshold was', general_tclean_param['threshold'])       
-    print('### Mom0-Assessment cut-off', imrms_mom0min)
+    print('### Assessment: ' +clip_string)
+    print('### Clean threshold was', general_tclean_param['threshold'])
+    if mode=='cube':   
+        print('### Mom0-Assessment cut-off', image_rms)  #NOTE: not the initial input but rederived for mom0!
     #print('### Clipping level for the assessment of the maps was at %.6f Jy/beam' %image_rms)       
     print('###')    
     
     
 
-    
+
     
     
     
