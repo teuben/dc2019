@@ -147,12 +147,12 @@ DC_run.py will create shapes of size 0 (point source), 1 arcsec, 3 arcsec, and 9
 
 
 ### user interaction and iterations and threshold
-With the parameter ``inter`` the user can choose between interactive (``IA``) and non-interactive (``nIA``) clean. The number of clean iterations to be executed is set under ``nit``. The clean threshold ``t_threshold`` steers the depth of the clean, i.e. tclean stops at this peak flux level in the residual image.
+With the parameter ``inter`` the user can choose between interactive (``IA``) and non-interactive (``nIA``) clean. The number of clean iterations to be executed is set under ``nit``. With ``t_cycleniter`` the number of minor cycle iterations before a major cycle is triggered can be restricted. For the default value of -1, CASA determines the cycleniter which is usually sufficient. The case of a poor PSF can require cycleniter of e.g. a few 10s (low SNR) to ~ 1000 (high SNR) to avoid the divergence of the clean process. The clean threshold ``t_threshold`` steers the depth of the clean, i.e. tclean stops at this peak flux level in the residual image.
 
       inter       = 'nIA'      # interactive ('IA') or non-interactive ('nIA')
       nit         = 1000000    #      
+      t_cycleniter= -1         # number of minor cycle iterations before major cycle is triggered. default: -1 (CASA determined - usually sufficient), poor PSF: few 10s (low SNR) to ~ 1000 (high SNR)
       t_threshold = ''         # e.g. '0.1mJy', can be left blank -> DC_run will estimate from SD-INT-AM mask for all other masking modes, too
-
 
 
 ### masking
@@ -191,6 +191,7 @@ With the ``SD-INT-AM`` mask the bulk of the prominent emission can be extracted 
 
 Generating a common mask from an interferometric and/or SD image mask at an user defined threshold (``masking  = 'SD-INT-AM'``) requires additional input:
 
+       theoreticalRMS = False  # use the theoretical RMS from the template image's 'sumwt', instead of measuring the RMS in a threshregion and cont_chans range of a template image
        smoothing    = 5    # smoothing of the threshold mask (by 'smoothing x beam')
        threshregion = '150,200,150,200'  # emission free region in template continuum or cube image
        RMSfactor    = 0.5  # continuum rms level (if threshregion not defined: noise  is not from emission-free regions but entire image)
@@ -210,12 +211,14 @@ This step regrids the SD and creates a dirty image of the ``vis`` with the basic
       sdroregrid      = sdbase +'.SD_ro-rg_'+specsetup+'.image'          # INTpar case
 
 and find a suitable emission free region (continuum) or channel range (cube) in e.g. the CASA viewer (setting a box/region in the image in the CASA viewer gives you the rms therein in the region panel of the viewer). Define these in the ``threshregion`` and ``cont_chans``, respectively. Sometimes, there are no fully emission-free channels on a cube, so that one needs to select a range of the weakest emission channels and a region that is emission-free for all these selected channels. For fully emission-free channels, set ``threshregion = ''``.
-Then, play with the image contours and their flux levels to find a good cut-off threshold for creating the clean mask. This flux value of the interferometric image is parametrised in DC_run.py as ``RMSfactor`` * RMS measured in the user defined threshregion in the continuum image or as ``cube_rms`` * RMS measured in the user defined cont_chans (and threshregion, if needed) in the cube image. If the image contains no reliably emission-free region, use the entire image ``threshregion = ''`` and note that the measured RMS is not the true RMS of the image. 
+Then, play with the image contours and their flux levels to find a good cut-off threshold for creating the clean mask. This flux value of the interferometric image is parametrised in DC_run.py as ``RMSfactor`` * RMS measured in the user defined threshregion in the continuum image or as ``cube_rms`` * RMS measured in the user defined cont_chans (and threshregion, if needed) in the cube image. If the image contains no reliably emission-free region, you can either use the entire image ``threshregion = ''`` and note that the measured RMS is not the true RMS of the image, or use the theoretical RMS defined by the uv-coverage by setting ``theoreticalRMS = True``. This RMS is derived from the '*.sumwt'-image generated during imaging and can be understood as a lower limit of the RMS. The RMS in the actual image is often higher due to e.g. an imperfect calibration.
+
+
 The resulting threshold-clipped mask is smoothed by the ``smoothing``-factor times the interferometric beam.
 
 The flux threshold for a single dish image based mask is given by the ``sdmasklevel`` times the SD image peak flux.
 
-NEW: Having the parameters set, a second execution of step 1 is not necessary, because the threshold and masks are recalculated for any changes in the mask fine-tuning parameters at the beginning of each DC_run execution. In fact, when step 2 (ordinary tclean) has been executed, the tclean-product will be used as a templete for threshold and mask generation instead - under the assumption that the strongest sidelobes have been removed by cleaning and therefore yielding a more accurate representation of the actual brightness distribution.
+NEW: Having the parameters set, a second execution of step 1 is not necessary, because the threshold and masks are recalculated for any changes in the mask fine-tuning parameters at the beginning of each DC_run execution. In fact, when step 2 (ordinary tclean) has been executed, the tclean-product will be used as a templete for threshold and mask generation instead - under the assumption that the strongest sidelobes have been removed by cleaning and therefore yielding a more accurate representation of the actual brightness distribution. If the clean in step 2 diverged, delete the corresponding image product so that DC_run will use the dirty image from step 1 as a template.
 
 Nevertheless, the updated *pars*-file needs to be executed before DC_run, else your new SD_INT_AM parameter are not implemented.
 

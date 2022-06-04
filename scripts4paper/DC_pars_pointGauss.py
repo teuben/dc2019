@@ -17,9 +17,8 @@ step_title = {0: 'Concat',
               }
 
 thesteps=[0,1,2,3,4,5,6,7,8]
-#thesteps=[7]
 
-dryrun = True    # False to execute combination, True to gather filenames only
+dryrun = False    # False to execute combination, True to gather filenames only
  
 
 
@@ -93,8 +92,10 @@ t_maxscale = -1               # for 'MS': number for largest scale size ('arcsec
 
 inter       = 'nIA'           # interactive ('IA') or non-interactive ('nIA')
 nit         = 10000000        # number of iterations
+t_cycleniter= -1              # number of minor cycle iterations before major cycle is triggered. default: -1 (CASA determined - usually sufficient), poor PSF: few 10s (low SNR) to ~ 1000 (high SNR)
 #t_threshold = '0.005Jy'       # = 7*5*RMS in box from step 1 - but make mask at another level i.e. RMSfactor 1500 
-t_threshold = '0.05Jy'       # 1/4 level of residual ring in sdint for mask smooth 20
+#t_threshold = '0.05Jy'       # 1/4 level of residual ring in sdint for mask smooth 20
+t_threshold = '0.02Jy'       # 1/4 level of residual ring in sdint for mask smooth 20
 
 ### masking
 
@@ -112,6 +113,7 @@ fniteronusermask    = 1.0
 
 #### SD-INT-AM mask fine-tuning (step 1)
 
+theoreticalRMS = False        # use the theoretical RMS from the template image's 'sumwt', instead of measuring the RMS in a threshregion and cont_chans range of a template image
 smoothing    = 20. #15.  25.=> clean diverges              # smoothing of the threshold mask (by 'smoothing x beam')
 threshregion = '924,48,1111,169' # emission free region in template continuum or channel image
 RMSfactor    = 1500.0            # continuum rms level (not noise from emission-free regions but entire image)
