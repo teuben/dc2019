@@ -6,6 +6,8 @@ workshop. We planned to have all scripts, code, documentation, and presentations
 but our data are typically large and we will supply URLs from where you can download them
 from. Some scripts were taking from other projects, and may not be maintained here so well.
 
+A conference summary is being prepared, which is accompanied by [script4paper](scripts4paper/README.md) (eventually those will be located in a different github repo).
+
 ## Combination Techniques
 
 We will probably try out a few techniques:
