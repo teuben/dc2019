@@ -630,12 +630,14 @@ if mystep in thesteps:
     print('### ------------------------------------------------')
     print(' ')
 
-
+    #intimage='/data/moser/data_combi/DC/DC_Ly_tests//pointGauss/BGauss_3L.image_ro_reg'
+    #intpb='/data/moser/data_combi/DC/DC_Ly_tests//pointGauss/BGauss_3L.pb_ro_reg'
     intimage = imbase + cleansetup + tcleansetup + '.image'
     intpb    = imbase + cleansetup + tcleansetup + '.pb'
     
     for i in range(0,len(sdfac)):
         
+        #imname = '/data/moser/data_combi/DC/DC_Ly_tests//pointGauss/BGauss_3L' + feathersetup + str(sdfac[i]) 
         imname = imbase + cleansetup + feathersetup + str(sdfac[i]) 
                     
         if dryrun == True:
@@ -663,10 +665,13 @@ if mystep in thesteps:
     print(' ')
 
 
+    #intimage='/data/moser/data_combi/DC/DC_Ly_tests//pointGauss/BGauss_3L.image_ro_reg'
+    #intpb='/data/moser/data_combi/DC/DC_Ly_tests//pointGauss/BGauss_3L.pb_ro_reg'
     intimage = imbase + cleansetup + tcleansetup + '.image'
     intpb    = imbase + cleansetup + tcleansetup + '.pb'
 
     for i in range(0,len(SSCfac)):
+        #imname = '/data/moser/data_combi/DC/DC_Ly_tests//pointGauss/BGauss_3L'  + SSCsetup + str(SSCfac[i]) 
         imname = imbase + cleansetup + SSCsetup + str(SSCfac[i]) 
         
         if dryrun == True:
@@ -878,7 +883,7 @@ if mystep in thesteps:
 
 
     ########## list residuals, threshold and stopping criteria ############
-
+    
     tcleanres = []
     hybridres = []
     sdintres  = []
@@ -889,16 +894,16 @@ if mystep in thesteps:
     if 5 in thesteps: hybridres = [imbase + cleansetup + hybridsetup + '.image']
     if 6 in thesteps: sdintres  = sdintims                                    
     if 7 in thesteps: TP2VISres = TP2VISims                                   
-
+    
     allcombires=tcleanres + hybridres + sdintres + TP2VISres
-
+    
     allcombires = [a.replace('.tweak','') for a in allcombires]
     allcombires = [a.replace('.image','.residual') for a in allcombires]
     allcombimask = [a.replace('.residual','.mask') for a in allcombires]
     allcombitxt = [a.replace('.residual', '') for a in allcombires]
     #print(allcombimask)
     #print(allcombires[0])
-
+    
     stop_crit=[]
     cleanthresh=[]
     cleaniterdone = []
@@ -932,7 +937,7 @@ if mystep in thesteps:
         #labelnames
         allcombireslabel = [a.replace(pathtoimage+sourcename+cleansetup+'.','') for a in allcombitxt]
         
- 
+    
         iqa.show_residual_maps(allcombires, allcombimask,
                               channel=mapchan, 
                               save=True, 
@@ -942,9 +947,12 @@ if mystep in thesteps:
                               stop_crit=stop_crit,
                               cleanthresh=cleanthresh,
                               cleaniterdone=cleaniterdone)                                    
-
-
-
+    
+    
+    
+    #tcleanims = ['/data/moser/data_combi/DC/DC_Ly_tests//pointGauss/BGauss_3L.image']
+    #featherims = ['/data/moser/data_combi/DC/DC_Ly_tests//pointGauss/BGauss_3L.feather_f1.0.image']
+    #SSCims = ['/data/moser/data_combi/DC/DC_Ly_tests//pointGauss/BGauss_3L.SSC_f1.0.image']
 
 
     
@@ -1001,9 +1009,15 @@ if mystep in thesteps:
     #print('combitoploti', combitoploti)
     #print('labeltoploti', labeltoploti)
  
+ 
+    if mapchan==None:
+        chan=0
+    else:
+        chan = mapchan  
+        
     for i in range(0,len(combitoploti)):
         iqa.show_combi_maps(combitoploti[i], #allcombimask,
-                              channel=mapchan, 
+                              channel=chan, 
                               save=True, 
                               plotname=assessment+'/Combined_maps_'+sourcename+cleansetup+steplist+'_'+str(i), 
                               labelname=labeltoploti[i],
@@ -1371,7 +1385,8 @@ if mystep in thesteps:
         
         for i in range(0,len(combitoploti)):
             iqa.show_combi_maps(combitoploti[i], #allcombimask,
-                                  channel=mapchan, 
+                                  #channel=mapchan, 
+                                  channel=chan, 
                                   save=True, 
                                   plotname=assessment+'/Combined_maps_'+sourcename+cleansetup+steplist+'_model_'+str(i), 
                                   labelname=labeltoploti[i],
