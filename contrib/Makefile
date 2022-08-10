@@ -1,6 +1,14 @@
 # various python and casa things
 #
 
+
+#  do we need to deal with moment maps?
+
+URL1  = https://github.com/teuben/maskmoment
+URL2  = https://github.com/richteague/bettermoments
+URL3  = sofia/sofia2
+
+
 # the ones likely we use at DC2019
 ALL = uvcombine turbustat QAC WidebandSDINT
 
@@ -97,3 +105,4 @@ wsclean:
 
 J-comb:
 	git clone https://github.com/SihanJiao/J-comb
+
