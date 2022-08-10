@@ -94,3 +94,6 @@ resolve:
 
 wsclean:
 	git clone https://gitlab.com/aroffringa/wsclean
+
+J-comb:
+	git clone https://github.com/SihanJiao/J-comb
