@@ -31,6 +31,8 @@ We should have PDF's of the following papers
 
 * Kurono et al. 2009 https://ui.adsabs.harvard.edu/abs/2009PASJ...61..873K/abstract *A Study of Combining Technique of Single-Dish and Interferometer Data: Imaging Simulations and Analysis*
 
+* Holdaway 1999 https://adsabs.harvard.edu/full/1999ASPC..180..401H *Mosaicing with Interferometric Arrays (Synthesis Imaging in Radio Astronomy II, A Collection of Lectures from the Sixth NRAO/NMIMT Synthesis Imaging Summer School. )*
+
 * ALMA cycle 7 technical handbook (version 1.1)
 
 
