@@ -29,6 +29,8 @@ We should have PDF's of the following papers
 
 * Stanimirovic 2002 http://articles.adsabs.harvard.edu/pdf/2002ASPC..278..375S *Short-Spacings Correction from the Single-Dish Perspective*
 
+* Kurono et al. 2009 https://ui.adsabs.harvard.edu/abs/2009PASJ...61..873K/abstract *A Study of Combining Technique of Single-Dish and Interferometer Data: Imaging Simulations and Analysis*
+
 * ALMA cycle 7 technical handbook (version 1.1)
 
 
