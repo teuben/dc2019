@@ -53,3 +53,7 @@ of space you will need for the experiments, and/or bring your own spare external
 ## Installation
 
 See the [INSTALL](INSTALL) file for some current guidelines.
+
+## Paper
+
+Starting at the tag "draft1" we have moved the "scripts4paper" to a fresh github repo called DataComb
